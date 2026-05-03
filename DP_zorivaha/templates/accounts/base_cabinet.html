@@ -1,0 +1,340 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+  :root {
+    --cab-sidebar-w: 260px;
+    --cab-accent:    #ff8e3c;
+    --cab-bg:        #eff0f3;
+    --cab-card:      #ffffff;
+    --cab-border:    rgba(13,13,13,.08);
+    --cab-text:      #0d0d0d;
+    --cab-muted:     rgba(13,13,13,.5);
+    --cab-faint:     rgba(13,13,13,.35);
+    --gold:          #ff8e3c;
+  }
+
+  .cabinet-layout {
+    display: flex;
+    min-height: calc(100vh - 80px);
+    background: var(--cab-bg);
+  }
+
+  /* ── Sidebar ── */
+  .cabinet-sidebar {
+    width: var(--cab-sidebar-w);
+    background: var(--cab-card);
+    border-right: 1px solid var(--cab-border);
+    padding: 1.5rem 0;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    box-shadow: 2px 0 12px rgba(13,13,13,.04);
+  }
+
+  .sidebar-user {
+    padding: 0 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--cab-border);
+    margin-bottom: 1rem;
+  }
+  .sidebar-avatar {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: linear-gradient(135deg, #ff8e3c, #d9376e);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; font-weight: 700; color: #0d0d0d;
+    margin-bottom: .75rem; overflow: hidden; flex-shrink: 0;
+  }
+  .sidebar-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .sidebar-name { font-weight: 600; color: var(--cab-text); font-size: .9rem; line-height: 1.3; }
+  .sidebar-role { font-size: .75rem; color: var(--cab-accent); margin-top: .15rem; }
+
+  .sidebar-nav { list-style: none; padding: 0; margin: 0; }
+  .sidebar-nav li a {
+    display: flex; align-items: center; gap: .65rem;
+    padding: .65rem 1.25rem;
+    color: var(--cab-muted);
+    text-decoration: none; font-size: .875rem;
+    transition: color .2s, background .2s;
+    border-left: 3px solid transparent;
+  }
+  .sidebar-nav li a:hover {
+    color: var(--cab-text);
+    background: rgba(13,13,13,.04);
+  }
+  .sidebar-nav li a.active {
+    color: var(--cab-accent);
+    background: rgba(255,142,60,.08);
+    border-left-color: var(--cab-accent);
+  }
+  .sidebar-nav li a i { font-size: 1rem; width: 18px; text-align: center; }
+
+  .sidebar-divider { height: 1px; background: var(--cab-border); margin: .75rem 1.25rem; }
+
+  /* ── Main ── */
+  .cabinet-main { flex: 1; padding: 2rem; min-width: 0; }
+
+  .cabinet-page-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem; color: var(--cab-text); margin-bottom: .35rem;
+  }
+  .cabinet-page-subtitle {
+    color: var(--cab-muted); font-size: .875rem; margin-bottom: 2rem;
+  }
+
+  /* ── Cards ── */
+  .cabinet-card {
+    background: var(--cab-card);
+    border: 1px solid var(--cab-border);
+    border-radius: 16px; padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(13,13,13,.04);
+  }
+  .cabinet-card-title {
+    font-size: .8rem; font-weight: 700;
+    letter-spacing: .08em; text-transform: uppercase;
+    color: var(--cab-accent); margin-bottom: 1rem;
+  }
+
+  /* ── Stat cards ── */
+  .stat-card {
+    background: var(--cab-card);
+    border: 1px solid var(--cab-border);
+    border-radius: 14px; padding: 1.25rem; text-align: center;
+    box-shadow: 0 2px 8px rgba(13,13,13,.04);
+    transition: transform .2s, box-shadow .2s;
+  }
+  .stat-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(13,13,13,.08); }
+  .stat-card .stat-value { font-size: 2rem; font-weight: 800; color: var(--cab-text); line-height: 1; }
+  .stat-card .stat-label { font-size: .78rem; color: var(--cab-muted); margin-top: .35rem; }
+  .stat-card .stat-icon { font-size: 1.5rem; color: var(--cab-accent); margin-bottom: .5rem; }
+
+  /* ── Tables ── */
+  .cabinet-card .table-dark,
+  .cabinet-card .table-dark > :not(caption) > * > * {
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--cab-text);
+    --bs-table-border-color: var(--cab-border);
+    --bs-table-hover-bg: rgba(13,13,13,.03);
+    --bs-table-hover-color: var(--cab-text);
+    color: var(--cab-text);
+    border-color: var(--cab-border);
+  }
+  .cabinet-card .table-dark thead tr {
+    color: var(--cab-faint) !important;
+    font-size: .75rem; text-transform: uppercase; letter-spacing: .06em;
+  }
+  .cabinet-card .table-dark td,
+  .cabinet-card .table-dark th { color: var(--cab-text); }
+
+  /* ── Form controls ── */
+  .cabinet-main .form-label { color: var(--cab-muted); font-size: .875rem; }
+  .cabinet-main .form-control,
+  .cabinet-main .form-select {
+    background: #f8f9fa !important;
+    border: 1px solid var(--cab-border) !important;
+    color: var(--cab-text) !important;
+    border-radius: 10px !important;
+  }
+  .cabinet-main .form-control:focus,
+  .cabinet-main .form-select:focus {
+    border-color: var(--cab-accent) !important;
+    box-shadow: 0 0 0 3px rgba(255,142,60,.12) !important;
+    background: #ffffff !important;
+  }
+  .cabinet-main .form-check-label { color: var(--cab-muted); }
+
+  /* ── Inline dark overrides ── */
+  .cabinet-main [style*="color:#fff"] { color: var(--cab-text) !important; }
+  .cabinet-main [style*="color: #fff"] { color: var(--cab-text) !important; }
+  .cabinet-main [style*="color:rgba(255,255,255,.7)"] { color: rgba(13,13,13,.7) !important; }
+  .cabinet-main [style*="color:rgba(255,255,255,.6)"] { color: rgba(13,13,13,.6) !important; }
+  .cabinet-main [style*="color:rgba(255,255,255,.55)"] { color: rgba(13,13,13,.55) !important; }
+  .cabinet-main [style*="color:rgba(255,255,255,.5)"] { color: rgba(13,13,13,.5) !important; }
+  .cabinet-main [style*="color:rgba(255,255,255,.45)"] { color: rgba(13,13,13,.45) !important; }
+  .cabinet-main [style*="color:rgba(255,255,255,.4)"] { color: rgba(13,13,13,.4) !important; }
+  .cabinet-main [style*="color:rgba(255,255,255,.35)"] { color: rgba(13,13,13,.35) !important; }
+  .cabinet-main [style*="color:rgba(255,255,255,.3)"] { color: rgba(13,13,13,.3) !important; }
+  .cabinet-main [style*="background:rgba(255,255,255,.04)"] { background: rgba(13,13,13,.03) !important; }
+  .cabinet-main [style*="background:rgba(255,255,255,.03)"] { background: rgba(13,13,13,.02) !important; }
+  .cabinet-main [style*="border-bottom:1px solid rgba(255,255,255,.06)"] { border-bottom: 1px solid rgba(13,13,13,.07) !important; }
+  .cabinet-main [style*="border:1px solid rgba(255,255,255,.07)"] { border: 1px solid rgba(13,13,13,.08) !important; }
+  .cabinet-main [style*="border:1px solid rgba(255,255,255,.06)"] { border: 1px solid rgba(13,13,13,.08) !important; }
+  .cabinet-main [style*="background:rgba(201,168,76"] { background: rgba(255,142,60,.1) !important; }
+  .cabinet-main [style*="border:1px solid rgba(201,168,76"] { border-color: rgba(255,142,60,.25) !important; }
+  .cabinet-main [style*="color:var(--gold)"] { color: #ff8e3c !important; }
+  .cabinet-main a[style*="color:rgba(255,255,255,.35)"] { color: rgba(13,13,13,.35) !important; }
+  .cabinet-main a[style*="color:rgba(255,255,255,.4)"] { color: rgba(13,13,13,.4) !important; }
+  .cabinet-main [style*="background:linear-gradient(135deg,var(--gold),#a07830)"] {
+    background: linear-gradient(135deg,#ff8e3c,#d9376e) !important;
+    color: #0d0d0d !important;
+  }
+  .cabinet-main button[style*="background:linear-gradient(135deg,var(--gold)"] {
+    background: linear-gradient(135deg,#ff8e3c,#d9376e) !important;
+    color: #0d0d0d !important;
+  }
+  .cabinet-main [style*="background:linear-gradient(135deg,var(--gold),#a07830)"] {
+    color: #0d0d0d !important;
+  }
+  .cabinet-main [style*="height:1px;background:rgba(255,255,255,.06)"] {
+    background: rgba(13,13,13,.08) !important;
+  }
+  .cabinet-main [style*="height:1px;background:rgba(255,255,255,.08)"] {
+    background: rgba(13,13,13,.08) !important;
+  }
+  /* Timeline */
+  .cabinet-main [style*="border:2px solid #1a1a2e"] { border-color: #ffffff !important; }
+  .cabinet-main [style*="background:rgba(255,255,255,.08)"] { background: rgba(13,13,13,.07) !important; }
+  /* Status filter tabs */
+  .cabinet-main a[style*="background:rgba(255,255,255,.06)"] {
+    background: rgba(13,13,13,.06) !important;
+    color: rgba(13,13,13,.55) !important;
+    border-color: rgba(13,13,13,.1) !important;
+  }
+  /* Pagination */
+  .cabinet-main span[style*="background:rgba(201,168,76,.15)"] {
+    background: rgba(255,142,60,.12) !important;
+    color: #ff8e3c !important;
+  }
+
+  /* ── Mobile ── */
+  @media (max-width: 768px) {
+    .cabinet-sidebar {
+      position: fixed; left: -100%; top: 0;
+      z-index: 1050; height: 100vh; transition: left .3s;
+    }
+    .cabinet-sidebar.open { left: 0; }
+    .cabinet-main { padding: 1rem; }
+    .sidebar-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.4); z-index: 1040;
+    }
+    .sidebar-overlay.open { display: block; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="cabinet-layout">
+
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+  <aside class="cabinet-sidebar" id="cabinetSidebar">
+    <div class="sidebar-user">
+      <div class="d-flex align-items-center gap-3">
+        <div class="sidebar-avatar">
+          {% if request.user.avatar %}
+            <img src="{{ request.user.avatar.url }}" alt="Аватар" />
+          {% else %}
+            {{ request.user.get_initials }}
+          {% endif %}
+        </div>
+        <div>
+          <div class="sidebar-name">{{ request.user.get_full_name|default:request.user.email }}</div>
+          <div class="sidebar-role">{{ request.user.get_role_display }}</div>
+        </div>
+      </div>
+    </div>
+
+    <ul class="sidebar-nav">
+      <li>
+        <a href="{% url 'accounts:cabinet' %}"
+           class="{% if request.resolver_match.url_name == 'cabinet' %}active{% endif %}">
+          <i class="bi bi-house"></i> Главная
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'accounts:my_bookings' %}"
+           class="{% if 'booking' in request.resolver_match.url_name %}active{% endif %}">
+          <i class="bi bi-calendar-check"></i> Мои заявки
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'accounts:stay_history' %}"
+           class="{% if request.resolver_match.url_name == 'stay_history' %}active{% endif %}">
+          <i class="bi bi-clock-history"></i> История проживания
+        </a>
+      </li>
+
+      <div class="sidebar-divider"></div>
+
+      <li>
+        <a href="{% url 'accounts:profile' %}"
+           class="{% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+          <i class="bi bi-person"></i> Профиль
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'accounts:password_change' %}"
+           class="{% if request.resolver_match.url_name == 'password_change' %}active{% endif %}">
+          <i class="bi bi-shield-lock"></i> Безопасность
+        </a>
+      </li>
+
+      <div class="sidebar-divider"></div>
+
+      <li>
+        <a href="{% url 'hotel:room_list' %}" style="color:rgba(13,13,13,.4)">
+          <i class="bi bi-building"></i> Забронировать
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'hotel:index' %}" style="color:rgba(13,13,13,.4)">
+          <i class="bi bi-arrow-left"></i> На сайт
+        </a>
+      </li>
+      <li>
+        <form method="post" action="/auth/logout/" style="margin:0">
+          {% csrf_token %}
+          <button type="submit" style="
+            display:flex;align-items:center;gap:.65rem;
+            width:100%;padding:.65rem 1.25rem;
+            background:none;border:none;cursor:pointer;
+            color:rgba(220,53,69,.7);font-size:.875rem;
+            border-left:3px solid transparent;
+            transition:color .2s,background .2s;"
+            onmouseover="this.style.color='#dc3545';this.style.background='rgba(220,53,69,.06)'"
+            onmouseout="this.style.color='rgba(220,53,69,.7)';this.style.background='none'">
+            <i class="bi bi-box-arrow-right" style="font-size:1rem;width:18px;text-align:center"></i>
+            Выйти
+          </button>
+        </form>
+      </li>
+    </ul>
+  </aside>
+
+  <main class="cabinet-main">
+    <div class="d-flex align-items-center gap-3 mb-3 d-md-none">
+      <button class="btn btn-sm btn-outline-secondary" onclick="openSidebar()">
+        <i class="bi bi-list"></i>
+      </button>
+      <span style="color:#0d0d0d;font-weight:600">Личный кабинет</span>
+    </div>
+
+    {% if messages %}
+      {% for message in messages %}
+      <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+      {% endfor %}
+    {% endif %}
+
+    {% block cabinet_content %}{% endblock %}
+  </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function openSidebar() {
+    document.getElementById('cabinetSidebar').classList.add('open');
+    document.getElementById('sidebarOverlay').classList.add('open');
+  }
+  function closeSidebar() {
+    document.getElementById('cabinetSidebar').classList.remove('open');
+    document.getElementById('sidebarOverlay').classList.remove('open');
+  }
+</script>
+{% endblock %}

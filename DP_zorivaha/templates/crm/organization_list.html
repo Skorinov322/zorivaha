@@ -1,0 +1,83 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}Организации{% endblock %}
+{% block dashboard_title %}Организации{% endblock %}
+{% block dashboard_subtitle %}CRM — корпоративные клиенты{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
+  <div>
+    <h1 class="cabinet-page-title mb-1">Организации</h1>
+    <p class="cabinet-page-subtitle mb-0">Корпоративные клиенты</p>
+  </div>
+  <a href="{% url 'crm:organization_create' %}"
+     style="background:linear-gradient(135deg,var(--gold),#a07830);border:none;
+            border-radius:10px;color:#fff;padding:.65rem 1.25rem;font-size:.875rem;
+            font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:.5rem">
+    <i class="bi bi-plus-lg"></i>Новая организация
+  </a>
+</div>
+
+{# Search #}
+<form method="get" class="d-flex gap-2 mb-4">
+  <input type="text" name="q" value="{{ search_query }}"
+         placeholder="Название, ИНН, контактное лицо…"
+         style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+                color:#fff;border-radius:10px;padding:.5rem .9rem;font-size:.875rem;
+                min-width:260px;outline:none"
+         onfocus="this.style.borderColor='var(--gold)'"
+         onblur="this.style.borderColor='rgba(255,255,255,.1)'" />
+  <button type="submit" style="background:rgba(201,168,76,.15);color:var(--gold);border:1px solid rgba(201,168,76,.3);border-radius:10px;padding:.5rem 1rem;font-size:.875rem;cursor:pointer">
+    <i class="bi bi-search"></i>
+  </button>
+</form>
+
+<div class="cabinet-card">
+  <div class="table-responsive">
+    <table class="table table-dark table-hover mb-0" style="--bs-table-bg:transparent">
+      <thead>
+        <tr style="color:rgba(255,255,255,.35);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em">
+          <th>Организация</th><th>Тип</th><th>ИНН</th><th>Контакт</th><th>Скидка</th><th>Клиентов</th><th></th>
+        </tr>
+      </thead>
+      <tbody style="font-size:.875rem">
+        {% for org in organizations %}
+        <tr>
+          <td>
+            <div style="color:#fff;font-weight:500">{{ org.name }}</div>
+            {% if org.short_name %}
+            <div style="color:rgba(255,255,255,.35);font-size:.75rem">{{ org.short_name }}</div>
+            {% endif %}
+          </td>
+          <td style="color:rgba(255,255,255,.55);font-size:.8rem">{{ org.get_org_type_display }}</td>
+          <td style="color:rgba(255,255,255,.5);font-size:.8rem">{{ org.inn|default:"—" }}</td>
+          <td style="color:rgba(255,255,255,.55);font-size:.8rem">{{ org.contact_person|default:"—" }}</td>
+          <td>
+            {% if org.corporate_discount_pct %}
+            <span style="color:#28a745;font-size:.8rem">{{ org.corporate_discount_pct }}%</span>
+            {% else %}
+            <span style="color:rgba(255,255,255,.25);font-size:.8rem">—</span>
+            {% endif %}
+          </td>
+          <td style="color:rgba(255,255,255,.5)">{{ org.client_count }}</td>
+          <td>
+            <a href="{% url 'crm:organization_detail' org.pk %}"
+               style="color:rgba(255,255,255,.35);font-size:.85rem;text-decoration:none">
+              <i class="bi bi-chevron-right"></i>
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" style="text-align:center;padding:2rem;color:rgba(255,255,255,.3)">
+            Организации не найдены
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

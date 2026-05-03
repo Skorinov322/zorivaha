@@ -1,0 +1,145 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block dashboard_title %}Организация{% endblock %}
+{% block dashboard_subtitle %}CRM{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="d-flex align-items-center gap-3 mb-4">
+  <a href="{% url 'crm:organization_list' %}"
+     style="color:rgba(255,255,255,.4);text-decoration:none;font-size:.875rem">
+    <i class="bi bi-arrow-left me-1"></i>Организации
+  </a>
+  <h1 class="cabinet-page-title mb-0">{{ title }}</h1>
+</div>
+
+<form method="post" novalidate>
+  {% csrf_token %}
+  <div class="row g-4">
+
+    <div class="col-lg-8">
+
+      {# Identity #}
+      <div class="cabinet-card mb-4">
+        <div class="cabinet-card-title">Основное</div>
+        <div class="row g-3">
+          <div class="col-sm-8">
+            <label class="form-label">Название *</label>
+            {{ form.name }}
+            {% for e in form.name.errors %}<div style="color:#ff6b6b;font-size:.8rem">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="col-sm-4">
+            <label class="form-label">Краткое название</label>
+            {{ form.short_name }}
+          </div>
+          <div class="col-sm-4">
+            <label class="form-label">Тип</label>
+            {{ form.org_type }}
+          </div>
+          <div class="col-sm-4">
+            <label class="form-label">ИНН</label>
+            {{ form.inn }}
+          </div>
+          <div class="col-sm-4">
+            <label class="form-label">КПП</label>
+            {{ form.kpp }}
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label">Юридический адрес</label>
+            {{ form.legal_address }}
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label">Фактический адрес</label>
+            {{ form.actual_address }}
+          </div>
+        </div>
+      </div>
+
+      {# Contacts #}
+      <div class="cabinet-card mb-4">
+        <div class="cabinet-card-title">Контакты</div>
+        <div class="row g-3">
+          <div class="col-sm-6">
+            <label class="form-label">Телефон</label>
+            {{ form.phone }}
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label">Email</label>
+            {{ form.email }}
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label">Сайт</label>
+            {{ form.website }}
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label">Контактное лицо</label>
+            {{ form.contact_person }}
+          </div>
+        </div>
+      </div>
+
+      {# Commercial #}
+      <div class="cabinet-card mb-4">
+        <div class="cabinet-card-title">Коммерческие условия</div>
+        <div class="row g-3">
+          <div class="col-sm-4">
+            <label class="form-label">Скидка (%)</label>
+            {{ form.corporate_discount_pct }}
+          </div>
+          <div class="col-sm-4">
+            <label class="form-label">Кредитный лимит (₽)</label>
+            {{ form.credit_limit }}
+          </div>
+          <div class="col-sm-4">
+            <label class="form-label">Отсрочка (дней)</label>
+            {{ form.payment_terms_days }}
+          </div>
+        </div>
+      </div>
+
+      {# Notes #}
+      <div class="cabinet-card">
+        <div class="cabinet-card-title">Заметки</div>
+        {{ form.notes }}
+      </div>
+
+    </div>
+
+    <div class="col-lg-4">
+      <div class="cabinet-card mb-3">
+        <div class="cabinet-card-title">CRM</div>
+        <label class="form-label">Менеджер</label>
+        {{ form.assigned_manager }}
+        <div class="form-check mt-3">
+          {{ form.is_active }}
+          <label class="form-check-label" for="{{ form.is_active.id_for_label }}"
+                 style="color:rgba(255,255,255,.6);font-size:.875rem">
+            Активная организация
+          </label>
+        </div>
+      </div>
+
+      {% if form.non_field_errors %}
+      <div style="background:rgba(220,53,69,.1);border:1px solid rgba(220,53,69,.2);
+                  border-radius:10px;padding:.75rem;color:#ff6b6b;font-size:.85rem;margin-bottom:1rem">
+        {% for e in form.non_field_errors %}{{ e }}{% endfor %}
+      </div>
+      {% endif %}
+
+      <button type="submit"
+              style="width:100%;padding:.85rem;background:linear-gradient(135deg,var(--gold),#a07830);
+                     border:none;border-radius:12px;color:#fff;font-weight:700;cursor:pointer;font-size:.95rem">
+        {% if org %}Сохранить изменения{% else %}Создать организацию{% endif %}
+      </button>
+      <a href="{% url 'crm:organization_list' %}"
+         style="display:block;text-align:center;margin-top:.75rem;
+                color:rgba(255,255,255,.4);font-size:.875rem;text-decoration:none">
+        Отмена
+      </a>
+    </div>
+
+  </div>
+</form>
+
+{% endblock %}

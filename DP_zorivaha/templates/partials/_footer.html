@@ -1,0 +1,102 @@
+{% load static %}
+<footer style="background:#ffffff;border-top:1px solid rgba(255,142,60,.1);padding:3rem 0 1.5rem;margin-top:auto">
+  <div class="container">
+    <div class="row g-4 mb-4">
+
+      {# Brand #}
+      <div class="col-md-4">
+        <div style="display:flex;align-items:center;gap:.65rem;margin-bottom:1rem">
+          <div style="width:40px;height:40px;background:linear-gradient(135deg,#ff8e3c,#d9376e);
+                      border-radius:12px;display:flex;align-items:center;justify-content:center;
+                      font-size:1rem;color:#fff">
+            <i class="bi bi-building"></i>
+          </div>
+          <span style="font-family:'Playfair Display',serif;font-size:1.2rem;color:#0d0d0d;font-weight:600">
+            Зори Ваха
+          </span>
+        </div>
+        <p style="color:rgba(13,13,13,.4);font-size:.85rem;line-height:1.7;margin:0">
+          Уютная гостиница.<br>
+          Спокойный отдых и персональный сервис.
+        </p>
+      </div>
+
+      {# Navigation #}
+      <div class="col-md-2">
+        <div style="color:rgba(13,13,13,.35);font-size:.72rem;font-weight:700;
+                    letter-spacing:.1em;text-transform:uppercase;margin-bottom:.75rem">
+          Гостиница
+        </div>
+        {% for label, url in footer_links_hotel %}
+        <div style="margin-bottom:.4rem">
+          <a href="{{ url }}" style="color:rgba(13,13,13,.5);font-size:.85rem;text-decoration:none;
+                                     transition:color .2s"
+             onmouseover="this.style.color='#ff8e3c'"
+             onmouseout="this.style.color='rgba(13,13,13,.5)'">
+            {{ label }}
+          </a>
+        </div>
+        {% endfor %}
+      </div>
+
+      {# Guests #}
+      <div class="col-md-2">
+        <div style="color:rgba(13,13,13,.35);font-size:.72rem;font-weight:700;
+                    letter-spacing:.1em;text-transform:uppercase;margin-bottom:.75rem">
+          Гостям
+        </div>
+        <div style="margin-bottom:.4rem">
+          <a href="/bookings/" style="color:rgba(13,13,13,.5);font-size:.85rem;text-decoration:none;transition:color .2s"
+             onmouseover="this.style.color='#ff8e3c'" onmouseout="this.style.color='rgba(13,13,13,.5)'">
+            Бронирование
+          </a>
+        </div>
+        <div style="margin-bottom:.4rem">
+          <a href="/cabinet/" style="color:rgba(13,13,13,.5);font-size:.85rem;text-decoration:none;transition:color .2s"
+             onmouseover="this.style.color='#ff8e3c'" onmouseout="this.style.color='rgba(13,13,13,.5)'">
+            Личный кабинет
+          </a>
+        </div>
+        <div style="margin-bottom:.4rem">
+          <a href="/auth/register/" style="color:rgba(13,13,13,.5);font-size:.85rem;text-decoration:none;transition:color .2s"
+             onmouseover="this.style.color='#ff8e3c'" onmouseout="this.style.color='rgba(13,13,13,.5)'">
+            Регистрация
+          </a>
+        </div>
+      </div>
+
+      {# Contacts #}
+      <div class="col-md-4">
+        <div style="color:rgba(13,13,13,.35);font-size:.72rem;font-weight:700;
+                    letter-spacing:.1em;text-transform:uppercase;margin-bottom:.75rem">
+          Контакты
+        </div>
+        <div style="display:flex;flex-direction:column;gap:.5rem">
+          <div style="display:flex;align-items:center;gap:.6rem;color:rgba(13,13,13,.5);font-size:.85rem">
+            <i class="bi bi-telephone" style="color:#ff8e3c;flex-shrink:0"></i>
+            {{ CONTACT_PHONE }}
+          </div>
+          <div style="display:flex;align-items:center;gap:.6rem;color:rgba(13,13,13,.5);font-size:.85rem">
+            <i class="bi bi-envelope" style="color:#ff8e3c;flex-shrink:0"></i>
+            {{ CONTACT_EMAIL }}
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:.6rem;color:rgba(13,13,13,.5);font-size:.85rem">
+            <i class="bi bi-geo-alt" style="color:#ff8e3c;flex-shrink:0;margin-top:.1rem"></i>
+            Школьная улица, 12, пгт Излучинск, Нижневартовский район, Ханты-Мансийский автономный округ — Югра
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="border-top:1px solid rgba(13,13,13,.06);padding-top:1.25rem;
+                display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem">
+      <span style="color:rgba(13,13,13,.25);font-size:.78rem">
+        © 2025 Зори Ваха. Все права защищены.
+      </span>
+      <span style="color:rgba(13,13,13,.2);font-size:.75rem">
+        Дипломный проект
+      </span>
+    </div>
+  </div>
+</footer>
