@@ -632,6 +632,16 @@
   }
   .sidebar-overlay.open { display: block; }
 }
+
+/* ── Hide duplicate headers ──────────────────────────────────── */
+.dash-content h1:first-of-type,
+.dash-content .cabinet-page-title:first-of-type {
+  display: none !important;
+}
+/* If there are multiple h1s, show only the last one */
+.dash-content h1:last-of-type {
+  display: block !important;
+}
 </style>
 {% endblock %}
 
@@ -880,6 +890,9 @@
 
 </div>
 {% endblock %}
+
+{# Hide footer in dashboard #}
+{% block footer %}{% endblock %}
 
 {% block extra_js %}
 <script>

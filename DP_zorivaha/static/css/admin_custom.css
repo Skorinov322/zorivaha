@@ -382,3 +382,50 @@ fieldset.module {
   background: var(--primary) !important;
   color: var(--text-headline) !important;
 }
+
+/* =========================================================
+   Hide Footer
+   ========================================================= */
+#footer {
+  display: none !important;
+}
+
+/* =========================================================
+   Fix Duplicate Headers in Admin
+   ========================================================= */
+/* Hide content title on changelist pages (it duplicates breadcrumbs) */
+#content-main > h1:first-child,
+#changelist > h1:first-child,
+#content > h1:first-child,
+.content-main > h1:first-child {
+  display: none !important;
+}
+
+/* Hide all h1 inside content that come before forms/tables */
+#content h1,
+#content-main h1,
+.content h1 {
+  display: none !important;
+}
+
+/* But keep h1 in forms if they're the only one */
+.change-form h1 {
+  display: block !important;
+}
+
+/* Hide app label that appears before model name */
+.app-label {
+  display: none !important;
+}
+
+/* Hide empty captions and headers */
+.module caption:empty,
+.module h2:empty {
+  display: none !important;
+}
+
+/* Keep breadcrumbs visible and styled */
+.breadcrumbs {
+  display: block !important;
+  margin-bottom: 20px !important;
+}
