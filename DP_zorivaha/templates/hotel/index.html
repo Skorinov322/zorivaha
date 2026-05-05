@@ -91,6 +91,17 @@
 .cta-section{background:radial-gradient(ellipse 70% 80% at 50% 50%,rgba(201,168,76,.1) 0%,transparent 65%),var(--dark-700);padding:7rem 0;text-align:center;border-top:1px solid var(--border-subtle)}
 .cta-title{font-family:'Playfair Display',serif;font-size:clamp(2rem,4vw,3.25rem);font-weight:700;color:var(--text-primary);margin-bottom:1rem}
 .cta-subtitle{font-size:1.05rem;color:var(--text-muted);max-width:520px;margin:0 auto 2.5rem;line-height:1.75}
+
+/* ── Mobile Responsive ── */
+@media (max-width: 768px) {
+  .hero{min-height:auto;padding:4rem 0 3rem}
+  .hero-eyebrow{margin-bottom:1rem}
+  .hero-title{margin-bottom:1rem}
+  .hero-subtitle{margin-bottom:1.5rem}
+  .hero-cta-group{margin-bottom:2.5rem}
+  .hero-stats{padding-top:1.5rem;gap:1.5rem}
+}
+
 </style>
 {% endblock %}
 
@@ -112,8 +123,7 @@
         </div>
 
         <h1 class="hero-title anim-fade-up anim-delay-1">
-          Добро пожаловать в<br>
-          <span class="gold-word">Зори Ваха</span>
+          Добро пожаловать в <span class="gold-word">Зори Ваха</span>
         </h1>
 
         <p class="hero-subtitle anim-fade-up anim-delay-2">
@@ -153,11 +163,6 @@
 
       </div>
     </div>
-  </div>
-
-  <div class="hero-scroll-hint" aria-hidden="true">
-    <span>Прокрутите</span>
-    <div class="hero-scroll-line"></div>
   </div>
 </section>
 
