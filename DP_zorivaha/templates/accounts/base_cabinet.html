@@ -77,7 +77,7 @@
   .cabinet-main { flex: 1; padding: 2rem; min-width: 0; }
 
   .cabinet-page-title {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Cormorant Garamond', serif;
     font-size: 1.6rem; color: var(--cab-text); margin-bottom: .35rem;
   }
   .cabinet-page-subtitle {
@@ -254,6 +254,21 @@
         <a href="{% url 'accounts:stay_history' %}"
            class="{% if request.resolver_match.url_name == 'stay_history' %}active{% endif %}">
           <i class="bi bi-clock-history"></i> История проживания
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'accounts:my_organizations' %}"
+           class="{% if request.resolver_match.url_name == 'my_organizations' %}active{% endif %}">
+          <i class="bi bi-building"></i> Мои организации
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'accounts:my_messages' %}"
+           class="{% if 'message' in request.resolver_match.url_name %}active{% endif %}">
+          <i class="bi bi-chat-dots"></i> Мои обращения
+          {% if request.user.contact_messages_unread_replies_count %}
+          <span style="background:#dc3545;color:#fff;border-radius:10px;padding:.1rem .45rem;font-size:.65rem;font-weight:700;margin-left:auto">{{ request.user.contact_messages_unread_replies_count }}</span>
+          {% endif %}
         </a>
       </li>
 

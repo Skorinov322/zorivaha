@@ -1,0 +1,573 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block dashboard_title %}Метрики{% endblock %}
+{% block dashboard_subtitle %}Аналитика посещаемости и бронирований{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="d-flex align-items-center gap-2 mb-4 flex-wrap">
+  <span style="font-size:.8rem;color:rgba(255,255,255,.4)">Период:</span>
+  {% for d, label in period_choices %}
+  <a href="?days={{ d }}"
+     style="padding:.35rem .85rem;border-radius:20px;font-size:.8rem;text-decoration:none;
+            {% if days == d %}
+              background:var(--gold);color:#fff;
+            {% else %}
+              background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);
+              border:1px solid rgba(255,255,255,.1);
+            {% endif %}">
+    {{ label }}
+  </a>
+  {% endfor %}
+</div>
+
+<div class="row g-3 mb-4">
+
+  {# Visitors #}
+  <div class="col-6 col-xl-2">
+    <div class="kpi-card" style="background:linear-gradient(135deg,rgba(110,168,254,.1),rgba(110,168,254,.03));border-color:rgba(110,168,254,.2)">
+      <div class="kpi-icon" style="background:rgba(110,168,254,.15);color:#6ea8fe">
+        <i class="bi bi-eye"></i>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value">{{ summary.visitors }}</div>
+        <div class="kpi-label">Посетителей</div>
+        {% include "dashboard/_delta_badge.html" with delta=summary.visitors_delta %}
+      </div>
+    </div>
+  </div>
+
+  {# New users #}
+  <div class="col-6 col-xl-2">
+    <div class="kpi-card" style="background:linear-gradient(135deg,rgba(32,201,151,.1),rgba(32,201,151,.03));border-color:rgba(32,201,151,.2)">
+      <div class="kpi-icon" style="background:rgba(32,201,151,.15);color:#20c997">
+        <i class="bi bi-person-plus"></i>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value">{{ summary.new_users }}</div>
+        <div class="kpi-label">Новых гостей</div>
+        {% include "dashboard/_delta_badge.html" with delta=summary.new_users_delta %}
+      </div>
+    </div>
+  </div>
+
+  {# Bookings #}
+  <div class="col-6 col-xl-2">
+    <div class="kpi-card kpi-gold">
+      <div class="kpi-icon"><i class="bi bi-calendar-check"></i></div>
+      <div class="kpi-body">
+        <div class="kpi-value">{{ summary.bookings }}</div>
+        <div class="kpi-label">Броней создано</div>
+        {% include "dashboard/_delta_badge.html" with delta=summary.bookings_delta %}
+      </div>
+    </div>
+  </div>
+
+  {# Revenue #}
+  <div class="col-6 col-xl-2">
+    <div class="kpi-card" style="background:linear-gradient(135deg,rgba(255,193,7,.1),rgba(255,193,7,.03));border-color:rgba(255,193,7,.2)">
+      <div class="kpi-icon" style="background:rgba(255,193,7,.12);color:#ffc107">
+        <i class="bi bi-currency-exchange"></i>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value" style="font-size:1.1rem">{{ summary.revenue|floatformat:0 }} ₽</div>
+        <div class="kpi-label">Выручка</div>
+        {% include "dashboard/_delta_badge.html" with delta=summary.revenue_delta %}
+      </div>
+    </div>
+  </div>
+
+  {# Conversion #}
+  <div class="col-6 col-xl-2">
+    <div class="kpi-card" style="background:linear-gradient(135deg,rgba(40,167,69,.1),rgba(40,167,69,.03));border-color:rgba(40,167,69,.2)">
+      <div class="kpi-icon" style="background:rgba(40,167,69,.15);color:#28a745">
+        <i class="bi bi-funnel"></i>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value">{{ summary.conversion }}%</div>
+        <div class="kpi-label">Конверсия</div>
+        <div style="font-size:.68rem;color:rgba(255,255,255,.3);margin-top:.15rem">
+          форма → бронь
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# Occupancy #}
+  <div class="col-6 col-xl-2">
+    <div class="kpi-card" style="background:linear-gradient(135deg,rgba(201,168,76,.1),rgba(201,168,76,.03));border-color:rgba(201,168,76,.2)">
+      <div class="kpi-icon" style="background:rgba(201,168,76,.15);color:var(--gold)">
+        <i class="bi bi-building"></i>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value">{{ summary.occupancy }}%</div>
+        <div class="kpi-label">Загрузка сейчас</div>
+        <div style="font-size:.68rem;color:rgba(255,255,255,.3);margin-top:.15rem">
+          {{ summary.occupied_rooms }}/{{ summary.total_rooms }} номеров
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="row g-4 mb-4">
+
+  {# Visitors chart #}
+  <div class="col-lg-6">
+    <div class="dash-card">
+      <div class="dash-card-header">
+        <div class="dash-card-title">
+          <i class="bi bi-eye me-1"></i>Посетители
+        </div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.3)">за {{ days }} дней</div>
+      </div>
+      <canvas id="visitorsChart" height="110"></canvas>
+      <div class="row g-2 mt-2">
+        <div class="col-4 text-center">
+          <div style="font-size:1.1rem;font-weight:700;color:#6ea8fe">{{ summary.visitors }}</div>
+          <div style="font-size:.7rem;color:rgba(255,255,255,.35)">Уникальных</div>
+        </div>
+        <div class="col-4 text-center">
+          <div style="font-size:1.1rem;font-weight:700;color:#c9a84c">{{ summary.new_users }}</div>
+          <div style="font-size:.7rem;color:rgba(255,255,255,.35)">Новых гостей</div>
+        </div>
+        <div class="col-4 text-center">
+          <div style="font-size:1.1rem;font-weight:700;color:#20c997">{{ summary.bookings }}</div>
+          <div style="font-size:.7rem;color:rgba(255,255,255,.35)">Броней</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# Bookings trend #}
+  <div class="col-lg-6">
+    <div class="dash-card">
+      <div class="dash-card-header">
+        <div class="dash-card-title">
+          <i class="bi bi-calendar-check me-1"></i>Динамика бронирований
+        </div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.3)">за {{ days }} дней</div>
+      </div>
+      <canvas id="bookingsTrendChart" height="110"></canvas>
+    </div>
+  </div>
+
+</div>
+
+<div class="row g-4 mb-4">
+
+  {# Conversion funnel #}
+  <div class="col-lg-7">
+    <div class="dash-card">
+      <div class="dash-card-header">
+        <div class="dash-card-title">
+          <i class="bi bi-funnel me-1"></i>Воронка конверсии
+        </div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.3)">за {{ days }} дней</div>
+      </div>
+
+      {# Funnel bars #}
+      {% for step in funnel.steps %}
+      {% with max_val=funnel.steps.0.value %}
+      <div style="margin-bottom:.85rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem">
+          <span style="font-size:.82rem;color:rgba(255,255,255,.65)">{{ step.label }}</span>
+          <span style="font-size:.85rem;font-weight:700;color:#fff">{{ step.value }}</span>
+        </div>
+        <div style="height:28px;background:rgba(255,255,255,.05);border-radius:6px;overflow:hidden;position:relative">
+          {% if max_val > 0 %}
+          <div style="height:100%;
+                      width:{% widthratio step.value max_val 100 %}%;
+                      background:{{ step.color }};
+                      border-radius:6px;
+                      opacity:.85;
+                      transition:width .5s ease;
+                      display:flex;align-items:center;padding-left:.5rem">
+            {% if step.value > 0 %}
+            <span style="font-size:.72rem;color:rgba(255,255,255,.8);font-weight:600;white-space:nowrap">
+              {% widthratio step.value max_val 100 %}%
+            </span>
+            {% endif %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endwith %}
+      {% endfor %}
+
+      {# Conversion rates #}
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-top:1rem;
+                  padding-top:.75rem;border-top:1px solid rgba(255,255,255,.06)">
+        <div style="text-align:center;background:rgba(255,255,255,.03);border-radius:8px;padding:.6rem">
+          <div style="font-size:1rem;font-weight:700;color:#6ea8fe">{{ funnel.rates.visit_to_room }}%</div>
+          <div style="font-size:.65rem;color:rgba(255,255,255,.35)">Визит → Номер</div>
+        </div>
+        <div style="text-align:center;background:rgba(255,255,255,.03);border-radius:8px;padding:.6rem">
+          <div style="font-size:1rem;font-weight:700;color:#ffc107">{{ funnel.rates.form_to_booking }}%</div>
+          <div style="font-size:.65rem;color:rgba(255,255,255,.35)">Форма → Бронь</div>
+        </div>
+        <div style="text-align:center;background:rgba(40,167,69,.08);border:1px solid rgba(40,167,69,.2);border-radius:8px;padding:.6rem">
+          <div style="font-size:1rem;font-weight:700;color:#28a745">{{ funnel.rates.overall }}%</div>
+          <div style="font-size:.65rem;color:rgba(255,255,255,.35)">Общая конверсия</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# Page types donut #}
+  <div class="col-lg-5">
+    <div class="dash-card">
+      <div class="dash-card-header">
+        <div class="dash-card-title">
+          <i class="bi bi-pie-chart me-1"></i>Страницы по типам
+        </div>
+      </div>
+      <div style="position:relative;height:180px;display:flex;align-items:center;justify-content:center">
+        <canvas id="pageTypesChart"></canvas>
+      </div>
+      <div style="margin-top:.75rem">
+        {% for p in page_types %}
+        <div style="display:flex;justify-content:space-between;align-items:center;
+                    padding:.3rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
+          <div style="display:flex;align-items:center;gap:.5rem">
+            <div style="width:7px;height:7px;border-radius:50%;background:{{ p.color }}"></div>
+            <span style="font-size:.78rem;color:rgba(255,255,255,.5)">{{ p.label }}</span>
+          </div>
+          <span style="font-size:.8rem;font-weight:600;color:#fff">{{ p.count }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="row g-4 mb-4">
+
+  {# Occupancy trend #}
+  <div class="col-lg-7">
+    <div class="dash-card">
+      <div class="dash-card-header">
+        <div class="dash-card-title">
+          <i class="bi bi-building me-1"></i>Загрузка гостиницы
+        </div>
+        <div style="display:flex;align-items:center;gap:.5rem">
+          <span style="font-size:.72rem;color:rgba(255,255,255,.3)">Среднее:</span>
+          <span style="font-size:.85rem;font-weight:700;color:#20c997">{{ avg_occupancy }}%</span>
+        </div>
+      </div>
+      <canvas id="occupancyChart" height="100"></canvas>
+
+      {# By category #}
+      {% if occupancy_by_cat %}
+      <div style="margin-top:1rem;padding-top:.75rem;border-top:1px solid rgba(255,255,255,.06)">
+        <div style="font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+                    color:rgba(255,255,255,.3);margin-bottom:.6rem">По категориям (текущий месяц)</div>
+        {% for cat in occupancy_by_cat %}
+        <div style="display:flex;align-items:center;gap:.65rem;margin-bottom:.4rem">
+          <div style="font-size:.78rem;color:rgba(255,255,255,.55);width:120px;
+                      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0">
+            {{ cat.name }}
+          </div>
+          <div style="flex:1;height:6px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden">
+            <div style="height:100%;width:{{ cat.rate }}%;
+                        background:{% if cat.rate >= 80 %}#28a745{% elif cat.rate >= 50 %}#ffc107{% else %}#6ea8fe{% endif %};
+                        border-radius:3px"></div>
+          </div>
+          <div style="font-size:.75rem;font-weight:600;color:#fff;width:36px;text-align:right;flex-shrink:0">
+            {{ cat.rate }}%
+          </div>
+          <div style="font-size:.7rem;color:rgba(255,255,255,.3);width:50px;flex-shrink:0">
+            {{ cat.bookings }} бр.
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {# Popular rooms #}
+  <div class="col-lg-5">
+    <div class="dash-card">
+      <div class="dash-card-header">
+        <div class="dash-card-title">
+          <i class="bi bi-star me-1"></i>Популярные номера
+        </div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.3)">с начала года</div>
+      </div>
+
+      {% for room in popular_rooms %}
+      <div style="display:flex;align-items:center;gap:.75rem;padding:.6rem 0;
+                  border-bottom:1px solid rgba(255,255,255,.04)">
+        {# Rank #}
+        <div style="width:22px;height:22px;border-radius:6px;flex-shrink:0;
+                    background:{% if forloop.counter == 1 %}rgba(201,168,76,.2){% elif forloop.counter == 2 %}rgba(192,192,192,.15){% elif forloop.counter == 3 %}rgba(205,127,50,.15){% else %}rgba(255,255,255,.05){% endif %};
+                    display:flex;align-items:center;justify-content:center;
+                    font-size:.7rem;font-weight:800;
+                    color:{% if forloop.counter == 1 %}var(--gold){% elif forloop.counter == 2 %}#c0c0c0{% elif forloop.counter == 3 %}#cd7f32{% else %}rgba(255,255,255,.3){% endif %}">
+          {{ forloop.counter }}
+        </div>
+        {# Info #}
+        <div style="flex:1;min-width:0">
+          <div style="font-size:.85rem;font-weight:500;color:#fff;
+                      white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+            {{ room.name }}
+          </div>
+          <div style="font-size:.72rem;color:rgba(255,255,255,.35)">
+            {{ room.bookings }} броней · {{ room.avg_nights }} ночей ср.
+          </div>
+        </div>
+        {# Revenue #}
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:.85rem;font-weight:700;color:var(--gold)">
+            {{ room.revenue|floatformat:0 }} ₽
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="dash-empty">Нет данных</div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+
+<div class="dash-card">
+  <div class="dash-card-header">
+    <div class="dash-card-title">
+      <i class="bi bi-bar-chart-horizontal me-1"></i>Выручка по категориям номеров
+    </div>
+    <div style="font-size:.72rem;color:rgba(255,255,255,.3)">{{ today.year }} год</div>
+  </div>
+  <canvas id="roomRevenueChart" height="60"></canvas>
+</div>
+
+{% endblock %}
+
+{% block dashboard_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+'use strict';
+
+Chart.defaults.color          = 'rgba(255,255,255,.5)';
+Chart.defaults.borderColor    = 'rgba(255,255,255,.06)';
+Chart.defaults.font.family    = "'Inter', sans-serif";
+Chart.defaults.font.size      = 11;
+
+const TOOLTIP_STYLE = {
+  backgroundColor: '#1a1a2e',
+  borderColor:     'rgba(201,168,76,.3)',
+  borderWidth:     1,
+  padding:         10,
+  titleColor:      'rgba(255,255,255,.8)',
+  bodyColor:       'rgba(255,255,255,.6)',
+};
+
+// ── 1. Visitors chart ─────────────────────────────────────────
+new Chart(document.getElementById('visitorsChart'), {
+  type: 'line',
+  data: {
+    labels: {{ visitors_labels|safe }},
+    datasets: [
+      {
+        label: 'Просмотры',
+        data: {{ visitors_views|safe }},
+        borderColor: '#6ea8fe',
+        backgroundColor: 'rgba(110,168,254,.08)',
+        borderWidth: 2,
+        pointRadius: 2,
+        tension: 0.4,
+        fill: true,
+      },
+      {
+        label: 'Уникальных',
+        data: {{ visitors_unique|safe }},
+        borderColor: '#c9a84c',
+        backgroundColor: 'rgba(201,168,76,.06)',
+        borderWidth: 2,
+        pointRadius: 2,
+        tension: 0.4,
+        fill: true,
+        borderDash: [4, 3],
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { labels: { color: 'rgba(255,255,255,.5)', boxWidth: 12 } },
+      tooltip: TOOLTIP_STYLE,
+    },
+    scales: {
+      x: { ticks: { maxTicksLimit: 10, color: 'rgba(255,255,255,.35)' } },
+      y: { ticks: { color: 'rgba(255,255,255,.35)' }, beginAtZero: true },
+    }
+  }
+});
+
+// ── 2. Bookings trend ─────────────────────────────────────────
+new Chart(document.getElementById('bookingsTrendChart'), {
+  type: 'bar',
+  data: {
+    labels: {{ bookings_labels|safe }},
+    datasets: [
+      {
+        label: 'Создано',
+        data: {{ bookings_total|safe }},
+        backgroundColor: 'rgba(201,168,76,.4)',
+        borderColor: '#c9a84c',
+        borderWidth: 1,
+        borderRadius: 4,
+        stack: 'a',
+      },
+      {
+        label: 'Подтверждено',
+        data: {{ bookings_confirmed|safe }},
+        backgroundColor: 'rgba(40,167,69,.4)',
+        borderColor: '#28a745',
+        borderWidth: 1,
+        borderRadius: 4,
+        stack: 'b',
+      },
+      {
+        label: 'Отменено',
+        data: {{ bookings_cancelled|safe }},
+        backgroundColor: 'rgba(220,53,69,.3)',
+        borderColor: '#dc3545',
+        borderWidth: 1,
+        borderRadius: 4,
+        stack: 'c',
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { labels: { color: 'rgba(255,255,255,.5)', boxWidth: 12 } },
+      tooltip: TOOLTIP_STYLE,
+    },
+    scales: {
+      x: { ticks: { maxTicksLimit: 10, color: 'rgba(255,255,255,.35)' } },
+      y: { ticks: { color: 'rgba(255,255,255,.35)' }, beginAtZero: true },
+    }
+  }
+});
+
+// ── 3. Page types donut ───────────────────────────────────────
+new Chart(document.getElementById('pageTypesChart'), {
+  type: 'doughnut',
+  data: {
+    labels: {{ page_type_labels|safe }},
+    datasets: [{
+      data:            {{ page_type_data|safe }},
+      backgroundColor: {{ page_type_colors|safe }},
+      borderColor:     '#1a1a2e',
+      borderWidth:     3,
+      hoverOffset:     6,
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '65%',
+    plugins: {
+      legend:  { display: false },
+      tooltip: TOOLTIP_STYLE,
+    }
+  }
+});
+
+// ── 4. Occupancy trend ────────────────────────────────────────
+new Chart(document.getElementById('occupancyChart'), {
+  type: 'line',
+  data: {
+    labels: {{ occupancy_labels|safe }},
+    datasets: [{
+      label: 'Загрузка (%)',
+      data:  {{ occupancy_data|safe }},
+      borderColor:     '#20c997',
+      backgroundColor: 'rgba(32,201,151,.08)',
+      borderWidth:     2,
+      pointRadius:     2,
+      tension:         0.4,
+      fill:            true,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend:  { display: false },
+      tooltip: {
+        ...TOOLTIP_STYLE,
+        callbacks: { label: ctx => ' ' + ctx.parsed.y + '%' }
+      },
+    },
+    scales: {
+      x: { ticks: { maxTicksLimit: 10, color: 'rgba(255,255,255,.35)' } },
+      y: {
+        min: 0, max: 100,
+        ticks: {
+          color: 'rgba(255,255,255,.35)',
+          callback: v => v + '%',
+        },
+        grid: {
+          color: ctx => ctx.tick.value === 50 ? 'rgba(255,255,255,.12)' : 'rgba(255,255,255,.04)',
+        }
+      }
+    }
+  }
+});
+
+// ── 5. Room revenue horizontal bar ───────────────────────────
+new Chart(document.getElementById('roomRevenueChart'), {
+  type: 'bar',
+  data: {
+    labels: {{ room_rev_labels|safe }},
+    datasets: [
+      {
+        label: 'Выручка (₽)',
+        data:  {{ room_rev_revenues|safe }},
+        backgroundColor: [
+          'rgba(201,168,76,.6)',
+          'rgba(110,168,254,.5)',
+          'rgba(32,201,151,.5)',
+          'rgba(255,193,7,.5)',
+          'rgba(220,53,69,.4)',
+          'rgba(173,181,189,.4)',
+          'rgba(201,168,76,.4)',
+          'rgba(110,168,254,.4)',
+        ],
+        borderRadius: 6,
+        borderSkipped: false,
+      }
+    ]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        ...TOOLTIP_STYLE,
+        callbacks: {
+          label: ctx => ' ' + ctx.parsed.x.toLocaleString('ru-RU') + ' ₽'
+        }
+      }
+    },
+    scales: {
+      x: {
+        ticks: {
+          color: 'rgba(255,255,255,.35)',
+          callback: v => v.toLocaleString('ru-RU') + ' ₽'
+        }
+      },
+      y: { ticks: { color: 'rgba(255,255,255,.6)' } }
+    }
+  }
+});
+</script>
+{% endblock %}

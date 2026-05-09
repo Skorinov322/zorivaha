@@ -1,0 +1,343 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Бронирование{% endblock %}
+
+{% block extra_css %}
+<style>
+  .booking-hero {
+    background: linear-gradient(135deg, #fff8f4 0%, #fff0e8 100%);
+    padding: 3rem 0 2rem;
+    border-bottom: 1px solid rgba(255,142,60,.15);
+  }
+  .booking-hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem; color: #0d0d0d;
+  }
+  .booking-hero p { color: rgba(13,13,13,.5); }
+  .booking-hero nav a { color: rgba(13,13,13,.4); text-decoration: none; }
+  .booking-hero nav a:hover { color: #ff8e3c; }
+  .booking-hero nav span { color: rgba(13,13,13,.35); }
+
+  .booking-card {
+    background: #ffffff;
+    border: 1px solid rgba(13,13,13,.08);
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 2px 12px rgba(13,13,13,.05);
+  }
+  .section-title {
+    font-size: .72rem; font-weight: 700;
+    letter-spacing: .1em; text-transform: uppercase;
+    color: #ff8e3c; margin-bottom: 1rem;
+    display: flex; align-items: center; gap: .5rem;
+  }
+  .form-label { color: rgba(13,13,13,.65); font-size: .85rem; font-weight: 500; }
+  .form-control, .form-select {
+    background: #f8f9fa !important;
+    border: 1px solid rgba(13,13,13,.12) !important;
+    color: #0d0d0d !important;
+    border-radius: 10px !important;
+    padding: .7rem .9rem !important;
+  }
+  .form-control::placeholder { color: rgba(13,13,13,.3) !important; }
+  .form-control:focus, .form-select:focus {
+    border-color: #ff8e3c !important;
+    box-shadow: 0 0 0 3px rgba(255,142,60,.12) !important;
+    background: #ffffff !important;
+  }
+  .form-control.is-invalid, .form-select.is-invalid {
+    border-color: #dc3545 !important;
+  }
+  .invalid-feedback { color: #dc3545; font-size: .8rem; }
+  .form-select option { background: #ffffff; color: #0d0d0d; }
+
+  .divider { height: 1px; background: rgba(13,13,13,.07); margin: 1.5rem 0; }
+
+  .price-preview {
+    background: #ffffff;
+    border: 1px solid rgba(255,142,60,.2);
+    border-radius: 16px;
+    padding: 1.5rem;
+    position: sticky; top: 1.5rem;
+    box-shadow: 0 4px 20px rgba(255,142,60,.1);
+  }
+  .price-preview h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem; color: #0d0d0d; margin-bottom: 1rem;
+  }
+  .price-row {
+    display: flex; justify-content: space-between;
+    font-size: .875rem; margin-bottom: .5rem;
+  }
+  .price-row .label { color: rgba(13,13,13,.5); }
+  .price-row .value { color: #0d0d0d; font-weight: 500; }
+  .price-total {
+    display: flex; justify-content: space-between;
+    padding-top: .75rem;
+    border-top: 1px solid rgba(13,13,13,.08);
+    margin-top: .5rem;
+  }
+  .price-total .label { color: #0d0d0d; font-weight: 600; }
+  .price-total .value { color: #ff8e3c; font-size: 1.3rem; font-weight: 700; }
+
+  .btn-submit {
+    width: 100%; padding: .9rem;
+    background: linear-gradient(135deg, #ff8e3c, #d9376e);
+    border: none; border-radius: 12px; color: #0d0d0d;
+    font-size: 1rem; font-weight: 700; cursor: pointer;
+    transition: opacity .2s; margin-top: 1rem;
+  }
+  .btn-submit:hover { opacity: .88; }
+  .btn-submit:disabled { opacity: .6; cursor: not-allowed; }
+
+  .required-star { color: #dc3545; }
+
+  .booking-wrap { padding: 2.5rem 0 5rem; background: #eff0f3; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="booking-hero">
+  <div class="container">
+    <nav style="font-size:.8rem;margin-bottom:.75rem">
+      <a href="{% url 'hotel:index' %}">Главная</a>
+      <span class="mx-2">/</span>
+      <a href="{% url 'hotel:room_list' %}">Номера</a>
+      <span class="mx-2">/</span>
+      <span style="color:rgba(13,13,13,.6)">Бронирование</span>
+    </nav>
+    <h1>Оформление бронирования</h1>
+    <p>Заполните форму — мы подтвердим бронь в течение нескольких часов</p>
+  </div>
+</div>
+
+<div class="booking-wrap">
+<div class="container">
+<form method="post" novalidate id="bookingForm" data-loading>
+{% csrf_token %}
+
+<div class="row g-4">
+
+  {# ---- Left: form ---- #}
+  <div class="col-lg-8">
+
+    {% if form.non_field_errors %}
+    <div style="background:rgba(220,53,69,.08);border:1px solid rgba(220,53,69,.2);
+                border-radius:12px;padding:1rem;color:#dc3545;margin-bottom:1.5rem">
+      {% for e in form.non_field_errors %}
+        <div><i class="bi bi-exclamation-triangle me-2"></i>{{ e }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {# 1. Contact info #}
+    <div class="booking-card mb-4">
+      <div class="section-title"><i class="bi bi-person"></i>Контактные данные</div>
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="form-label">Фамилия <span class="required-star">*</span></label>
+          <input type="text" name="{{ form.guest_last_name.html_name }}"
+                 class="form-control{% if form.guest_last_name.errors %} is-invalid{% endif %}"
+                 value="{{ form.guest_last_name.value|default:'' }}"
+                 placeholder="Иванов" required />
+          {% for e in form.guest_last_name.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label">Имя <span class="required-star">*</span></label>
+          <input type="text" name="{{ form.guest_first_name.html_name }}"
+                 class="form-control{% if form.guest_first_name.errors %} is-invalid{% endif %}"
+                 value="{{ form.guest_first_name.value|default:'' }}"
+                 placeholder="Иван" required />
+          {% for e in form.guest_first_name.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label">Отчество</label>
+          <input type="text" name="{{ form.guest_patronymic.html_name }}"
+                 class="form-control"
+                 value="{{ form.guest_patronymic.value|default:'' }}"
+                 placeholder="Иванович" />
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label">Телефон <span class="required-star">*</span></label>
+          <input type="tel" name="{{ form.guest_phone.html_name }}"
+                 class="form-control{% if form.guest_phone.errors %} is-invalid{% endif %}"
+                 value="{{ form.guest_phone.value|default:'' }}"
+                 placeholder="+7 (___) ___-__-__" required />
+          {% for e in form.guest_phone.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label">Email <span class="required-star">*</span></label>
+          <input type="email" name="{{ form.guest_email.html_name }}"
+                 class="form-control{% if form.guest_email.errors %} is-invalid{% endif %}"
+                 value="{{ form.guest_email.value|default:'' }}"
+                 placeholder="example@mail.ru" required />
+          {% for e in form.guest_email.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+        </div>
+      </div>
+    </div>
+
+    {# 2. Room & Dates #}
+    <div class="booking-card mb-4">
+      <div class="section-title"><i class="bi bi-building"></i>Номер и даты</div>
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="form-label">Категория номера <span class="required-star">*</span></label>
+          {{ form.room_category }}
+          {% for e in form.room_category.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+        </div>
+        {% if user.is_staff or user.is_admin %}
+        <div class="col-12">
+          <label class="form-label">Конкретный номер</label>
+          {{ form.room }}
+          <div style="font-size:.75rem;color:rgba(13,13,13,.4);margin-top:.3rem">{{ form.room.help_text }}</div>
+        </div>
+        {% else %}
+        {{ form.room }}
+        <div class="col-12">
+          <div class="alert alert-info" style="background:rgba(13,110,253,.1);border:1px solid rgba(13,110,253,.2);border-radius:10px;padding:.75rem;font-size:.85rem;color:#0d6efd;">
+            <i class="bi bi-info-circle me-2"></i>
+            Конкретный номер будет назначен автоматически при заселении в соответствии с выбранной категорией.
+          </div>
+        </div>
+        {% endif %}
+        <div class="col-sm-6">
+          <label class="form-label">Дата заезда <span class="required-star">*</span></label>
+          {{ form.check_in }}
+          {% for e in form.check_in.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label">Дата выезда <span class="required-star">*</span></label>
+          {{ form.check_out }}
+          {% for e in form.check_out.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label">Взрослых <span class="required-star">*</span></label>
+          {{ form.adults }}
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label">Детей</label>
+          {{ form.children }}
+        </div>
+      </div>
+    </div>
+
+    {# 3. Additional #}
+    <div class="booking-card">
+      <div class="section-title"><i class="bi bi-three-dots"></i>Дополнительно</div>
+      <div class="row g-3">
+        <div class="col-sm-6">
+          <label class="form-label">Организация</label>
+          {{ form.organization }}
+          <div style="font-size:.75rem;color:rgba(13,13,13,.4);margin-top:.3rem">{{ form.organization.help_text }}</div>
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label">Примерное время прибытия</label>
+          {{ form.arrival_time }}
+        </div>
+        <div class="col-12">
+          <label class="form-label">Особые пожелания</label>
+          {{ form.special_requests }}
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  {# ---- Right: price preview ---- #}
+  <div class="col-lg-4">
+    <div class="price-preview">
+      <h3><i class="bi bi-receipt me-2" style="color:#ff8e3c"></i>Итого</h3>
+
+      <div class="price-row">
+        <span class="label">Категория</span>
+        <span class="value" id="previewCategoryName">—</span>
+      </div>
+      <div class="price-row">
+        <span class="label">Даты</span>
+        <span class="value" id="previewDatesValue">—</span>
+      </div>
+      <div class="price-row">
+        <span class="label">Ночей</span>
+        <span class="value" id="previewNights">—</span>
+      </div>
+      <div class="price-row">
+        <span class="label">Цена за ночь</span>
+        <span class="value" id="previewPricePerNight">—</span>
+      </div>
+      <div class="price-total">
+        <span class="label">Итого</span>
+        <span class="value" id="previewTotal">—</span>
+      </div>
+
+      <button type="submit" class="btn-submit" id="submitBtn">
+        <span id="btnText"><i class="bi bi-calendar-check me-2"></i>Забронировать</span>
+        <span id="btnLoading" style="display:none">
+          <span class="spinner-border spinner-border-sm me-2"></span>Отправка…
+        </span>
+      </button>
+
+      <div style="text-align:center;margin-top:.75rem;font-size:.75rem;color:rgba(13,13,13,.4)">
+        <i class="bi bi-shield-check me-1"></i>Бесплатная отмена до 24 ч до заезда
+      </div>
+    </div>
+  </div>
+
+</div>
+</form>
+</div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/booking.js' %}"></script>
+<script>
+// Legacy support for room selection (only for staff)
+document.addEventListener('DOMContentLoaded', () => {
+  const catSelect = document.getElementById('id_room_category');
+  const roomSelect = document.getElementById('id_room');
+  
+  // Only enable room selection for staff users
+  {% if user.is_staff or user.is_admin %}
+  if (catSelect && roomSelect) {
+    catSelect.addEventListener('change', function() {
+      const catId = this.value;
+      if (!catId) { 
+        roomSelect.innerHTML = '<option value="">— Назначить автоматически —</option>'; 
+        return; 
+      }
+      
+      fetch(`/bookings/rooms-for-category/?category=${catId}`)
+        .then(r => r.json())
+        .then(data => {
+          roomSelect.innerHTML = '<option value="">— Назначить автоматически —</option>';
+          if (data.rooms) {
+            data.rooms.forEach(r => {
+              roomSelect.innerHTML += `<option value="${r.id}">${r.display_name}</option>`;
+            });
+          }
+        }).catch(() => {
+          roomSelect.innerHTML = '<option value="">— Ошибка загрузки —</option>';
+        });
+    });
+  }
+  {% endif %}
+
+  // Form submission loading state
+  const form = document.getElementById('bookingForm');
+  if (form) {
+    form.addEventListener('submit', () => {
+      const btnText = document.getElementById('btnText');
+      const btnLoading = document.getElementById('btnLoading');
+      const submitBtn = document.getElementById('submitBtn');
+      
+      if (btnText) btnText.style.display = 'none';
+      if (btnLoading) btnLoading.style.display = 'inline';
+      if (submitBtn) submitBtn.disabled = true;
+    });
+  }
+});
+</script>
+{% endblock %}

@@ -6,21 +6,26 @@
   border-bottom: 1px solid rgba(200, 185, 154, 0.35);
   padding: 0 48px;
   height: 72px;
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex; align-items: center; justify-content: center;
   transition: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 ">
-  <div style="display: flex; align-items: center; width: 100%; max-width: 1400px; margin: 0 auto; justify-content: space-between;">
+  <div style="display: flex; align-items: center; width: 100%; max-width: 1400px; margin: 0 auto; justify-content: space-between; position: relative;">
     
-    {# Logo #}
+    {# Logo with image - Updated font to match hero title #}
     <a href="{% url 'hotel:index' %}" style="
-      font-family: 'Cormorant Garamond', serif;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: 'Cormorant Garamond', serif !important;
       font-size: 26px;
-      font-weight: 600;
+      font-weight: 700;
       color: #2C1F10;
       letter-spacing: 0.02em;
       text-decoration: none;
-    ">
-      Зори<span style="color: #E8700A;">Ваха</span>
+      flex-shrink: 0;
+    " class="navbar-logo-v2">
+      <img src="{% static 'img/logoZV.png' %}" alt="Зори Ваха" style="height: 40px; width: auto;">
+      <span>Зори<span style="color: #E8700A; font-family: 'Cormorant Garamond', serif !important; font-weight: 700;">Ваха</span></span>
     </a>
 
     {# Desktop Navigation #}
@@ -63,6 +68,18 @@
           transition: color 0.35s;
           position: relative;
         " class="nav-link-item">О нас</a>
+      </li>
+      <li>
+        <a href="{% url 'hotel:gallery' %}" style="
+          font-size: 13.5px;
+          font-weight: 500;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          color: #8B7355;
+          text-decoration: none;
+          transition: color 0.35s;
+          position: relative;
+        " class="nav-link-item">Галерея</a>
       </li>
       <li>
         <a href="{% url 'hotel:contacts' %}" style="
@@ -192,12 +209,18 @@
 
     {# Mobile burger #}
     <button id="burger" class="burger" style="
-      display: none; flex-direction: column; gap: 5px; cursor: pointer;
-      background: none; border: none; padding: 6px;
-    " onclick="toggleMobileMenu()">
-      <span style="display: block; width: 24px; height: 2px; background: #2C1F10; border-radius: 1px; transition: 0.35s;"></span>
-      <span style="display: block; width: 24px; height: 2px; background: #2C1F10; border-radius: 1px; transition: 0.35s;"></span>
-      <span style="display: block; width: 24px; height: 2px; background: #2C1F10; border-radius: 1px; transition: 0.35s;"></span>
+      display: none; flex-direction: column; gap: 4px; cursor: pointer;
+      background: none; border: none; padding: 8px;
+      border-radius: 6px;
+      transition: background-color 0.2s;
+      flex-shrink: 0;
+      z-index: 1001;
+    " onclick="toggleMobileMenu()" 
+       onmouseover="this.style.backgroundColor='rgba(232,112,10,0.1)'"
+       onmouseout="this.style.backgroundColor='transparent'">
+      <span style="display: block; width: 22px; height: 2px; background: #2C1F10; border-radius: 1px; transition: 0.3s;"></span>
+      <span style="display: block; width: 22px; height: 2px; background: #2C1F10; border-radius: 1px; transition: 0.3s;"></span>
+      <span style="display: block; width: 22px; height: 2px; background: #2C1F10; border-radius: 1px; transition: 0.3s;"></span>
     </button>
   </div>
 </nav>
@@ -214,17 +237,45 @@
   .nav-link-item:hover { color: #E8700A !important; }
   .nav-link-item:hover::after { transform: scaleX(1); }
   
+  /* Force logo font update */
+  .navbar-logo-v2 {
+    font-family: 'Cormorant Garamond', serif !important;
+    font-weight: 700 !important;
+  }
+  
+  .navbar-logo-v2 span {
+    font-family: 'Cormorant Garamond', serif !important;
+    font-weight: 700 !important;
+  }
+  
   #navbar.scrolled {
     box-shadow: 0 4px 30px rgba(44,31,16,0.1);
   }
 
+  /* Burger menu animation */
+  .burger.open span:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+  }
+  .burger.open span:nth-child(2) {
+    opacity: 0;
+  }
+  .burger.open span:nth-child(3) {
+    transform: rotate(-45deg) translate(7px, -6px);
+  }
+
   @media (max-width: 900px) {
-    #navbar { padding: 0 24px; }
+    #navbar { 
+      padding: 0 16px; 
+      height: 64px;
+    }
+    #navbar > div {
+      justify-content: space-between !important;
+    }
     .nav-links-desktop { display: none !important; }
     .burger { display: flex !important; }
     .nav-links-desktop.open {
       display: flex !important; flex-direction: column; gap: 0;
-      position: absolute; top: 72px; left: 0; right: 0;
+      position: absolute; top: 64px; left: 0; right: 0;
       background: rgba(253,250,246,0.98);
       backdrop-filter: blur(20px);
       padding: 16px 0;
@@ -232,15 +283,66 @@
       box-shadow: 0 8px 40px rgba(44,31,16,0.1);
     }
     .nav-links-desktop.open li a {
-      display: block; padding: 14px 32px;
+      display: block; padding: 14px 24px;
+    }
+    
+    /* Mobile logo adjustments */
+    .navbar-logo-v2 {
+      font-size: 18px !important;
+      gap: 8px !important;
+      flex-shrink: 0;
+    }
+    .navbar-logo-v2 img {
+      height: 28px !important;
+    }
+  }
+
+  @media (max-width: 600px) {
+    #navbar { 
+      padding: 0 12px;
+      height: 60px;
+    }
+    .nav-links-desktop.open {
+      top: 60px;
+    }
+    .navbar-logo-v2 {
+      font-size: 16px !important;
+      gap: 6px !important;
+    }
+    .navbar-logo-v2 img {
+      height: 24px !important;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .navbar-logo-v2 span {
+      display: none;
+    }
+    .navbar-logo-v2 {
+      gap: 0 !important;
     }
   }
 </style>
 
 <script>
   function toggleMobileMenu() {
-    document.getElementById('navLinks').classList.toggle('open');
+    const navLinks = document.getElementById('navLinks');
+    const burger = document.getElementById('burger');
+    
+    navLinks.classList.toggle('open');
+    burger.classList.toggle('open');
   }
+  
+  // Close mobile menu when clicking on a link
+  document.addEventListener('DOMContentLoaded', function() {
+    const navLinks = document.querySelectorAll('.nav-links-desktop a');
+    navLinks.forEach(link => {
+      link.addEventListener('click', () => {
+        document.getElementById('navLinks').classList.remove('open');
+        document.getElementById('burger').classList.remove('open');
+      });
+    });
+  });
   
   window.addEventListener('scroll', () => {
     document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 20);

@@ -1,0 +1,340 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Главная{% endblock %}
+{% block meta_description %}Зори Ваха — уютная гостиница в тихом посёлке. Спокойный отдых, домашняя атмосфера, персональный сервис.{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ─── HERO ─── */
+.hero {
+  height: 100vh;
+  background: linear-gradient(160deg, #FFF8F2 0%, #F2E8D9 60%, #E8D5B8 100%);
+  display: flex; align-items: center;
+  position: relative; overflow: hidden;
+  padding-top: 72px;
+}
+.hero-bg-shape {
+  position: absolute; right: -80px; top: 10%;
+  width: 720px; height: 720px;
+  background: radial-gradient(circle at 60% 40%, #FDF0E3 0%, transparent 65%);
+  opacity: 0.7;
+}
+.hero-circle {
+  position: absolute; right: 8%; top: 50%; transform: translateY(-50%);
+  width: 480px; height: 480px;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 20px 80px rgba(44, 31, 16, 0.15);
+}
+.hero-circle img { width: 100%; height: 100%; object-fit: cover; }
+.hero-circle-placeholder {
+  width: 100%; height: 100%;
+  background: linear-gradient(135deg, #E8C99A 0%, #C8A870 40%, #A07840 100%);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 80px;
+}
+.hero-content {
+  padding-left: 8%; max-width: 560px; position: relative; z-index: 2;
+  animation: fadeUp 0.9s ease both;
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: #FDF0E3;
+  border: 1px solid rgba(232, 112, 10, 0.25);
+  border-radius: 50px;
+  padding: 7px 18px;
+  font-size: 12.5px;
+  color: #E8700A;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 28px;
+}
+.hero-badge::before { content: '✦'; font-size: 10px; }
+.hero h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(48px, 6vw, 80px);
+  font-weight: 300;
+  line-height: 1.08;
+  color: #2C1F10;
+  margin-bottom: 24px;
+}
+.hero h1 em { color: #E8700A; font-style: italic; }
+.hero p {
+  font-size: 17px;
+  color: #8B7355;
+  line-height: 1.75;
+  margin-bottom: 44px;
+  font-weight: 300;
+}
+.hero-actions { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+
+/* ─── FEATURES ─── */
+.features-section {
+  padding: 100px 8%;
+  background: #FFF8F2;
+}
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+}
+.feature-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 40px 32px;
+  border: 1px solid rgba(200, 185, 154, 0.35);
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.35s, border-color 0.35s;
+  position: relative; overflow: hidden;
+}
+.feature-card::before {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, #E8700A, #F5A04A);
+  transform: scaleX(0); transition: transform 0.35s;
+}
+.feature-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 80px rgba(44, 31, 16, 0.15);
+  border-color: rgba(232,112,10,0.2);
+}
+.feature-card:hover::before { transform: scaleX(1); }
+.feature-icon {
+  font-size: 36px; margin-bottom: 20px;
+  background: #FDF0E3;
+  width: 64px; height: 64px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 8px;
+}
+.feature-card h3 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: #2C1F10;
+  margin-bottom: 12px;
+}
+.feature-card p {
+  font-size: 14.5px;
+  color: #8B7355;
+  line-height: 1.7;
+  font-weight: 300;
+}
+
+/* ─── ROOMS PREVIEW ─── */
+.rooms-preview {
+  padding: 100px 8%;
+  background: #FDFAF6;
+}
+.rooms-grid {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 1fr;
+  gap: 24px;
+}
+.room-card {
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(200, 185, 154, 0.35);
+  transition: transform 0.35s, box-shadow 0.35s;
+  cursor: pointer;
+}
+.room-card:hover { transform: translateY(-8px); box-shadow: 0 20px 80px rgba(44, 31, 16, 0.15); }
+.room-img {
+  height: 240px;
+  position: relative;
+  overflow: hidden;
+}
+.room-card:first-child .room-img { height: 320px; }
+.room-img-inner {
+  width: 100%; height: 100%;
+  transition: transform 0.5s ease;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 60px;
+}
+.room-card:hover .room-img-inner { transform: scale(1.06); }
+.room-img img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+.room-card:hover .room-img img { transform: scale(1.06); }
+.room-img-bg-1 { background: linear-gradient(135deg, #D4A96A 0%, #B07840 100%); }
+.room-img-bg-2 { background: linear-gradient(135deg, #C9B8A0 0%, #A08060 100%); }
+.room-img-bg-3 { background: linear-gradient(135deg, #E0C9A0 0%, #C0A060 100%); }
+.room-badge {
+  position: absolute; top: 16px; left: 16px;
+  background: #E8700A;
+  color: #fff;
+  padding: 5px 14px;
+  border-radius: 50px;
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+.room-info { padding: 28px 24px; }
+.room-info h3 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: #2C1F10;
+  margin-bottom: 8px;
+}
+.room-info p {
+  font-size: 13.5px;
+  color: #8B7355;
+  line-height: 1.65;
+  margin-bottom: 18px;
+  font-weight: 300;
+}
+.room-meta {
+  display: flex; justify-content: space-between; align-items: center;
+}
+.room-price {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 24px;
+  font-weight: 600;
+  color: #E8700A;
+}
+.room-price span { font-size: 14px; color: #8B7355; font-family: 'DM Sans', sans-serif; font-weight: 300; }
+.room-features {
+  display: flex; gap: 12px;
+  font-size: 12px;
+  color: #8B7355;
+}
+.room-feat {
+  display: flex; align-items: center; gap: 4px;
+}
+
+@media (max-width: 900px) {
+  .hero-circle { display: none; }
+  .hero-content { padding: 0 24px; }
+  .features-grid, .rooms-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+{# ══ HERO ══ #}
+<section class="hero" aria-label="Главный баннер">
+  <div class="hero-bg-shape" aria-hidden="true"></div>
+  <div class="hero-circle">
+    <div class="hero-circle-placeholder">🏨</div>
+  </div>
+  <div class="hero-content">
+    <div class="hero-badge">Добро пожаловать в Зори Ваха</div>
+    <h1>Роскошь<br>в <em>каждой</em><br>детали</h1>
+    <p>Уютная гостиница в тихом, камерном посёлке, вдали от шумных туристических центров. Здесь нет суеты больших городов — только размеренный ритм местной жизни.</p>
+    <div class="hero-actions">
+      <a href="{% url 'hotel:room_list' %}" class="btn-primary">Забронировать номер</a>
+      <a href="{% url 'hotel:room_list' %}" class="btn-secondary">
+        <div class="btn-icon">▶</div>
+        Смотреть номера
+      </a>
+    </div>
+  </div>
+</section>
+
+{# ══ FEATURES ══ #}
+<section class="features-section">
+  <div class="section-header">
+    <div class="section-tag">Преимущества</div>
+    <h2 class="section-title">Почему выбирают <em>нас</em></h2>
+    <p class="section-sub">Каждый гость заслуживает особого отношения — это наш главный принцип</p>
+  </div>
+  <div class="features-grid">
+    <div class="feature-card fade-in">
+      <div class="feature-icon">🛎️</div>
+      <h3>Консьерж 24/7</h3>
+      <p>Круглосуточная служба консьержа готова выполнить любые пожелания и организовать ваш досуг.</p>
+    </div>
+    <div class="feature-card fade-in">
+      <div class="feature-icon">🍽️</div>
+      <h3>Ресторан & бар</h3>
+      <p>Авторская кухня с использованием локальных сезонных продуктов и широкая карта напитков.</p>
+    </div>
+    <div class="feature-card fade-in">
+      <div class="feature-icon">💆</div>
+      <h3>СПА & велнес</h3>
+      <p>Полный спектр оздоровительных процедур — сауна, массаж, бассейн и фитнес-зал.</p>
+    </div>
+    <div class="feature-card fade-in">
+      <div class="feature-icon">🅿️</div>
+      <h3>Парковка</h3>
+      <p>Охраняемая крытая парковка для гостей отеля, видеонаблюдение и электрозарядки.</p>
+    </div>
+    <div class="feature-card fade-in">
+      <div class="feature-icon">📶</div>
+      <h3>Wi-Fi 5G</h3>
+      <p>Высокоскоростной интернет в каждом уголке отеля — идеально для работы и развлечений.</p>
+    </div>
+    <div class="feature-card fade-in">
+      <div class="feature-icon">🤝</div>
+      <h3>Трансфер</h3>
+      <p>Комфортный трансфер от аэропорта и вокзала на автомобилях бизнес-класса.</p>
+    </div>
+  </div>
+</section>
+
+{# ══ ROOMS PREVIEW ══ #}
+<section class="rooms-preview">
+  <div class="section-header">
+    <div class="section-tag">Номерной фонд</div>
+    <h2 class="section-title">Наши <em>номера</em></h2>
+    <p class="section-sub">От уютных стандартов до эксклюзивных сьютов — найдите идеальное пространство</p>
+  </div>
+  {% if featured_rooms %}
+  <div class="rooms-grid">
+    {% for cat in featured_rooms|slice:":3" %}
+    <div class="room-card fade-in" onclick="window.location='{{ cat.get_absolute_url }}'">
+      <div class="room-img">
+        {% with cat.primary_images|first as primary %}
+          {% if primary %}
+            <img src="{{ primary.image.url }}" alt="{{ primary.alt_text|default:cat.name }}" loading="lazy">
+          {% elif cat.thumbnail %}
+            <img src="{{ cat.thumbnail.url }}" alt="{{ cat.name }}" loading="lazy">
+          {% else %}
+            <div class="room-img-inner room-img-bg-{{ forloop.counter }}">🛏️</div>
+          {% endif %}
+        {% endwith %}
+        {% if forloop.first %}
+        <div class="room-badge">Бестселлер</div>
+        {% endif %}
+      </div>
+      <div class="room-info">
+        <h3>{{ cat.name }}</h3>
+        <p>{{ cat.short_description|truncatewords:15 }}</p>
+        <div class="room-meta">
+          <div class="room-price">{{ cat.base_price_per_night|floatformat:0 }}₽ <span>/ ночь</span></div>
+          <div class="room-features">
+            <span class="room-feat">👁️ Вид</span>
+            <span class="room-feat">{{ cat.max_guests }} гост.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  <div style="text-align:center;margin-top:44px">
+    <a href="{% url 'hotel:room_list' %}" class="btn-primary">Все номера</a>
+  </div>
+  {% else %}
+  <div style="text-align:center;padding:60px 0">
+    <p style="color:#8B7355;font-size:16px">Номера скоро появятся</p>
+  </div>
+  {% endif %}
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Intersection Observer for .fade-in elements
+  const observer = new IntersectionObserver(
+    entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }),
+    { threshold: 0.12 }
+  );
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+{% endblock %}

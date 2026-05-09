@@ -22,7 +22,7 @@ from datetime import date
 from django.views.generic import TemplateView
 from django.views import View
 
-from apps.core.permissions import ManagerRequiredMixin
+from apps.core.permissions import ManagerRequiredMixin, ReceptionistRequiredMixin
 from .selectors import get_revenue_by_month, get_occupancy_by_category
 from .services import (
     generate_bookings_pdf,
@@ -52,7 +52,7 @@ def _parse_date_range(request) -> tuple[date, date]:
 # HTML views
 # ---------------------------------------------------------------------------
 
-class ReportIndexView(ManagerRequiredMixin, TemplateView):
+class ReportIndexView(ReceptionistRequiredMixin, TemplateView):
     template_name = "reports/index.html"
 
     def get_context_data(self, **kwargs):
@@ -62,7 +62,7 @@ class ReportIndexView(ManagerRequiredMixin, TemplateView):
         return ctx
 
 
-class RevenueReportView(ManagerRequiredMixin, TemplateView):
+class RevenueReportView(ReceptionistRequiredMixin, TemplateView):
     template_name = "reports/revenue.html"
 
     def get_context_data(self, **kwargs):
@@ -74,7 +74,7 @@ class RevenueReportView(ManagerRequiredMixin, TemplateView):
         return ctx
 
 
-class OccupancyReportView(ManagerRequiredMixin, TemplateView):
+class OccupancyReportView(ReceptionistRequiredMixin, TemplateView):
     template_name = "reports/occupancy.html"
 
     def get_context_data(self, **kwargs):
@@ -90,7 +90,7 @@ class OccupancyReportView(ManagerRequiredMixin, TemplateView):
 # PDF views
 # ---------------------------------------------------------------------------
 
-class BookingReportPDFView(ManagerRequiredMixin, View):
+class BookingReportPDFView(ReceptionistRequiredMixin, View):
     """PDF: бронирования за период."""
 
     def get(self, request):
@@ -98,7 +98,7 @@ class BookingReportPDFView(ManagerRequiredMixin, View):
         return generate_bookings_pdf(start, end)
 
 
-class ClientReportPDFView(ManagerRequiredMixin, View):
+class ClientReportPDFView(ReceptionistRequiredMixin, View):
     """PDF: список клиентов с фильтрами."""
 
     def get(self, request):
@@ -109,7 +109,7 @@ class ClientReportPDFView(ManagerRequiredMixin, View):
         )
 
 
-class OccupancyReportPDFView(ManagerRequiredMixin, View):
+class OccupancyReportPDFView(ReceptionistRequiredMixin, View):
     """PDF: загрузка номеров за период."""
 
     def get(self, request):
@@ -121,7 +121,7 @@ class OccupancyReportPDFView(ManagerRequiredMixin, View):
 # Excel views
 # ---------------------------------------------------------------------------
 
-class BookingReportExcelView(ManagerRequiredMixin, View):
+class BookingReportExcelView(ReceptionistRequiredMixin, View):
     """Excel: бронирования за период."""
 
     def get(self, request):

@@ -8,7 +8,7 @@
 
 <div class="d-flex align-items-center gap-3 mb-4">
   <a href="{% url 'bookings:staff_list' %}"
-     style="color:rgba(255,255,255,.4);text-decoration:none;font-size:.875rem">
+     style="color:rgba(13,13,13,.4);text-decoration:none;font-size:.875rem">
     <i class="bi bi-arrow-left me-1"></i>Бронирования
   </a>
   <h1 class="cabinet-page-title mb-0">Новая бронь</h1>
@@ -72,14 +72,24 @@
             {{ form.check_out }}
             {% for e in form.check_out.errors %}<div style="color:#ff6b6b;font-size:.8rem">{{ e }}</div>{% endfor %}
           </div>
-          <div class="col-sm-3">
-            <label class="form-label">Взрослых</label>
+          <div class="col-sm-6">
+            <label class="form-label">Персон</label>
             {{ form.adults }}
           </div>
-          <div class="col-sm-3">
-            <label class="form-label">Детей</label>
-            {{ form.children }}
+          <div class="col-sm-6" id="staffBedSharingBlock" style="display:none">
+            <label class="form-label">Размещение (2 персоны)</label>
+            <div style="display:flex;gap:1rem;margin-top:.4rem">
+              <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.875rem">
+                <input type="radio" name="bed_sharing" value="two_beds" checked
+                       class="form-check-input" style="margin:0"> Две кровати (×2)
+              </label>
+              <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.875rem">
+                <input type="radio" name="bed_sharing" value="one_bed"
+                       class="form-check-input" style="margin:0"> Одна кровать (×1.5)
+              </label>
+            </div>
           </div>
+          {{ form.occupancy_type }}
           <div class="col-sm-3">
             <label class="form-label">Источник</label>
             {{ form.source }}
@@ -99,13 +109,31 @@
             <label class="form-label">Организация</label>
             {{ form.organization }}
           </div>
-          <div class="col-sm-3">
-            <label class="form-label">Скидка (₽)</label>
-            {{ form.discount_amount }}
-          </div>
-          <div class="col-sm-3">
-            <label class="form-label">Причина скидки</label>
-            {{ form.discount_reason }}
+          <div class="col-12">
+            <div style="background:rgba(255,193,7,.06);border:1px solid rgba(255,193,7,.15);
+                        border-radius:10px;padding:.85rem">
+              <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.6rem">
+                <input type="checkbox" name="apply_discount" id="id_apply_discount"
+                       class="form-check-input" style="width:1.1rem;height:1.1rem;margin:0"
+                       {% if form.apply_discount.value %}checked{% endif %} />
+                <label for="id_apply_discount"
+                       style="font-size:.875rem;font-weight:600;color:rgba(13,13,13,.8);cursor:pointer;margin:0">
+                  <i class="bi bi-tag me-1" style="color:#d97706"></i>Применить скидку
+                </label>
+              </div>
+              <div id="discountFields" style="display:{% if form.apply_discount.value %}block{% else %}none{% endif %}">
+                <div class="row g-2">
+                  <div class="col-sm-4">
+                    <label class="form-label" style="font-size:.8rem">Скидка (%)</label>
+                    {{ form.discount_percent }}
+                  </div>
+                  <div class="col-sm-8">
+                    <label class="form-label" style="font-size:.8rem">Причина скидки</label>
+                    {{ form.discount_reason }}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="col-12">
             <label class="form-label">Пожелания гостя</label>
@@ -133,8 +161,8 @@
 
         <div style="background:rgba(255,193,7,.06);border:1px solid rgba(255,193,7,.12);
                     border-radius:10px;padding:.75rem;font-size:.8rem;
-                    color:rgba(255,255,255,.45);margin-bottom:1rem">
-          <i class="bi bi-info-circle me-2" style="color:#ffc107"></i>
+                    color:rgba(13,13,13,.5);margin-bottom:1rem">
+          <i class="bi bi-info-circle me-2" style="color:#d97706"></i>
           Бронь будет создана в статусе «Новая» и привязана к вашему аккаунту.
         </div>
 
@@ -145,7 +173,7 @@
         </button>
         <a href="{% url 'bookings:staff_list' %}"
            style="display:block;text-align:center;margin-top:.75rem;
-                  color:rgba(255,255,255,.4);font-size:.875rem;text-decoration:none">
+                  color:rgba(13,13,13,.4);font-size:.875rem;text-decoration:none">
           Отмена
         </a>
       </div>
@@ -159,4 +187,46 @@
 {% block extra_js %}
 {% load static %}
 <script src="{% static 'js/booking.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Discount toggle
+  const applyDiscount = document.getElementById('id_apply_discount');
+  const discountFields = document.getElementById('discountFields');
+  if (applyDiscount && discountFields) {
+    applyDiscount.addEventListener('change', function() {
+      discountFields.style.display = this.checked ? 'block' : 'none';
+    });
+  }
+
+  // Bed sharing visibility for 2 persons
+  const adultsInput = document.querySelector('input[name="adults"]');
+  const bedBlock    = document.getElementById('staffBedSharingBlock');
+  function updateBedBlock() {
+    if (!bedBlock || !adultsInput) return;
+    bedBlock.style.display = parseInt(adultsInput.value) === 2 ? 'block' : 'none';
+  }
+  if (adultsInput) {
+    adultsInput.addEventListener('change', updateBedBlock);
+    adultsInput.addEventListener('input',  updateBedBlock);
+    updateBedBlock();
+  }
+
+  // Bed sharing → update hidden occupancy_type
+  document.querySelectorAll('input[name="bed_sharing"]').forEach(r => {
+    r.addEventListener('change', updateOccupancy);
+  });
+  if (adultsInput) adultsInput.addEventListener('change', updateOccupancy);
+
+  function updateOccupancy() {
+    const adults = parseInt(adultsInput?.value || 1);
+    const bed    = document.querySelector('input[name="bed_sharing"]:checked')?.value || 'two_beds';
+    const occ    = document.getElementById('id_occupancy_type');
+    if (!occ) return;
+    if (adults === 1)      occ.value = 'solo';
+    else if (adults === 2) occ.value = bed === 'one_bed' ? 'newlyweds' : 'two_guests';
+    else                   occ.value = 'two_guests';
+  }
+  updateOccupancy();
+});
+</script>
 {% endblock %}

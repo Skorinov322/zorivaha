@@ -12,4 +12,5 @@ urlpatterns = [
     path("calendar/",                           views.OccupancyCalendarView.as_view(), name="calendar"),
     path("statistics/",                         views.StatisticsView.as_view(),        name="statistics"),
     path("metrics/",                            views.MetricsView.as_view(),           name="metrics"),
+    path("gallery/",                            views.GalleryManagementView.as_view(), name="gallery"),
 ]

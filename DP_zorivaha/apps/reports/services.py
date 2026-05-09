@@ -416,7 +416,7 @@ def generate_clients_pdf(
     summary = get_clients_summary()
 
     buffer = io.BytesIO()
-    doc    = _make_doc(buffer, "Список клиентов", landscape_mode=False)
+    doc    = _make_doc(buffer, "Список клиентов", landscape_mode=True)
     styles = getSampleStyleSheet()
     elems  = []
 
@@ -446,22 +446,21 @@ def generate_clients_pdf(
     elems.append(_header_paragraph("Клиенты", styles))
 
     if clients:
-        headers = ["ФИО", "Email", "Тип", "Лояльность", "Заездов", "Ночей", "Потрачено, ₽", "Статус"]
+        headers = ["ФИО", "Email", "Тип", "Заездов", "Ночей", "Потрачено, ₽", "Статус"]
         rows = []
         for p in clients:
             rows.append([
                 p.user.get_full_name()[:30] or p.user.email[:30],
                 p.user.email[:28],
                 p.get_client_type_display(),
-                p.get_loyalty_tier_display(),
                 str(p.total_stays),
                 str(p.total_nights),
                 f"{float(p.total_spent):,.0f}",
                 p.get_status_display(),
             ])
 
-        col_w = [4*cm, 4.5*cm, 2.5*cm, 2.5*cm, 1.8*cm, 1.8*cm, 3*cm, 2.5*cm]
-        elems.append(_data_table(headers, rows, col_widths=col_w, align_right_cols=[4, 5, 6]))
+        col_w = [5*cm, 5.5*cm, 3*cm, 2.2*cm, 2.2*cm, 4*cm, 3*cm]
+        elems.append(_data_table(headers, rows, col_widths=col_w, align_right_cols=[3, 4, 5]))
     else:
         elems.append(Paragraph("Нет данных.", styles["Normal"]))
 

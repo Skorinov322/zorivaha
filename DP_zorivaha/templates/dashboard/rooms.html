@@ -29,7 +29,9 @@
       <tbody>
         {% for room in rooms %}
         <tr>
-          <td style="color:#ff8e3c;font-weight:700;font-size:1rem">{{ room.number }}</td>
+          <td style="color:#ff8e3c;font-weight:700;font-size:1rem">
+            {{ room.number }}{% if room.subdivision %}<span style="color:rgba(13,13,13,.45);font-size:.8rem;font-weight:500"> / {{ room.subdivision }}</span>{% endif %}
+          </td>
           <td class="guest-name">{{ room.category.name }}</td>
           <td class="text-muted-sm">{{ room.floor }} эт.</td>
           <td>

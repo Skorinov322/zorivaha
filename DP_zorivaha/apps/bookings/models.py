@@ -43,6 +43,13 @@ class BookingStatus(models.TextChoices):
     NO_SHOW    = "no_show",    _("Незаезд")
 
 
+class OccupancyType(models.TextChoices):
+    SOLO        = "solo",        _("Один гость")
+    NEWLYWEDS   = "newlyweds",   _("Молодожёны (одна кровать, +50%)")
+    FRIENDS     = "friends",     _("Друзья (две кровати, ×2)")
+    TWO_GUESTS  = "two_guests",  _("Двое гостей (×2)")
+
+
 class PaymentStatus(models.TextChoices):
     UNPAID   = "unpaid",   _("Не оплачено")
     PARTIAL  = "partial",  _("Частично оплачено")
@@ -108,6 +115,13 @@ class Booking(UUIDModel, TimeStampedModel):
         verbose_name=_("номер"),
         help_text=_("Назначается при заселении"),
     )
+    group_id = models.UUIDField(
+        _("ID группы"),
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text=_("UUID группы броней, созданных в рамках одного запроса"),
+    )
     organization = models.ForeignKey(
         "crm.Organization",
         on_delete=models.SET_NULL,
@@ -133,6 +147,11 @@ class Booking(UUIDModel, TimeStampedModel):
     # ---- Guests count ----
     adults   = models.PositiveSmallIntegerField(_("взрослых"), default=1)
     children = models.PositiveSmallIntegerField(_("детей"),    default=0)
+    occupancy_type = models.CharField(
+        _("тип размещения"), max_length=20,
+        choices=OccupancyType.choices, default=OccupancyType.SOLO,
+        db_index=True,
+    )
 
     # ---- Pricing snapshot (frozen at booking time) ----
     price_per_night = models.DecimalField(
@@ -175,6 +194,10 @@ class Booking(UUIDModel, TimeStampedModel):
     special_requests = models.TextField(_("особые пожелания"), blank=True)
     arrival_time     = models.TimeField(_("примерное время прибытия"), null=True, blank=True)
     departure_time   = models.TimeField(_("примерное время отъезда"),  null=True, blank=True)
+    early_check_in   = models.BooleanField(
+        _("ранний заезд (до 12:00)"), default=False,
+        help_text=_("Заезд до 12:00 — добавляется стоимость одних суток"),
+    )
 
     # ---- Internal ----
     internal_notes = models.TextField(_("внутренние заметки"), blank=True)
@@ -299,7 +322,7 @@ class Booking(UUIDModel, TimeStampedModel):
         
         # Update room status based on occupancy
         current_occupancy = room.get_current_occupancy_count()
-        if current_occupancy >= room.max_concurrent_bookings:
+        if current_occupancy >= room.max_guests_per_room:
             room.status = Room.RoomStatus.OCCUPIED
         else:
             # Room is partially occupied but can still accept more guests
@@ -333,6 +356,55 @@ class Booking(UUIDModel, TimeStampedModel):
         self.save(update_fields=["status", "updated_at"])
         self._log("Гость не явился (незаезд).", actor, BookingHistory.Action.NO_SHOW)
 
+    def undo_check_in(self, actor=None):
+        """Отменить заселение: checked_in → confirmed."""
+        if self.status != BookingStatus.CHECKED_IN:
+            raise ValueError("Отменить заселение можно только для заселённой брони.")
+        prev_room = self.room
+
+        # Освобождаем номер перед сменой статуса
+        if prev_room:
+            # После отмены заселения этой брони считаем оставшуюся занятость
+            remaining = prev_room.bookings.filter(
+                status=BookingStatus.CHECKED_IN
+            ).exclude(pk=self.pk).count()
+            if remaining <= 0:
+                prev_room.status = Room.RoomStatus.AVAILABLE
+            prev_room.save(update_fields=["status", "updated_at"])
+
+        self.status = BookingStatus.CONFIRMED
+        self.room = None
+        self.save(update_fields=["status", "room", "updated_at"])
+        self._log(
+            f"Заселение отменено (номер {prev_room.full_number if prev_room else '—'}).",
+            actor,
+            BookingHistory.Action.UNDO_CHECK_IN,
+        )
+
+    def undo_check_out(self, actor=None):
+        """Отменить выселение: checked_out → checked_in."""
+        if self.status != BookingStatus.CHECKED_OUT:
+            raise ValueError("Отменить выселение можно только для завершённой брони.")
+        if not self.room:
+            raise ValueError("Невозможно отменить выселение: номер не назначен.")
+        self.status = BookingStatus.CHECKED_IN
+        self.save(update_fields=["status", "updated_at"])
+
+        # Возвращаем номер в занятый статус
+        room = self.room
+        current_occupancy = room.get_current_occupancy_count()
+        if current_occupancy >= room.max_guests_per_room:
+            room.status = Room.RoomStatus.OCCUPIED
+        else:
+            room.status = Room.RoomStatus.AVAILABLE
+        room.save(update_fields=["status", "updated_at"])
+
+        self._log(
+            f"Выселение отменено, гость возвращён в номер {room.full_number}.",
+            actor,
+            BookingHistory.Action.UNDO_CHECK_OUT,
+        )
+
     def _log(self, note: str, actor, action: str):
         BookingHistory.objects.create(
             booking=self,
@@ -356,15 +428,17 @@ class BookingHistory(TimeStampedModel):
     """Immutable audit trail — append only, never update."""
 
     class Action(models.TextChoices):
-        CREATED    = "created",    _("Создана")
-        CONFIRMED  = "confirmed",  _("Подтверждена")
-        CHECKED_IN = "checked_in", _("Заселён")
-        CHECKED_OUT= "checked_out",_("Выселился")
-        CANCELLED  = "cancelled",  _("Отменена")
-        NO_SHOW    = "no_show",    _("Незаезд")
-        PAYMENT    = "payment",    _("Оплата")
-        NOTE_ADDED = "note_added", _("Заметка")
-        MODIFIED   = "modified",   _("Изменена")
+        CREATED         = "created",         _("Создана")
+        CONFIRMED       = "confirmed",        _("Подтверждена")
+        CHECKED_IN      = "checked_in",       _("Заселён")
+        CHECKED_OUT     = "checked_out",      _("Выселился")
+        CANCELLED       = "cancelled",        _("Отменена")
+        NO_SHOW         = "no_show",          _("Незаезд")
+        PAYMENT         = "payment",          _("Оплата")
+        NOTE_ADDED      = "note_added",       _("Заметка")
+        MODIFIED        = "modified",         _("Изменена")
+        UNDO_CHECK_IN   = "undo_check_in",    _("Заселение отменено")
+        UNDO_CHECK_OUT  = "undo_check_out",   _("Выселение отменено")
 
     booking = models.ForeignKey(
         Booking, on_delete=models.CASCADE,
