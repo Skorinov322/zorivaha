@@ -1,0 +1,28 @@
+{% comment %}Booking status badge. Usage: {% include "bookings/_status_badge.html" with status=b.status label=b.get_status_display %}{% endcomment %}
+{% if status == "pending" %}
+  <span style="background:rgba(255,193,7,.12);color:#ffc107;border:1px solid rgba(255,193,7,.25);border-radius:6px;padding:.2rem .6rem;font-size:.75rem;white-space:nowrap">
+    <i class="bi bi-clock me-1"></i>{{ label }}
+  </span>
+{% elif status == "confirmed" %}
+  <span style="background:rgba(40,167,69,.12);color:#28a745;border:1px solid rgba(40,167,69,.25);border-radius:6px;padding:.2rem .6rem;font-size:.75rem;white-space:nowrap">
+    <i class="bi bi-check-circle me-1"></i>{{ label }}
+  </span>
+{% elif status == "checked_in" %}
+  <span style="background:rgba(13,110,253,.12);color:#6ea8fe;border:1px solid rgba(13,110,253,.25);border-radius:6px;padding:.2rem .6rem;font-size:.75rem;white-space:nowrap">
+    <i class="bi bi-door-open me-1"></i>{{ label }}
+  </span>
+{% elif status == "checked_out" %}
+  <span style="background:rgba(32,201,151,.12);color:#20c997;border:1px solid rgba(32,201,151,.25);border-radius:6px;padding:.2rem .6rem;font-size:.75rem;white-space:nowrap">
+    <i class="bi bi-check2-all me-1"></i>{{ label }}
+  </span>
+{% elif status == "cancelled" %}
+  <span style="background:rgba(220,53,69,.12);color:#ff6b6b;border:1px solid rgba(220,53,69,.25);border-radius:6px;padding:.2rem .6rem;font-size:.75rem;white-space:nowrap">
+    <i class="bi bi-x-circle me-1"></i>{{ label }}
+  </span>
+{% elif status == "no_show" %}
+  <span style="background:rgba(108,117,125,.12);color:#adb5bd;border:1px solid rgba(108,117,125,.25);border-radius:6px;padding:.2rem .6rem;font-size:.75rem;white-space:nowrap">
+    <i class="bi bi-person-x me-1"></i>{{ label }}
+  </span>
+{% else %}
+  <span style="background:rgba(13,13,13,.06);color:rgba(13,13,13,.45);border:1px solid rgba(13,13,13,.1);border-radius:6px;padding:.2rem .6rem;font-size:.75rem">{{ label }}</span>
+{% endif %}

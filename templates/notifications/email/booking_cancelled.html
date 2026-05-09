@@ -1,0 +1,101 @@
+{% extends "notifications/email/base_email.html" %}
+
+{% block email_title %}Бронь #{{ booking.confirmation_number }} отменена — Зори Ваха{% endblock %}
+{% block preheader %}Ваше бронирование #{{ booking.confirmation_number }} было отменено{% endblock %}
+
+{% block content %}
+
+<!-- Status badge -->
+<div style="text-align:center;margin-bottom:28px;">
+  <span style="display:inline-block;background:#fef0f0;border:1px solid #f5c0c0;
+               color:#c0392b;font-size:12px;font-weight:700;letter-spacing:.08em;
+               text-transform:uppercase;padding:6px 16px;border-radius:20px;">
+    ❌ Бронь отменена
+  </span>
+</div>
+
+<!-- Heading -->
+<h1 style="font-family:Georgia,'Times New Roman',serif;font-size:26px;color:#0f0f1a;
+           margin:0 0 8px;text-align:center;font-weight:700;">
+  Бронирование отменено
+</h1>
+<p style="font-size:15px;color:#666;text-align:center;margin:0 0 28px;line-height:1.6;">
+  Здравствуйте, <strong style="color:#333;">{{ booking.guest_first_name }}</strong>!<br>
+  Ваше бронирование было отменено.
+</p>
+
+<!-- Cancelled booking info -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+       style="background:#fef9f9;border:1px solid #f5c0c0;border-radius:10px;
+              border-left:4px solid #e74c3c;overflow:hidden;margin:0 0 20px;">
+  <tr>
+    <td style="padding:10px 16px;font-size:13px;color:#888;border-bottom:1px solid #f5e0e0;width:45%;">
+      Номер брони
+    </td>
+    <td style="padding:10px 16px;font-size:13px;color:#c0392b;font-weight:700;border-bottom:1px solid #f5e0e0;">
+      {{ booking.confirmation_number }}
+    </td>
+  </tr>
+  <tr>
+    <td style="padding:10px 16px;font-size:13px;color:#888;border-bottom:1px solid #f5e0e0;">
+      Категория
+    </td>
+    <td style="padding:10px 16px;font-size:13px;color:#555;font-weight:600;border-bottom:1px solid #f5e0e0;">
+      {{ booking.room_category.name }}
+    </td>
+  </tr>
+  <tr>
+    <td style="padding:10px 16px;font-size:13px;color:#888;border-bottom:1px solid #f5e0e0;">
+      Даты
+    </td>
+    <td style="padding:10px 16px;font-size:13px;color:#555;font-weight:600;border-bottom:1px solid #f5e0e0;">
+      {{ booking.check_in|date:"d.m.Y" }} — {{ booking.check_out|date:"d.m.Y" }}
+    </td>
+  </tr>
+  {% if booking.cancellation_reason %}
+  <tr>
+    <td style="padding:10px 16px;font-size:13px;color:#888;">
+      Причина отмены
+    </td>
+    <td style="padding:10px 16px;font-size:13px;color:#555;font-weight:600;">
+      {{ booking.cancellation_reason }}
+    </td>
+  </tr>
+  {% endif %}
+</table>
+
+<!-- Refund info -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+       style="background:#f0f7ff;border:1px solid #d0e4f7;border-radius:10px;
+              padding:16px 20px;margin:16px 0;">
+  <tr>
+    <td style="font-size:13px;color:#1a5276;line-height:1.7;">
+      <strong style="font-size:14px;">Информация о возврате:</strong><br>
+      Если оплата была произведена, возврат средств будет выполнен в течение
+      3–5 рабочих дней на исходный способ оплаты.
+      По вопросам возврата обращайтесь на
+      <a href="mailto:info@zorivaha.ru" style="color:#c9a84c;">info@zorivaha.ru</a>.
+    </td>
+  </tr>
+</table>
+
+<!-- Re-book CTA -->
+<p style="font-size:15px;color:#555;text-align:center;margin:24px 0 16px;line-height:1.6;">
+  Мы будем рады видеть вас снова!<br>
+  Посмотрите доступные номера и забронируйте удобную дату.
+</p>
+
+<div style="text-align:center;margin:0 0 8px;">
+  <a href="https://zorivaha.ru/rooms/"
+     style="display:inline-block;background:linear-gradient(135deg,#c9a84c,#a07830);
+            color:#fff;text-decoration:none;font-size:15px;font-weight:700;
+            padding:14px 36px;border-radius:10px;letter-spacing:.02em;">
+    Посмотреть номера
+  </a>
+</div>
+
+<p style="font-size:13px;color:#999;text-align:center;margin:16px 0 0;">
+  Вопросы? Звоните: <a href="tel:+79280000000" style="color:#c9a84c;text-decoration:none;">+7 (928) 000-00-00</a>
+</p>
+
+{% endblock %}

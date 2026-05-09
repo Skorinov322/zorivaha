@@ -1,0 +1,146 @@
+{% extends "accounts/base_cabinet.html" %}
+
+{% block title %}Профиль{% endblock %}
+
+{% block cabinet_content %}
+
+<h1 class="cabinet-page-title">Профиль</h1>
+<p class="cabinet-page-subtitle">Личные данные и настройки аккаунта</p>
+
+<div class="row g-4">
+
+  {# ---- Avatar column ---- #}
+  <div class="col-md-4 col-lg-3">
+    <div class="cabinet-card text-center">
+      <div class="cabinet-card-title">Фото профиля</div>
+
+      <div style="width:100px;height:100px;border-radius:50%;margin:0 auto 1rem;
+                  background:linear-gradient(135deg,#ff8e3c,#d9376e);
+                  display:flex;align-items:center;justify-content:center;
+                  font-size:2rem;font-weight:700;color:#0d0d0d;overflow:hidden">
+        {% if request.user.avatar %}
+          <img src="{{ request.user.avatar.url }}" alt="Аватар"
+               style="width:100%;height:100%;object-fit:cover" />
+        {% else %}
+          {{ request.user.get_initials }}
+        {% endif %}
+      </div>
+
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="avatar" />
+        {{ avatar_form.avatar }}
+        {% for e in avatar_form.avatar.errors %}
+          <div style="color:#ff6b6b;font-size:.8rem;margin-top:.25rem">{{ e }}</div>
+        {% endfor %}
+        <button type="submit" class="btn btn-sm mt-2"
+                style="background:rgba(255,142,60,.12);color:#ff8e3c;border:1px solid rgba(255,142,60,.25);border-radius:8px;width:100%">
+          <i class="bi bi-upload me-1"></i>Загрузить фото
+        </button>
+      </form>
+
+      <div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid rgba(13,13,13,.08)">
+        <div style="font-size:.75rem;color:rgba(13,13,13,.4);margin-bottom:.25rem">Email</div>
+        <div style="color:#0d0d0d;font-size:.875rem;word-break:break-all">{{ request.user.email }}</div>
+      </div>
+
+      <div style="margin-top:.75rem">
+        <div style="font-size:.75rem;color:rgba(13,13,13,.4);margin-bottom:.25rem">Роль</div>
+        <span style="background:rgba(255,142,60,.1);color:#ff8e3c;
+                     border:1px solid rgba(255,142,60,.25);border-radius:6px;
+                     padding:.2rem .6rem;font-size:.78rem">
+          {{ request.user.get_role_display }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  {# ---- Profile form ---- #}
+  <div class="col-md-8 col-lg-9">
+    <div class="cabinet-card">
+      <div class="cabinet-card-title">Личные данные</div>
+
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="profile" />
+
+        <div class="row g-3">
+          <div class="col-sm-6">
+            <label class="form-label" for="{{ form.last_name.id_for_label }}">Фамилия</label>
+            {{ form.last_name }}
+            {% for e in form.last_name.errors %}
+              <div style="color:#ff6b6b;font-size:.8rem">{{ e }}</div>
+            {% endfor %}
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label" for="{{ form.first_name.id_for_label }}">Имя</label>
+            {{ form.first_name }}
+            {% for e in form.first_name.errors %}
+              <div style="color:#ff6b6b;font-size:.8rem">{{ e }}</div>
+            {% endfor %}
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label" for="{{ form.phone.id_for_label }}">Телефон</label>
+            {{ form.phone }}
+            {% for e in form.phone.errors %}
+              <div style="color:#ff6b6b;font-size:.8rem">{{ e }}</div>
+            {% endfor %}
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label" for="{{ form.date_of_birth.id_for_label }}">Дата рождения</label>
+            {{ form.date_of_birth }}
+          </div>
+        </div>
+
+        <div style="height:1px;background:rgba(13,13,13,.08);margin:1.5rem 0"></div>
+        <div class="cabinet-card-title">Документы</div>
+
+        <div class="row g-3">
+          <div class="col-sm-4">
+            <label class="form-label" for="{{ form.passport_series.id_for_label }}">Серия паспорта</label>
+            {{ form.passport_series }}
+          </div>
+          <div class="col-sm-8">
+            <label class="form-label" for="{{ form.passport_number.id_for_label }}">Номер паспорта</label>
+            {{ form.passport_number }}
+          </div>
+        </div>
+
+        <div style="height:1px;background:rgba(13,13,13,.08);margin:1.5rem 0"></div>
+        <div class="cabinet-card-title">Настройки</div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-sm-6">
+            <label class="form-label" for="{{ form.preferred_language.id_for_label }}">Язык</label>
+            {{ form.preferred_language }}
+          </div>
+        </div>
+
+        <div class="form-check mb-2">
+          {{ form.email_notifications }}
+          <label class="form-check-label" for="{{ form.email_notifications.id_for_label }}">
+            Получать email-уведомления о бронированиях
+          </label>
+        </div>
+        <div class="form-check mb-3">
+          {{ form.marketing_consent }}
+          <label class="form-check-label" for="{{ form.marketing_consent.id_for_label }}">
+            Получать новости и специальные предложения
+          </label>
+        </div>
+
+        <button type="submit"
+                style="background:linear-gradient(135deg,#ff8e3c,#d9376e);
+                       border:none;border-radius:10px;color:#0d0d0d;
+                       padding:.7rem 1.75rem;font-weight:700;cursor:pointer;
+                       transition:opacity .2s"
+                onmouseover="this.style.opacity='.85'"
+                onmouseout="this.style.opacity='1'">
+          <i class="bi bi-check2 me-2"></i>Сохранить изменения
+        </button>
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
