@@ -47,19 +47,19 @@ class HealthCheckView(View):
             logger.error("Health check DB failed: %s", exc)
 
         # ── Cache ─────────────────────────────────────────────────────────────
+        # Cache check is optional - don't fail if cache is unavailable
         try:
             from django.core.cache import cache
             cache.set("_health_check", "1", timeout=5)
             val = cache.get("_health_check")
             checks["cache"] = "ok" if val == "1" else "error: value mismatch"
-            if val != "1":
-                status_code = 503
         except Exception as exc:
             checks["cache"] = f"unavailable: {exc}"
             # Cache failure is non-fatal — app can still serve requests
             logger.warning("Health check cache failed: %s", exc)
 
         # ── Celery broker ─────────────────────────────────────────────────────
+        # Celery check is optional - don't fail if not configured
         try:
             from django.conf import settings
             broker_url = getattr(settings, "CELERY_BROKER_URL", None)
