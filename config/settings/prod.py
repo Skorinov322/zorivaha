@@ -6,7 +6,7 @@ config/settings/prod.py — Production settings.
 
 from .base import *  # noqa: F401, F403
 from decouple import config
-import dj_database_url
+import os
 
 # ---------------------------------------------------------------------------
 # Core
@@ -59,24 +59,35 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 # Database — production pool settings
 # ---------------------------------------------------------------------------
 
-# Railway provides DATABASE_URL automatically
+# Парсим DATABASE_URL вручную (без dj-database-url)
 DATABASE_URL = config("DATABASE_URL", default=None)
+
 if DATABASE_URL:
-    DATABASES = {
-        "default": dj_database_url.config(
-            default=DATABASE_URL,
-            conn_max_age=60,
-            conn_health_checks=True,
-        )
-    }
+    # Парсим URL вручную: postgresql://user:password@host:port/dbname
+    import re
+    match = re.match(r'postgres(?:ql)?://([^:]+):([^@]+)@([^:]+):(\d+)/(.+)', DATABASE_URL)
+    if match:
+        user, password, host, port, dbname = match.groups()
+        DATABASES = {
+            "default": {
+                "ENGINE": "django.db.backends.postgresql",
+                "NAME": dbname,
+                "USER": user,
+                "PASSWORD": password,
+                "HOST": host,
+                "PORT": port,
+                "CONN_MAX_AGE": 60,
+                "CONN_HEALTH_CHECKS": True,
+            }
+        }
 else:
-    DATABASES["default"].update({  # noqa: F405
-        "CONN_MAX_AGE": 60,
-        "OPTIONS": {
-            "connect_timeout": 10,
-            "options": "-c default_transaction_isolation=read committed",
-        },
-    })
+    # Fallback к SQLite
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",  # noqa: F405
+        }
+    }
 
 # ---------------------------------------------------------------------------
 # Cache — Database cache (простой вариант для начала)
