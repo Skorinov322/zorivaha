@@ -204,14 +204,13 @@ def get_room_status_grid() -> list[dict]:
     for room in rooms:
         color, label = color_map.get(room.status, ("#888", room.get_status_display()))
         result.append({
-            "number":      room.number,
-            "subdivision": room.subdivision,
-            "floor":       room.floor,
-            "category":    room.category.name,
-            "status":      room.status,
-            "label":       label,
-            "color":       color,
-            "pk":          room.pk,
+            "number":   room.number,
+            "floor":    room.floor,
+            "category": room.category.name,
+            "status":   room.status,
+            "label":    label,
+            "color":    color,
+            "pk":       room.pk,
         })
     return result
 

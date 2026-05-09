@@ -10,25 +10,32 @@
 {# ---- Loyalty summary ---- #}
 {% if crm_profile %}
 <div class="row g-3 mb-4">
-  <div class="col-6 col-md-4">
+  <div class="col-6 col-md-3">
     <div class="stat-card">
       <div class="stat-icon"><i class="bi bi-house-check" style="color:#20c997"></i></div>
       <div class="stat-value">{{ crm_profile.total_stays }}</div>
       <div class="stat-label">Всего заездов</div>
     </div>
   </div>
-  <div class="col-6 col-md-4">
+  <div class="col-6 col-md-3">
     <div class="stat-card">
       <div class="stat-icon"><i class="bi bi-moon-stars" style="color:#6ea8fe"></i></div>
       <div class="stat-value">{{ crm_profile.total_nights }}</div>
       <div class="stat-label">Ночей проведено</div>
     </div>
   </div>
-  <div class="col-6 col-md-4">
+  <div class="col-6 col-md-3">
     <div class="stat-card">
       <div class="stat-icon"><i class="bi bi-currency-exchange" style="color:var(--gold)"></i></div>
       <div class="stat-value" style="font-size:1.2rem">{{ crm_profile.total_spent|floatformat:0 }} ₽</div>
       <div class="stat-label">Потрачено всего</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon"><i class="bi bi-award" style="color:var(--gold)"></i></div>
+      <div class="stat-value" style="font-size:1rem">{{ crm_profile.get_loyalty_tier_display }}</div>
+      <div class="stat-label">Уровень лояльности</div>
     </div>
   </div>
 </div>

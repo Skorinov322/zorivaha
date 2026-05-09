@@ -62,8 +62,8 @@
       </div>
     </div>
 
-    {# Toggle active — только ADMIN+ #}
-    {% if target.pk != request.user.pk and perms_ctx.can_manage_users %}
+    {# Toggle active #}
+    {% if target.pk != request.user.pk %}
     <form method="post" action="{% url 'accounts:toggle_user' target.pk %}">
       {% csrf_token %}
       <button type="submit"

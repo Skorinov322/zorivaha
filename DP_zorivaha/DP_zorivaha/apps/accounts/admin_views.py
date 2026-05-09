@@ -15,7 +15,6 @@ from django.views import View
 
 from apps.core.permissions import (
     AdminRequiredMixin,
-    ReceptionistRequiredMixin,
     SuperAdminRequiredMixin,
     Permission,
     has_permission,
@@ -32,10 +31,10 @@ logger = logging.getLogger(__name__)
 # User list  (ADMIN+)
 # ---------------------------------------------------------------------------
 
-class UserListView(ReceptionistRequiredMixin, View):
+class UserListView(AdminRequiredMixin, View):
     """
     List all users with search and role filter.
-    Accessible to RECEPTIONIST and above.
+    Accessible to ADMIN and SUPER_ADMIN.
     """
 
     template_name = "accounts/admin/user_list.html"
@@ -46,7 +45,6 @@ class UserListView(ReceptionistRequiredMixin, View):
         # Filters
         role_filter = request.GET.get("role", "")
         search      = request.GET.get("q", "").strip()
-        tab         = request.GET.get("tab", "guests")  # guests | staff
 
         if role_filter:
             qs = qs.filter(role=role_filter)
@@ -55,16 +53,8 @@ class UserListView(ReceptionistRequiredMixin, View):
                  qs.filter(first_name__icontains=search) | \
                  qs.filter(last_name__icontains=search)
 
-        # Split into guests and staff
-        staff_roles = [UserRole.RECEPTIONIST, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]
-        staff_qs  = qs.filter(role__in=staff_roles)
-        guests_qs = qs.filter(role=UserRole.USER)
-
         return render(request, self.template_name, {
             "users":        qs,
-            "guests":       guests_qs,
-            "staff":        staff_qs,
-            "tab":          tab,
             "role_choices": UserRole.choices,
             "role_filter":  role_filter,
             "search_query": search,
@@ -76,7 +66,7 @@ class UserListView(ReceptionistRequiredMixin, View):
 # User detail  (ADMIN+)
 # ---------------------------------------------------------------------------
 
-class UserDetailView(ReceptionistRequiredMixin, View):
+class UserDetailView(AdminRequiredMixin, View):
     """View a single user's profile and role."""
 
     template_name = "accounts/admin/user_detail.html"

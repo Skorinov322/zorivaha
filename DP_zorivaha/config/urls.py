@@ -4,22 +4,11 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
-from django.views.generic import TemplateView
 
 from apps.core.health import HealthCheckView
 from apps.core.admin_site import role_admin_site
 
 urlpatterns = [
-    # Yandex Webmaster verification
-    path(
-        "yandex_26cd3036c0f3861a.html",
-        TemplateView.as_view(
-            template_name="yandex_26cd3036c0f3861a.html",
-            content_type="text/html"
-        ),
-        name="yandex_verification"
-    ),
-
     # Health check (no auth, used by Docker/Nginx/monitoring)
     path("health/", HealthCheckView.as_view(), name="health"),
 
@@ -59,12 +48,6 @@ urlpatterns = [
 
     # Email log (staff)
     path("notifications/", include("apps.notifications.urls", namespace="notifications")),
-
-    # Reviews
-    path("reviews/", include("apps.reviews.urls", namespace="reviews")),
-
-    # Content pages (FAQ, etc.)
-    path("", include("apps.content.urls", namespace="content")),
 ]
 
 # Serve media files in development

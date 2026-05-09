@@ -73,12 +73,6 @@ class Organization(TimeStampedModel):
     )
     notes     = models.TextField(_("заметки"), blank=True)
     is_active = models.BooleanField(_("активна"), default=True, db_index=True)
-    is_approved = models.BooleanField(_("подтверждена"), default=False, db_index=True)
-    created_by_user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
-        null=True, blank=True, related_name="created_organizations",
-        verbose_name=_("создана пользователем"),
-    )
 
     class Meta:
         verbose_name        = _("организация")

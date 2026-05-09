@@ -118,14 +118,14 @@ PERMISSION_ROLE_MAP: dict[Permission, str] = {
     # Receptionist+
     Permission.VIEW_ROOMS:         "receptionist",
     Permission.MANAGE_BOOKINGS:    "receptionist",
-    Permission.VIEW_ALL_BOOKINGS:  "receptionist",
-    Permission.VIEW_DASHBOARD:     "receptionist",
 
     # Manager+
-    Permission.VIEW_CRM:           "receptionist",
-    Permission.MANAGE_CRM:         "receptionist",
-    Permission.VIEW_REPORTS:       "receptionist",
-    Permission.EXPORT_REPORTS:     "receptionist",
+    Permission.VIEW_ALL_BOOKINGS:  "manager",
+    Permission.VIEW_CRM:           "manager",
+    Permission.MANAGE_CRM:         "manager",
+    Permission.VIEW_REPORTS:       "manager",
+    Permission.EXPORT_REPORTS:     "manager",
+    Permission.VIEW_DASHBOARD:     "manager",
     Permission.VIEW_ANALYTICS:     "manager",
 
     # Admin+

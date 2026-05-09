@@ -26,7 +26,12 @@
 
 html { scroll-behavior: smooth; }
 
-/* font-family задаётся в main.css и hotel.css — не переопределяем здесь */
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--cream);
+  color: var(--text);
+  overflow-x: hidden;
+}
 
 /* ─── SCROLLBAR ─── */
 ::-webkit-scrollbar { width: 6px; }

@@ -244,10 +244,9 @@ class Room(TimeStampedModel):
     floor = models.PositiveSmallIntegerField(_("этаж"), default=1)
     
     # ---- Multiple occupancy support ----
-    max_guests_per_room = models.PositiveSmallIntegerField(
-        _("макс. персон в номере"), default=1,
-        validators=[MinValueValidator(1)],
-        help_text=_("Максимальное количество персон, которые могут одновременно проживать в номере")
+    max_concurrent_bookings = models.PositiveSmallIntegerField(
+        _("макс. одновременных броней"), default=1,
+        help_text=_("Количество гостей, которые могут одновременно находиться в номере")
     )
 
     # ---- Status ----
@@ -305,7 +304,7 @@ class Room(TimeStampedModel):
     @property
     def allows_multiple_bookings(self) -> bool:
         """Check if this room allows multiple concurrent bookings"""
-        return self.max_guests_per_room > 1
+        return self.max_concurrent_bookings > 1
 
     def get_current_occupancy_count(self) -> int:
         """Get current number of active bookings for this room"""
@@ -326,7 +325,7 @@ class Room(TimeStampedModel):
             check_out__gt=check_in,
         ).count()
         
-        return overlapping_bookings < self.max_guests_per_room
+        return overlapping_bookings < self.max_concurrent_bookings
 
     def mark_clean(self):
         from django.utils import timezone

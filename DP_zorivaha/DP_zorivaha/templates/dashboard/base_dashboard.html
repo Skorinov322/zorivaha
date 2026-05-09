@@ -60,7 +60,7 @@
   font-size: .9rem; color: #0d0d0d; flex-shrink: 0;
 }
 .sidebar-brand-name {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Playfair Display', serif;
   font-size: 1rem; font-weight: 700; color: #0d0d0d;
   line-height: 1.2;
 }
@@ -154,7 +154,7 @@
   backdrop-filter: blur(12px);
 }
 .dash-topbar-title {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Playfair Display', serif;
   font-size: 1.15rem;
   color: #0d0d0d;
   font-weight: 600;
@@ -361,7 +361,7 @@
 .dash-empty i { font-size: 1.5rem; display: block; margin-bottom: .4rem; }
 
 /* ── Messages alerts ─────────────────────────────────────────── */
-.dash-alerts { display: none; }
+.dash-alerts { padding: 0 1.75rem; margin-top: .75rem; }
 
 /* ══════════════════════════════════════════════════════════════
    LEGACY DARK-THEME COMPAT
@@ -412,7 +412,7 @@
 
 /* cabinet-page-title / subtitle — убираем белый цвет */
 .dash-content .cabinet-page-title {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Playfair Display', serif;
   font-size: 1.5rem;
   color: #0d0d0d;
   margin-bottom: .25rem;
@@ -691,7 +691,6 @@
           <i class="bi bi-speedometer2"></i> Дашборд
         </a>
       </li>
-      {% if request.user.is_manager or request.user.is_admin or request.user.is_super_admin or request.user.is_superuser %}
       <li>
         <a href="{% url 'dashboard:statistics' %}"
            class="{% if request.resolver_match.url_name == 'statistics' %}active{% endif %}">
@@ -704,7 +703,6 @@
           <i class="bi bi-graph-up-arrow"></i> Метрики
         </a>
       </li>
-      {% endif %}
       <li>
         <a href="{% url 'dashboard:calendar' %}"
            class="{% if request.resolver_match.url_name == 'calendar' %}active{% endif %}">
@@ -775,25 +773,15 @@
         </a>
       </li>
       <li>
-        <a href="{% url 'dashboard:gallery' %}"
-           class="{% if request.resolver_match.url_name == 'gallery' and request.resolver_match.namespace == 'dashboard' %}active{% endif %}"
-           style="color: var(--gold); font-weight: 600;">
-          <i class="bi bi-images"></i> Галерея сайта
-        </a>
-      </li>
-      <li>
-        <a href="{% url 'notifications:contact_messages' %}"
-           class="{% if request.resolver_match.url_name == 'contact_messages' or request.resolver_match.url_name == 'contact_message_detail' %}active{% endif %}">
-          <i class="bi bi-chat-dots"></i> Сообщения
-          {% with new_count=contact_messages_new_count %}
-          {% if new_count %}<span class="sidebar-badge">{{ new_count }}</span>{% endif %}
-          {% endwith %}
-        </a>
-      </li>
-      <li>
         <a href="{% url 'reports:index' %}"
            class="{% if request.resolver_match.namespace == 'reports' %}active{% endif %}">
           <i class="bi bi-file-earmark-bar-graph"></i> Отчёты
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'notifications:email_log' %}"
+           class="{% if request.resolver_match.namespace == 'notifications' %}active{% endif %}">
+          <i class="bi bi-envelope-check"></i> Email лог
         </a>
       </li>
 
@@ -816,10 +804,17 @@
       <div class="sidebar-divider"></div>
 
       <li>
-        <a href="/staff-admin/" style="color:rgba(13,13,13,.4)">
-          <i class="bi bi-gear"></i> Панель управления
+        <a href="{% url 'hotel:index' %}" style="color:rgba(13,13,13,.4)">
+          <i class="bi bi-globe"></i> Сайт
         </a>
       </li>
+      {% if request.user.is_superuser %}
+      <li>
+        <a href="/admin/" style="color:rgba(13,13,13,.4)">
+          <i class="bi bi-gear"></i> Django Admin
+        </a>
+      </li>
+      {% endif %}
       <li>
         <form method="post" action="/auth/logout/" style="margin:0">
           {% csrf_token %}
@@ -850,86 +845,10 @@
         <div class="dash-topbar-subtitle">{% block dashboard_subtitle %}{% endblock %}</div>
       </div>
       <div class="dash-topbar-actions">
-        <!-- Notifications bell -->
-        {% with unread_count=request.user.push_notifications_unread_count %}
-        <div style="position:relative">
-          <button onclick="toggleNotifPanel()" class="topbar-icon-btn" title="Уведомления"
-                  style="border:none;cursor:pointer;background:rgba(13,13,13,.03)">
-            <i class="bi bi-bell"></i>
-            {% if unread_count %}
-            <span style="position:absolute;top:4px;right:4px;width:8px;height:8px;
-                         border-radius:50%;background:#dc3545;border:1.5px solid #fff"></span>
-            {% endif %}
-          </button>
-          <!-- Dropdown panel -->
-          <div id="notifPanel" style="display:none;position:absolute;top:calc(100% + 8px);right:0;
-               width:340px;background:#fff;border:1px solid rgba(13,13,13,.1);border-radius:14px;
-               box-shadow:0 12px 40px rgba(13,13,13,.15);z-index:500;overflow:hidden">
-            <div style="padding:.85rem 1.1rem;border-bottom:1px solid rgba(13,13,13,.08);
-                        display:flex;align-items:center;justify-content:space-between">
-              <span style="font-size:.8rem;font-weight:700;letter-spacing:.06em;
-                           text-transform:uppercase;color:#ff8e3c">Уведомления</span>
-              {% if unread_count %}
-              <form method="post" action="{% url 'notifications:mark_all_read' %}" style="margin:0">
-                {% csrf_token %}
-                <button type="submit" style="font-size:.72rem;color:rgba(13,13,13,.45);
-                        background:none;border:none;cursor:pointer;padding:0">
-                  Прочитать все
-                </button>
-              </form>
-              {% endif %}
-            </div>
-            <div style="max-height:360px;overflow-y:auto" id="notifList">
-              {% for notif in request.user.push_notifications.all|slice:":15" %}
-              <a href="{% url 'notifications:mark_read' notif.pk %}"
-                 style="display:flex;gap:.75rem;padding:.85rem 1.1rem;text-decoration:none;
-                        border-bottom:1px solid rgba(13,13,13,.05);transition:background .15s;
-                        background:{% if not notif.is_read %}rgba(255,142,60,.05){% else %}#fff{% endif %}">
-                <div style="width:34px;height:34px;border-radius:9px;flex-shrink:0;
-                            display:flex;align-items:center;justify-content:center;font-size:.9rem;
-                            {% if notif.notification_type == 'contact_form' %}
-                              background:rgba(13,110,253,.1);color:#0d6efd;
-                            {% else %}
-                              background:rgba(255,142,60,.12);color:#ff8e3c;
-                            {% endif %}">
-                  {% if notif.notification_type == 'contact_form' %}
-                    <i class="bi bi-envelope-open"></i>
-                  {% elif notif.notification_type == 'booking_confirmed' %}
-                    <i class="bi bi-check-circle"></i>
-                  {% elif notif.notification_type == 'booking_cancelled' %}
-                    <i class="bi bi-x-circle"></i>
-                  {% else %}
-                    <i class="bi bi-bell"></i>
-                  {% endif %}
-                </div>
-                <div style="flex:1;min-width:0">
-                  <div style="font-size:.82rem;font-weight:{% if not notif.is_read %}600{% else %}400{% endif %};
-                              color:#0d0d0d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
-                    {{ notif.title }}
-                  </div>
-                  <div style="font-size:.75rem;color:rgba(13,13,13,.5);margin-top:.15rem;
-                              display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">
-                    {{ notif.body }}
-                  </div>
-                  <div style="font-size:.68rem;color:rgba(13,13,13,.35);margin-top:.25rem">
-                    {{ notif.created_at|timesince }} назад
-                  </div>
-                </div>
-                {% if not notif.is_read %}
-                <div style="width:7px;height:7px;border-radius:50%;background:#ff8e3c;
-                            flex-shrink:0;margin-top:.35rem"></div>
-                {% endif %}
-              </a>
-              {% empty %}
-              <div style="padding:2rem;text-align:center;color:rgba(13,13,13,.35);font-size:.85rem">
-                <i class="bi bi-bell-slash" style="font-size:1.5rem;display:block;margin-bottom:.5rem"></i>
-                Нет уведомлений
-              </div>
-              {% endfor %}
-            </div>
-          </div>
-        </div>
-        {% endwith %}
+        <!-- Notifications -->
+        <a href="{% url 'notifications:email_log' %}" class="topbar-icon-btn" title="Email лог">
+          <i class="bi bi-envelope"></i>
+        </a>
         <!-- CRM tasks -->
         <a href="{% url 'crm:task_list' %}" class="topbar-icon-btn" title="Задачи">
           <i class="bi bi-list-task"></i>
@@ -952,8 +871,8 @@
     {% if messages %}
     <div class="dash-alerts">
       {% for message in messages %}
-      <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show mb-2"
-           role="alert" style="border-radius:10px;font-size:.875rem;box-shadow:0 4px 16px rgba(13,13,13,.12)">
+      <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show mt-2 mb-0"
+           role="alert" style="border-radius:10px;font-size:.875rem">
         {{ message }}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
       </div>
@@ -985,20 +904,6 @@
     document.getElementById('dashSidebar').classList.remove('open');
     document.getElementById('dashOverlay').classList.remove('open');
   }
-
-  // Notification panel toggle
-  function toggleNotifPanel() {
-    const panel = document.getElementById('notifPanel');
-    if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-  }
-  // Close panel on outside click
-  document.addEventListener('click', function(e) {
-    const panel = document.getElementById('notifPanel');
-    if (!panel) return;
-    if (!panel.contains(e.target) && !e.target.closest('[onclick="toggleNotifPanel()"]')) {
-      panel.style.display = 'none';
-    }
-  });
 </script>
 {% block dashboard_js %}{% endblock %}
 {% endblock %}

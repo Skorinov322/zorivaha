@@ -98,117 +98,31 @@ class BookingCreateForm(forms.Form):
 
     # ---- Guests ----
     adults = forms.IntegerField(
-        label=_("Взрослые"), min_value=1, initial=1,
-        widget=forms.NumberInput(attrs={"class": _INPUT, "min": 1, "id": "id_adults"}),
+        label=_("Взрослых"), min_value=1, max_value=10, initial=2,
+        widget=forms.NumberInput(attrs={"class": _INPUT, "min": 1, "max": 10}),
     )
     children = forms.IntegerField(
-        label=_("Дети (от 1 года)"), min_value=0, initial=0,
-        widget=forms.NumberInput(attrs={"class": _INPUT, "min": 0}),
+        label=_("Детей"), min_value=0, max_value=8, initial=0,
+        widget=forms.NumberInput(attrs={"class": _INPUT, "min": 0, "max": 8}),
     )
 
-    # ---- Client type selection ----
-    client_type = forms.ChoiceField(
-        label=_("Тип клиента"),
-        choices=[
-            ("individual", _("Частное лицо")),
-            ("organization", _("Организация")),
-        ],
-        initial="individual",
-        widget=forms.RadioSelect(attrs={"class": "form-check-input"}),
-    )
-
-    # ---- Organization selection (existing) ----
+    # ---- Optional ----
     organization = forms.ModelChoiceField(
-        label=_("Выберите организацию"),
-        queryset=Organization.objects.filter(is_active=True, is_approved=True).order_by("name"),
+        label=_("Организация"),
+        queryset=Organization.objects.filter(is_active=True).order_by("name"),
         required=False,
         widget=forms.Select(attrs={"class": _SELECT}),
-        empty_label=_("— Выберите организацию —"),
-        help_text=_("Выберите из существующих организаций"),
-    )
-
-    # ---- New organization fields ----
-    create_new_organization = forms.BooleanField(
-        label=_("Создать новую организацию"),
-        required=False,
-        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
-    )
-    
-    new_org_name = forms.CharField(
-        label=_("Название организации"),
-        max_length=255,
-        required=False,
-        widget=forms.TextInput(attrs={"class": _INPUT, "placeholder": "ООО «Название компании»"}),
-    )
-    
-    new_org_inn = forms.CharField(
-        label=_("ИНН"),
-        max_length=12,
-        required=False,
-        widget=forms.TextInput(attrs={"class": _INPUT, "placeholder": "1234567890"}),
-        validators=[RegexValidator(
-            regex=r'^\d{10}$|^\d{12}$',
-            message=_("ИНН должен содержать 10 или 12 цифр")
-        )],
-    )
-    
-    new_org_kpp = forms.CharField(
-        label=_("КПП"),
-        max_length=9,
-        required=False,
-        widget=forms.TextInput(attrs={"class": _INPUT, "placeholder": "123456789"}),
-        validators=[RegexValidator(
-            regex=r'^\d{9}$',
-            message=_("КПП должен содержать 9 цифр")
-        )],
-    )
-    
-    new_org_legal_address = forms.CharField(
-        label=_("Юридический адрес"),
-        required=False,
-        widget=forms.Textarea(attrs={"class": _INPUT, "rows": 2, "placeholder": "г. Москва, ул. Примерная, д. 1"}),
-    )
-    
-    new_org_phone = forms.CharField(
-        label=_("Телефон организации"),
-        max_length=20,
-        required=False,
-        validators=[phone_validator],
-        widget=forms.TextInput(attrs={
-            "class": _INPUT, 
-            "placeholder": "+7 (___) ___-__-__",
-            "type": "tel",
-            "data-mask": "+7 (000) 000-00-00",
-            "data-mask-placeholder": "_"
-        }),
-    )
-    
-    new_org_email = forms.EmailField(
-        label=_("Email организации"),
-        required=False,
-        widget=forms.EmailInput(attrs={"class": _INPUT, "placeholder": "info@company.ru"}),
-    )
-    
-    new_org_contact_person = forms.CharField(
-        label=_("Контактное лицо"),
-        max_length=200,
-        required=False,
-        widget=forms.TextInput(attrs={"class": _INPUT, "placeholder": "Иванов Иван Иванович"}),
+        empty_label=_("— Частное лицо —"),
+        help_text=_("Для корпоративных броней"),
     )
     arrival_time = forms.TimeField(
         label=_("Примерное время прибытия"), required=False,
         widget=forms.TimeInput(attrs={"class": _INPUT, "type": "time"}),
     )
-    early_check_in = forms.BooleanField(
-        label=_("Ранний заезд (до 12:00)"),
-        required=False,
-        widget=forms.CheckboxInput(attrs={"class": "form-check-input", "id": "id_early_check_in"}),
-        help_text=_("Заезд до 12:00 — добавляется стоимость одних суток"),
-    )
     special_requests = forms.CharField(
-        label=_("Комментарий"), required=False,
+        label=_("Особые пожелания"), required=False,
         widget=forms.Textarea(attrs={"class": _INPUT, "rows": 3,
-                                     "placeholder": _("Оставьте комментарий при бронировании…")}),
+                                     "placeholder": _("Аллергии, предпочтения, пожелания…")}),
     )
 
     def __init__(self, *args, user=None, category_id=None, **kwargs):
@@ -250,11 +164,11 @@ class BookingCreateForm(forms.Form):
             choices = [("", _("— Назначить автоматически —"))]
             for room in rooms:
                 occupancy_info = ""
-                if room.max_guests_per_room > 1:
+                if room.max_concurrent_bookings > 1:
                     current = room.get_current_occupancy_count()
-                    occupancy_info = f" ({current}/{room.max_guests_per_room})"
+                    occupancy_info = f" ({current}/{room.max_concurrent_bookings})"
                 
-                label = f"{room.full_number}{(' / ' + room.subdivision) if room.subdivision else ''}{occupancy_info}"
+                label = f"{room.full_number}{occupancy_info}"
                 choices.append((room.id, label))
             
             self.fields["room"].choices = choices
@@ -274,9 +188,8 @@ class BookingCreateForm(forms.Form):
         check_in  = cleaned.get("check_in")
         check_out = cleaned.get("check_out")
         category  = cleaned.get("room_category")
-        client_type = cleaned.get("client_type")
-        organization = cleaned.get("organization")
-        create_new_org = cleaned.get("create_new_organization")
+        adults    = cleaned.get("adults", 1)
+        children  = cleaned.get("children", 0)
 
         if check_in and check_out:
             if check_out <= check_in:
@@ -284,39 +197,16 @@ class BookingCreateForm(forms.Form):
             elif (check_out - check_in).days > 60:
                 self.add_error("check_out", _("Максимальный срок бронирования — 60 ночей."))
 
+        # Capacity check
+        if category and (adults + (children or 0)) > category.max_guests:
+            raise forms.ValidationError(
+                _(f"Категория «{category.name}» вмещает максимум {category.max_guests} гостей.")
+            )
+
         # Room belongs to selected category
         room = cleaned.get("room")
         if room and category and room.category != category:
             self.add_error("room", _("Выбранный номер не принадлежит этой категории."))
-
-        # Auto-set early_check_in if arrival_time is before 12:00
-        arrival_time = cleaned.get("arrival_time")
-        if arrival_time and arrival_time.hour < 12:
-            cleaned["early_check_in"] = True
-
-        # Validate organization fields
-        if client_type == "organization":
-            if create_new_org:
-                # Validate new organization fields
-                required_fields = ["new_org_name", "new_org_inn", "new_org_legal_address", "new_org_contact_person"]
-                for field in required_fields:
-                    if not cleaned.get(field):
-                        field_label = self.fields[field].label
-                        self.add_error(field, _("Это поле обязательно для новой организации."))
-                
-                # Check if organization with this name or INN already exists
-                new_org_name = cleaned.get("new_org_name")
-                new_org_inn = cleaned.get("new_org_inn")
-                
-                if new_org_name and Organization.objects.filter(name=new_org_name).exists():
-                    self.add_error("new_org_name", _("Организация с таким названием уже существует."))
-                
-                if new_org_inn and Organization.objects.filter(inn=new_org_inn).exists():
-                    self.add_error("new_org_inn", _("Организация с таким ИНН уже существует."))
-            else:
-                # Must select existing organization
-                if not organization:
-                    self.add_error("organization", _("Выберите организацию или создайте новую."))
 
         return cleaned
 
@@ -391,11 +281,11 @@ class BookingStaffForm(forms.Form):
         
         for room in rooms:
             occupancy_info = ""
-            if room.max_guests_per_room > 1:
+            if room.max_concurrent_bookings > 1:
                 current = room.get_current_occupancy_count()
-                occupancy_info = f" ({current}/{room.max_guests_per_room})"
+                occupancy_info = f" ({current}/{room.max_concurrent_bookings})"
             
-            label = f"{room.category.name} - {room.full_number}{(' / ' + room.subdivision) if room.subdivision else ''}{occupancy_info}"
+            label = f"{room.category.name} - {room.full_number}{occupancy_info}"
             choices.append((room.id, label))
         
         self.fields["room"].choices = choices
@@ -407,9 +297,9 @@ class BookingStaffForm(forms.Form):
                                 widget=forms.DateInput(attrs={"class": _INPUT, "type": "date"}))
 
     # ---- Guests ----
-    adults   = forms.IntegerField(label=_("Взрослые"), min_value=1, initial=1,
+    adults   = forms.IntegerField(label=_("Взрослых"), min_value=1, max_value=10, initial=2,
                                   widget=forms.NumberInput(attrs={"class": _INPUT}))
-    children = forms.IntegerField(label=_("Дети (от 1 года)"), min_value=0, initial=0,
+    children = forms.IntegerField(label=_("Детей"),    min_value=0, max_value=8,  initial=0,
                                   widget=forms.NumberInput(attrs={"class": _INPUT}))
 
     # ---- Optional ----
@@ -430,12 +320,6 @@ class BookingStaffForm(forms.Form):
     )
     arrival_time   = forms.TimeField(label=_("Время прибытия"), required=False,
                                      widget=forms.TimeInput(attrs={"class": _INPUT, "type": "time"}))
-    early_check_in = forms.BooleanField(
-        label=_("Ранний заезд (до 12:00)"),
-        required=False,
-        widget=forms.CheckboxInput(attrs={"class": _CHECK}),
-        help_text=_("Устанавливается автоматически если время прибытия до 12:00"),
-    )
     special_requests = forms.CharField(label=_("Пожелания"), required=False,
                                        widget=forms.Textarea(attrs={"class": _INPUT, "rows": 2}))
     internal_notes   = forms.CharField(label=_("Внутренние заметки"), required=False,
@@ -446,16 +330,6 @@ class BookingStaffForm(forms.Form):
     )
     discount_reason = forms.CharField(label=_("Причина скидки"), max_length=200, required=False,
                                       widget=forms.TextInput(attrs={"class": _INPUT}))
-    apply_discount = forms.BooleanField(
-        label=_("Применить скидку"),
-        required=False,
-        widget=forms.CheckboxInput(attrs={"class": _CHECK, "id": "id_apply_discount"}),
-    )
-    discount_percent = forms.IntegerField(
-        label=_("Скидка (%)"), min_value=1, max_value=100, required=False,
-        widget=forms.NumberInput(attrs={"class": _INPUT, "min": 1, "max": 100, "placeholder": "10"}),
-        help_text=_("Процент скидки от итоговой суммы"),
-    )
 
     def clean(self):
         cleaned   = super().clean()
@@ -464,18 +338,6 @@ class BookingStaffForm(forms.Form):
         if check_in and check_out:
             if check_out <= check_in:
                 self.add_error("check_out", _("Дата выезда должна быть позже даты заезда."))
-
-        # Auto-set early_check_in if arrival_time is before 12:00
-        arrival_time = cleaned.get("arrival_time")
-        if arrival_time and arrival_time.hour < 12:
-            cleaned["early_check_in"] = True
-        else:
-            cleaned.setdefault("early_check_in", False)
-
-        # Calculate discount_amount from percent if apply_discount is checked
-        if cleaned.get("apply_discount") and cleaned.get("discount_percent"):
-            cleaned.setdefault("discount_reason", _("Скидка администратора"))
-
         return cleaned
 
 

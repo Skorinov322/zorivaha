@@ -9,6 +9,29 @@
 </h1>
 <p class="cabinet-page-subtitle">Управляйте бронированиями и настройками профиля</p>
 
+{# ---- Loyalty badge (if CRM profile exists) ---- #}
+{% if crm_profile %}
+<div style="display:inline-flex;align-items:center;gap:.65rem;
+            background:rgba(255,142,60,.08);border:1px solid rgba(255,142,60,.15);
+            border-radius:12px;padding:.65rem 1rem;margin-bottom:1.5rem">
+  <i class="bi bi-award" style="color:#ff8e3c;font-size:1.1rem"></i>
+  <div>
+    <div style="color:#ff8e3c;font-size:.8rem;font-weight:600">
+      {{ crm_profile.get_loyalty_tier_display }}
+    </div>
+    <div style="color:rgba(13,13,13,.5);font-size:.75rem">
+      {{ crm_profile.loyalty_points }} баллов лояльности
+    </div>
+  </div>
+  {% if crm_profile.status == "vip" %}
+  <span style="background:rgba(255,142,60,.15);color:#ff8e3c;border:1px solid rgba(255,142,60,.3);
+               border-radius:6px;padding:.15rem .55rem;font-size:.72rem;font-weight:700">
+    VIP
+  </span>
+  {% endif %}
+</div>
+{% endif %}
+
 {# ---- Stat cards ---- #}
 <div class="row g-3 mb-4">
   <div class="col-6 col-md-3">
@@ -125,19 +148,6 @@
        onmouseout="this.style.background='#ffffff';this.style.color='rgba(13,13,13,.55)';this.style.borderColor='rgba(13,13,13,.08)'">
       <i class="bi bi-clock-history" style="font-size:1.5rem"></i>
       История проживания
-    </a>
-  </div>
-  <div class="col-6 col-md-3">
-    <a href="{% url 'accounts:my_organizations' %}"
-       style="display:flex;flex-direction:column;align-items:center;gap:.5rem;
-              background:#ffffff;border:1px solid rgba(13,13,13,.08);
-              border-radius:14px;padding:1.25rem;text-decoration:none;
-              color:rgba(13,13,13,.55);font-size:.8rem;text-align:center;
-              transition:all .2s;box-shadow:0 2px 8px rgba(13,13,13,.04)"
-       onmouseover="this.style.background='rgba(255,142,60,.06)';this.style.color='#ff8e3c';this.style.borderColor='rgba(255,142,60,.2)'"
-       onmouseout="this.style.background='#ffffff';this.style.color='rgba(13,13,13,.55)';this.style.borderColor='rgba(13,13,13,.08)'">
-      <i class="bi bi-building" style="font-size:1.5rem"></i>
-      Мои организации
     </a>
   </div>
   <div class="col-6 col-md-3">

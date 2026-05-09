@@ -68,7 +68,7 @@
 body {
   background: var(--bg-main);
   color: var(--text-body);
-  font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }
@@ -76,7 +76,7 @@ body {
 /* ═══════════════════════════════════════════════════════════
    TYPOGRAPHY UTILITIES
    ═══════════════════════════════════════════════════════════ */
-.serif { font-family: 'Cormorant Garamond', Georgia, serif; }
+.serif { font-family: 'Playfair Display', Georgia, serif; }
 
 .eyebrow {
   display: inline-flex;
@@ -99,11 +99,11 @@ body {
 }
 
 .section-heading {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: 'Playfair Display', serif;
   font-size: clamp(2rem, 4vw, 3.25rem);
   color: var(--text-headline);
   line-height: 1.15;
-  font-weight: 400;
+  font-weight: 700;
 }
 .section-heading em {
   font-style: normal;

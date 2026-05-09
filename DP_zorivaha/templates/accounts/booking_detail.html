@@ -122,45 +122,6 @@
       </div>
     </div>
 
-    {# Review section #}
-    {% if booking.status == 'checked_out' %}
-    <div class="cabinet-card mb-3">
-      <div class="cabinet-card-title">Отзыв</div>
-      {% if booking.review %}
-        <div style="margin-bottom:.75rem">
-          <div style="color:rgba(255,255,255,.5);font-size:.75rem;margin-bottom:.3rem">Ваша оценка</div>
-          <div style="color:var(--gold);font-size:1.2rem">
-            {% for i in "12345" %}
-              {% if forloop.counter <= booking.review.overall_rating %}⭐{% endif %}
-            {% endfor %}
-          </div>
-        </div>
-        <a href="{% url 'reviews:detail' booking.review.pk %}"
-           style="display:block;text-align:center;padding:.7rem;
-                  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
-                  border-radius:10px;color:rgba(255,255,255,.8);text-decoration:none;font-size:.875rem;
-                  transition:background .2s"
-           onmouseover="this.style.background='rgba(255,255,255,.08)'"
-           onmouseout="this.style.background='rgba(255,255,255,.05)'">
-          <i class="bi bi-eye me-2"></i>Посмотреть отзыв
-        </a>
-      {% else %}
-        <p style="color:rgba(255,255,255,.5);font-size:.875rem;margin-bottom:.75rem">
-          Поделитесь впечатлениями о проживании
-        </p>
-        <a href="{% url 'reviews:create' booking.pk %}"
-           style="display:block;text-align:center;padding:.7rem;
-                  background:var(--gold);border:1px solid var(--gold);
-                  border-radius:10px;color:#1a1a2e;text-decoration:none;font-size:.875rem;
-                  font-weight:600;transition:opacity .2s"
-           onmouseover="this.style.opacity='0.9'"
-           onmouseout="this.style.opacity='1'">
-          <i class="bi bi-star me-2"></i>Оставить отзыв
-        </a>
-      {% endif %}
-    </div>
-    {% endif %}
-
     {# Cancel button #}
     {% if booking.can_be_cancelled %}
     <div class="cabinet-card">

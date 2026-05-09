@@ -178,11 +178,10 @@ class PushNotification(TimeStampedModel):
     class NotificationType(models.TextChoices):
         BOOKING_CONFIRMED = "booking_confirmed", _("Бронь подтверждена")
         BOOKING_CANCELLED = "booking_cancelled", _("Бронь отменена")
-        CHECKIN_REMINDER  = "checkin_reminder",  _("Напоминание о заезде")
+        CHECKIN_REMINDER = "checkin_reminder", _("Напоминание о заезде")
         CHECKOUT_REMINDER = "checkout_reminder", _("Напоминание о выезде")
-        LOYALTY_UPGRADE   = "loyalty_upgrade",   _("Повышение уровня лояльности")
-        CONTACT_FORM      = "contact_form",      _("Обратная связь с сайта")
-        SYSTEM            = "system",            _("Системное")
+        LOYALTY_UPGRADE = "loyalty_upgrade", _("Повышение уровня лояльности")
+        SYSTEM = "system", _("Системное")
 
     recipient = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -227,130 +226,3 @@ class PushNotification(TimeStampedModel):
             self.is_read = True
             self.read_at = timezone.now()
             self.save(update_fields=["is_read", "read_at", "updated_at"])
-
-
-# ---------------------------------------------------------------------------
-# ContactMessage — сообщения обратной связи с перепиской
-# ---------------------------------------------------------------------------
-
-class ContactMessage(TimeStampedModel):
-    """
-    Сообщение с формы обратной связи.
-    Поддерживает переписку: гость → персонал → гость.
-    """
-
-    class Status(models.TextChoices):
-        NEW      = "new",      _("Новое")
-        IN_WORK  = "in_work",  _("В работе")
-        ANSWERED = "answered", _("Отвечено")
-        CLOSED   = "closed",   _("Закрыто")
-
-    # ---- Отправитель (может быть анонимным) ----
-    sender_user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL, null=True, blank=True,
-        related_name="contact_messages_sent",
-        verbose_name=_("пользователь"),
-        help_text=_("Заполняется если гость авторизован"),
-    )
-    sender_name  = models.CharField(_("имя"),    max_length=150)
-    sender_email = models.EmailField(_("email"))
-    sender_phone = models.CharField(_("телефон"), max_length=20, blank=True)
-
-    # ---- Содержание ----
-    subject = models.CharField(_("тема"), max_length=200, blank=True)
-    message = models.TextField(_("сообщение"))
-
-    # ---- Статус ----
-    status = models.CharField(
-        _("статус"), max_length=20,
-        choices=Status.choices, default=Status.NEW,
-        db_index=True,
-    )
-    assigned_to = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL, null=True, blank=True,
-        related_name="contact_messages_assigned",
-        verbose_name=_("назначено"),
-    )
-
-    class Meta:
-        verbose_name        = _("сообщение обратной связи")
-        verbose_name_plural = _("сообщения обратной связи")
-        ordering            = ["-created_at"]
-        indexes = [
-            models.Index(fields=["status", "created_at"]),
-        ]
-
-    def __str__(self) -> str:
-        return f"{self.sender_name}: {self.subject or self.message[:40]}"
-
-    @property
-    def unread_replies_for_guest(self) -> int:
-        """Количество непрочитанных ответов персонала для гостя."""
-        return self.replies.filter(is_staff_reply=True, is_read_by_guest=False).count()
-
-
-class ContactReply(TimeStampedModel):
-    """Ответ в треде сообщения обратной связи."""
-
-    message = models.ForeignKey(
-        ContactMessage,
-        on_delete=models.CASCADE,
-        related_name="replies",
-        verbose_name=_("сообщение"),
-    )
-    author = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL, null=True, blank=True,
-        related_name="contact_replies",
-        verbose_name=_("автор"),
-    )
-    body           = models.TextField(_("текст"))
-    is_staff_reply = models.BooleanField(_("ответ персонала"), default=False)
-    is_read_by_guest = models.BooleanField(_("прочитано гостем"), default=False)
-
-    class Meta:
-        verbose_name        = _("ответ")
-        verbose_name_plural = _("ответы")
-        ordering            = ["created_at"]
-
-    def __str__(self) -> str:
-        return f"Ответ от {self.author} к #{self.message_id}"
-
-def notify_staff_contact_form(name: str, email: str, phone: str, subject: str, message: str, contact_message_id: int = None) -> int:
-    """
-    Create PushNotification for all staff (RECEPTIONIST and above).
-    Returns the number of notifications created.
-    """
-    from apps.accounts.models import CustomUser, UserRole, ROLE_HIERARCHY
-
-    min_role_index = ROLE_HIERARCHY.index(UserRole.RECEPTIONIST)
-    staff_roles = ROLE_HIERARCHY[min_role_index:]
-
-    staff_users = CustomUser.objects.filter(
-        role__in=staff_roles,
-        is_active=True,
-    )
-
-    short_msg = message[:120] + ("…" if len(message) > 120 else "")
-    title = f"Обратная связь: {subject or 'Без темы'}"
-    body = (
-        f"От: {name} ({email})"
-        + (f", тел. {phone}" if phone else "")
-        + f"\n{short_msg}"
-    )
-    action_url = f"/dashboard/messages/{contact_message_id}/" if contact_message_id else "/dashboard/messages/"
-
-    notifications = [
-        PushNotification(
-            recipient=user,
-            notification_type=PushNotification.NotificationType.CONTACT_FORM,
-            title=title,
-            body=body,
-            action_url=action_url,
-        )
-        for user in staff_users
-    ]
-    PushNotification.objects.bulk_create(notifications)
-    return len(notifications)

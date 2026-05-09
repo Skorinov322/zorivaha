@@ -32,6 +32,13 @@
     {% endfor %}
   </select>
 
+  <select name="loyalty_tier" style="background:#1a1a2e;border:1px solid rgba(255,255,255,.1);color:#fff;border-radius:10px;padding:.5rem .9rem;font-size:.875rem" onchange="this.form.submit()">
+    <option value="">Все уровни</option>
+    {% for val, lbl in tier_choices %}
+    <option value="{{ val }}" {% if filters.loyalty_tier == val %}selected{% endif %}>{{ lbl }}</option>
+    {% endfor %}
+  </select>
+
   <button type="submit" style="background:rgba(201,168,76,.15);color:var(--gold);border:1px solid rgba(201,168,76,.3);border-radius:10px;padding:.5rem 1rem;font-size:.875rem;cursor:pointer">
     <i class="bi bi-search"></i>
   </button>
@@ -49,6 +56,7 @@
           <th>Клиент</th>
           <th>Тип</th>
           <th>Статус</th>
+          <th>Лояльность</th>
           <th>Броней</th>
           <th>Потрачено</th>
           <th>Менеджер</th>
@@ -78,6 +86,9 @@
           </td>
           <td style="color:rgba(255,255,255,.55);font-size:.8rem">{{ profile.get_client_type_display }}</td>
           <td>{% include "crm/_status_badge.html" with status=profile.status label=profile.get_status_display %}</td>
+          <td>
+            <span style="font-size:.8rem;color:rgba(255,255,255,.5)">{{ profile.get_loyalty_tier_display }}</span>
+          </td>
           <td style="color:rgba(255,255,255,.6)">{{ profile.total_bookings }}</td>
           <td style="color:#fff;font-weight:500">{{ profile.total_spent|floatformat:0 }} ₽</td>
           <td style="color:rgba(255,255,255,.4);font-size:.8rem">

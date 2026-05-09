@@ -105,46 +105,40 @@ class PhoneMask {
    ========================================================= */
 class BookingPriceCalculator {
     constructor() {
-        this.categorySelect  = document.getElementById('id_room_category');
-        this.checkInInput    = document.getElementById('id_check_in');
-        this.checkOutInput   = document.getElementById('id_check_out');
-        this.adultsInput     = document.getElementById('id_adults');
-        this.childrenInput   = document.getElementById('id_children');
-        this.earlyCheckinBox = document.getElementById('id_early_check_in');
-
+        this.categorySelect = document.getElementById('id_room_category');
+        this.checkInInput = document.getElementById('id_check_in');
+        this.checkOutInput = document.getElementById('id_check_out');
+        this.adultsInput = document.getElementById('id_adults');
+        this.childrenInput = document.getElementById('id_children');
+        
         this.previewElements = {
-            categoryName:  document.getElementById('previewCategoryName'),
-            dates:         document.getElementById('previewDatesValue'),
-            nights:        document.getElementById('previewNights'),
+            categoryName: document.getElementById('previewCategoryName'),
+            dates: document.getElementById('previewDatesValue'),
+            nights: document.getElementById('previewNights'),
             pricePerNight: document.getElementById('previewPricePerNight'),
-            earlyRow:      document.getElementById('earlyCheckinRow'),
-            earlyVal:      document.getElementById('previewEarlyCheckin'),
-            total:         document.getElementById('previewTotal'),
+            total: document.getElementById('previewTotal')
         };
-
+        
         this.submitBtn = document.getElementById('submitBtn');
         this.init();
     }
 
     init() {
-        if (!this.categorySelect || !this.checkInInput || !this.checkOutInput) return;
+        if (!this.categorySelect || !this.checkInInput || !this.checkOutInput) {
+            return; // Not on booking form page
+        }
 
-        const recalc = () => this.updatePreview();
-        this.categorySelect.addEventListener('change', recalc);
-        this.checkInInput.addEventListener('change', recalc);
-        this.checkOutInput.addEventListener('change', recalc);
-        this.adultsInput?.addEventListener('change', recalc);
-        this.adultsInput?.addEventListener('input', recalc);
-        this.childrenInput?.addEventListener('change', recalc);
-        this.childrenInput?.addEventListener('input', recalc);
-        // Listen for early check-in changes via custom event (hidden input doesn't fire 'change')
-        document.addEventListener('earlyCheckinChanged', recalc);
-        // Listen for bed_sharing changes
-        document.querySelectorAll('input[name="bed_sharing"]').forEach(r =>
-            r.addEventListener('change', recalc)
-        );
+        // Bind events
+        this.categorySelect.addEventListener('change', () => this.updatePreview());
+        this.checkInInput.addEventListener('change', () => this.updatePreview());
+        this.checkOutInput.addEventListener('change', () => this.updatePreview());
+        this.adultsInput?.addEventListener('change', () => this.updatePreview());
+        this.childrenInput?.addEventListener('change', () => this.updatePreview());
 
+        // Set minimum dates
         this.setMinimumDates();
+        
+        // Initial calculation
         this.updatePreview();
     }
 
@@ -165,22 +159,13 @@ class BookingPriceCalculator {
     }
 
     async updatePreview() {
-        const categoryId   = this.categorySelect.value;
-        const checkIn      = this.checkInInput.value;
-        const checkOut     = this.checkOutInput.value;
-        const adults       = this.adultsInput?.value || 1;
-        const children     = this.childrenInput?.value || 0;
-        const earlyCheckin = document.getElementById('id_early_check_in')?.value === 'on' ? 'true' : 'false';
-        // Derive occupancy_type from adults + children + bed_sharing
-        const bedSharing   = document.querySelector('input[name="bed_sharing"]:checked')?.value || 'two_beds';
-        const totalPaid    = parseInt(adults) + parseInt(children);
-        let occupancy = 'solo';
-        if (totalPaid === 2) {
-            occupancy = bedSharing === 'one_bed' ? 'newlyweds' : 'two_guests';
-        } else if (totalPaid > 2) {
-            occupancy = 'two_guests';
-        }
+        const categoryId = this.categorySelect.value;
+        const checkIn = this.checkInInput.value;
+        const checkOut = this.checkOutInput.value;
+        const adults = this.adultsInput?.value || 1;
+        const children = this.childrenInput?.value || 0;
 
+        // Reset preview
         this.resetPreview();
 
         if (!categoryId || !checkIn || !checkOut) {
@@ -188,6 +173,7 @@ class BookingPriceCalculator {
             return;
         }
 
+        // Validate dates
         if (new Date(checkOut) <= new Date(checkIn)) {
             this.showError('Дата выезда должна быть позже даты заезда');
             return;
@@ -195,21 +181,24 @@ class BookingPriceCalculator {
 
         try {
             this.showLoading();
-
-            const url = `/bookings/calculate-prices/?check_in=${checkIn}&check_out=${checkOut}`
-                + `&adults=${adults}&children=${children}`
-                + `&occupancy_type=${occupancy}&early_check_in=${earlyCheckin}`;
-
-            const response = await fetch(url);
+            
+            const response = await fetch(`/bookings/calculate-prices/?check_in=${checkIn}&check_out=${checkOut}&adults=${adults}&children=${children}`);
             const data = await response.json();
 
-            if (!response.ok) throw new Error(data.error || 'Ошибка расчёта цен');
+            if (!response.ok) {
+                throw new Error(data.error || 'Ошибка расчета цен');
+            }
 
             const categoryPrice = data.prices[categoryId];
-            if (!categoryPrice) throw new Error('Цена для выбранной категории не найдена');
-            if (categoryPrice.error) throw new Error(categoryPrice.error);
+            if (!categoryPrice) {
+                throw new Error('Цена для выбранной категории не найдена');
+            }
 
-            this.updatePreviewDisplay(categoryPrice, checkIn, checkOut, earlyCheckin === 'true');
+            if (categoryPrice.error) {
+                throw new Error(categoryPrice.error);
+            }
+
+            this.updatePreviewDisplay(categoryPrice, checkIn, checkOut);
             this.enableSubmit();
 
         } catch (error) {
@@ -218,59 +207,53 @@ class BookingPriceCalculator {
         }
     }
 
-    updatePreviewDisplay(priceData, checkIn, checkOut, earlyCheckin) {
+    updatePreviewDisplay(priceData, checkIn, checkOut) {
         const categoryName = this.categorySelect.options[this.categorySelect.selectedIndex].text;
-        const checkInFmt   = new Date(checkIn).toLocaleDateString('ru-RU');
-        const checkOutFmt  = new Date(checkOut).toLocaleDateString('ru-RU');
-
-        if (this.previewElements.categoryName)
+        
+        // Format dates
+        const checkInFormatted = new Date(checkIn).toLocaleDateString('ru-RU');
+        const checkOutFormatted = new Date(checkOut).toLocaleDateString('ru-RU');
+        
+        // Update preview elements
+        if (this.previewElements.categoryName) {
             this.previewElements.categoryName.textContent = categoryName;
-
-        // Guests summary
-        const guestsEl = document.getElementById('previewGuestsValue');
-        if (guestsEl) {
-            const adults   = parseInt(this.adultsInput?.value || 1);
-            const children = parseInt(this.childrenInput?.value || 0);
-            let txt = `${adults} взр.`;
-            if (children > 0) txt += `, ${children} дет.`;
-            guestsEl.textContent = txt;
         }
-
-        if (this.previewElements.dates)
-            this.previewElements.dates.textContent = `${checkInFmt} — ${checkOutFmt}`;
-
-        if (this.previewElements.nights)
-            this.previewElements.nights.textContent =
-                `${priceData.nights} ${this.getNightsWord(priceData.nights)}`;
-
-        if (this.previewElements.pricePerNight)
-            this.previewElements.pricePerNight.textContent =
-                `${this.formatPrice(priceData.price_per_night)} ₽`;
-
-        // Early check-in row
-        const earlyRow = this.previewElements.earlyRow;
-        const earlyVal = this.previewElements.earlyVal;
-        if (earlyRow) {
-            if (earlyCheckin && priceData.early_checkin_surcharge > 0) {
-                earlyRow.style.display = 'flex';
-                if (earlyVal)
-                    earlyVal.textContent = `+${this.formatPrice(priceData.early_checkin_surcharge)} ₽`;
-            } else {
-                earlyRow.style.display = 'none';
+        
+        if (this.previewElements.dates) {
+            this.previewElements.dates.textContent = `${checkInFormatted} — ${checkOutFormatted}`;
+        }
+        
+        if (this.previewElements.nights) {
+            this.previewElements.nights.textContent = `${priceData.nights} ${this.getNightsWord(priceData.nights)}`;
+        }
+        
+        if (this.previewElements.pricePerNight) {
+            this.previewElements.pricePerNight.textContent = `${this.formatPrice(priceData.price_per_night)} ₽`;
+        }
+        
+        if (this.previewElements.total) {
+            let totalText = `${this.formatPrice(priceData.total_price)} ₽`;
+            if (priceData.discount_amount > 0) {
+                totalText += ` (скидка: ${this.formatPrice(priceData.discount_amount)} ₽)`;
             }
+            this.previewElements.total.textContent = totalText;
         }
 
-        if (this.previewElements.total)
-            this.previewElements.total.textContent =
-                `${this.formatPrice(priceData.total_price)} ₽`;
+        // Show occupancy info if applicable
+        if (priceData.occupancy_multiplier !== 1.0) {
+            const multiplierText = priceData.occupancy_multiplier > 1.0 ? 
+                `Высокий спрос (+${Math.round((priceData.occupancy_multiplier - 1) * 100)}%)` :
+                `Низкий спрос (${Math.round((1 - priceData.occupancy_multiplier) * 100)}% скидка)`;
+            
+            // You can add this info somewhere in the UI
+            console.log('Occupancy info:', multiplierText);
+        }
     }
 
     resetPreview() {
         Object.values(this.previewElements).forEach(el => {
             if (el) el.textContent = '—';
         });
-        const guestsEl = document.getElementById('previewGuestsValue');
-        if (guestsEl) guestsEl.textContent = '—';
     }
 
     showLoading() {

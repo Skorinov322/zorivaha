@@ -372,37 +372,3 @@ class StayHistoryView(LoginRequiredMixin, ListView):
         ctx = super().get_context_data(**kwargs)
         ctx["crm_profile"] = get_user_crm_profile(self.request.user)
         return ctx
-
-
-# ---------------------------------------------------------------------------
-# Cabinet: My Organizations
-# ---------------------------------------------------------------------------
-
-class MyOrganizationsView(LoginRequiredMixin, ListView):
-    """Список организаций, созданных пользователем."""
-
-    template_name       = "accounts/my_organizations.html"
-    context_object_name = "organizations"
-    login_url           = "/auth/login/"
-
-    def dispatch(self, request, *args, **kwargs):
-        redir = _redirect_staff_from_cabinet(request)
-        if redir:
-            return redir
-        return super().dispatch(request, *args, **kwargs)
-
-    def get_queryset(self):
-        from apps.crm.models import Organization
-        return Organization.objects.filter(
-            created_by_user=self.request.user
-        ).order_by('-created_at')
-
-
-# ---------------------------------------------------------------------------
-# Guest contact messages (re-export from notifications views)
-# ---------------------------------------------------------------------------
-
-from apps.notifications.views import (
-    GuestContactMessagesView,
-    GuestContactMessageDetailView,
-)
