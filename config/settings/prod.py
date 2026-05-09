@@ -13,13 +13,13 @@ from decouple import config
 
 DEBUG = False
 
-ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="", cast=lambda v: [s.strip() for s in v.split(",")])
+ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="", cast=lambda v: [s.strip() for s in v.split(",")]) + ["healthcheck.railway.app"]
 
 # ---------------------------------------------------------------------------
 # Security — HTTPS hardening
 # ---------------------------------------------------------------------------
 
-SECURE_SSL_REDIRECT             = True
+SECURE_SSL_REDIRECT             = False  # Railway handles HTTPS at proxy level
 SECURE_PROXY_SSL_HEADER         = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # HSTS: 1 year, include subdomains, preload
