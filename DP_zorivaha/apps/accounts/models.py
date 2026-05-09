@@ -221,3 +221,17 @@ class User(AbstractUser, TimeStampedModel):
     def get_initials(self) -> str:
         parts = [self.first_name[:1], self.last_name[:1]]
         return "".join(p for p in parts if p).upper() or self.email[:2].upper()
+
+    @property
+    def push_notifications_unread_count(self) -> int:
+        return self.push_notifications.filter(is_read=False).count()
+
+    @property
+    def contact_messages_unread_replies_count(self) -> int:
+        """Количество непрочитанных ответов персонала по всем обращениям гостя."""
+        from apps.notifications.models import ContactReply
+        return ContactReply.objects.filter(
+            message__sender_user=self,
+            is_staff_reply=True,
+            is_read_by_guest=False,
+        ).count()

@@ -1,0 +1,11 @@
+{% comment %}
+Delta badge: shows % change vs previous period.
+Usage: {% include "dashboard/_delta_badge.html" with delta=summary.visitors_delta %}
+{% endcomment %}
+{% if delta != 0 %}
+<div style="font-size:.68rem;margin-top:.2rem;
+            color:{% if delta > 0 %}#28a745{% else %}#ff6b6b{% endif %}">
+  {% if delta > 0 %}▲{% else %}▼{% endif %}
+  {{ delta|floatformat:1 }}% к пред. периоду
+</div>
+{% endif %}

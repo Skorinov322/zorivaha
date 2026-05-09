@@ -75,7 +75,7 @@ class Command(BaseCommand):
                         subdivision=room_data['subdivision'],
                         defaults={
                             'floor': room_data['floor'],
-                            'max_concurrent_bookings': room_data['max_concurrent'],
+                            'max_guests_per_room': room_data['max_concurrent'],
                             'status': Room.RoomStatus.AVAILABLE,
                         }
                     )
@@ -86,7 +86,7 @@ class Command(BaseCommand):
                             self.stdout.write(
                                 self.style.SUCCESS(
                                     f'Создан номер: {room.full_number} '
-                                    f'(макс. {room.max_concurrent_bookings} броней)'
+                                    f'(макс. {room.max_guests_per_room} персон)'
                                 )
                             )
                         else:

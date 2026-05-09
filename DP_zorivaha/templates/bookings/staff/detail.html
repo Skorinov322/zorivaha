@@ -57,7 +57,7 @@
         {% if booking.room %}
         <div class="col-sm-6">
           <div style="font-size:.75rem;color:rgba(255,255,255,.35)">Номер</div>
-          <div style="color:#fff;font-weight:500">{{ booking.room.full_number }} ({{ booking.room.floor }} эт.)</div>
+          <div style="color:#fff;font-weight:500">{{ booking.room.full_number }}{% if booking.room.subdivision %} <span style="color:rgba(255,255,255,.45);font-size:.8rem">(подр. {{ booking.room.subdivision }})</span>{% endif %} ({{ booking.room.floor }} эт.)</div>
         </div>
         {% endif %}
         <div class="col-sm-4">
@@ -165,72 +165,49 @@
     <div class="cabinet-card">
       <div class="cabinet-card-title"><i class="bi bi-lightning me-1"></i>Действия</div>
 
+      {# --- PENDING: подтвердить --- #}
       {% if booking.status == "pending" %}
-      <form method="post" action="{% url 'bookings:confirm' booking.pk %}" class="mb-2">
-        {% csrf_token %}
-        <button type="submit" style="width:100%;padding:.65rem;border-radius:10px;cursor:pointer;font-size:.875rem;font-weight:600;background:rgba(40,167,69,.15);color:#28a745;border:1px solid rgba(40,167,69,.3)">
-          <i class="bi bi-check-circle me-2"></i>Подтвердить
-        </button>
-      </form>
+      <button type="button" class="bk-action-btn bk-action-confirm" data-modal="modal-confirm">
+        <i class="bi bi-check-circle"></i>Подтвердить
+      </button>
       {% endif %}
 
+      {# --- CONFIRMED: заселить / незаезд --- #}
       {% if booking.status == "confirmed" %}
-      <form method="post" action="{% url 'bookings:checkin' booking.pk %}" class="mb-2">
-        {% csrf_token %}
-        
-        {# Room selection for check-in #}
-        <div class="mb-3">
-          <label for="room_select" style="font-size:.75rem;color:rgba(255,255,255,.45);display:block;margin-bottom:.4rem">
-            Выбрать номер (необязательно)
-          </label>
-          <select name="room_id" id="room_select" class="form-select" style="background:#2a2a3e;border:1px solid rgba(255,255,255,.1);color:#fff;font-size:.875rem">
-            <option value="">— Назначить автоматически —</option>
-            {% for room in available_rooms %}
-            <option value="{{ room.id }}">
-              {{ room.full_number }}
-              {% if room.max_concurrent_bookings > 1 %}
-                ({{ room.current_occupancy }}/{{ room.max_concurrent_bookings }})
-              {% endif %}
-            </option>
-            {% endfor %}
-          </select>
-        </div>
-        
-        <button type="submit" style="width:100%;padding:.65rem;border-radius:10px;cursor:pointer;font-size:.875rem;font-weight:600;background:rgba(13,110,253,.15);color:#6ea8fe;border:1px solid rgba(13,110,253,.3)">
-          <i class="bi bi-door-open me-2"></i>Заселить
-        </button>
-      </form>
-      <form method="post" action="{% url 'bookings:noshow' booking.pk %}" class="mb-2">
-        {% csrf_token %}
-        <button type="submit" style="width:100%;padding:.65rem;border-radius:10px;cursor:pointer;font-size:.875rem;background:rgba(108,117,125,.12);color:#adb5bd;border:1px solid rgba(108,117,125,.25)"
-                onclick="return confirm('Отметить как незаезд?')">
-          <i class="bi bi-person-x me-2"></i>Незаезд
-        </button>
-      </form>
+      <button type="button" class="bk-action-btn bk-action-checkin" data-modal="modal-checkin">
+        <i class="bi bi-door-open"></i>Заселить
+      </button>
+      <button type="button" class="bk-action-btn bk-action-noshow" data-modal="modal-noshow">
+        <i class="bi bi-person-x"></i>Незаезд
+      </button>
       {% endif %}
 
+      {# --- CHECKED_IN: выселить / отменить заселение --- #}
       {% if booking.status == "checked_in" %}
-      <form method="post" action="{% url 'bookings:checkout' booking.pk %}" class="mb-2">
-        {% csrf_token %}
-        <button type="submit" style="width:100%;padding:.65rem;border-radius:10px;cursor:pointer;font-size:.875rem;font-weight:600;background:rgba(32,201,151,.12);color:#20c997;border:1px solid rgba(32,201,151,.25)">
-          <i class="bi bi-check2-all me-2"></i>Выселить
-        </button>
-      </form>
+      <button type="button" class="bk-action-btn bk-action-checkout" data-modal="modal-checkout">
+        <i class="bi bi-check2-all"></i>Выселить
+      </button>
+      <button type="button" class="bk-action-btn bk-action-undo" data-modal="modal-undo-checkin">
+        <i class="bi bi-arrow-counterclockwise"></i>Отменить заселение
+      </button>
       {% endif %}
 
+      {# --- CHECKED_OUT: отменить выселение --- #}
+      {% if booking.status == "checked_out" %}
+      <button type="button" class="bk-action-btn bk-action-undo" data-modal="modal-undo-checkout">
+        <i class="bi bi-arrow-counterclockwise"></i>Отменить выселение
+      </button>
+      {% endif %}
+
+      {# --- Отменить бронь (pending / confirmed) --- #}
       {% if booking.can_be_cancelled %}
-      <form method="post" action="{% url 'bookings:staff_cancel' booking.pk %}"
-            onsubmit="return confirm('Отменить бронь?')">
-        {% csrf_token %}
-        <input type="hidden" name="reason" value="Отменено сотрудником." />
-        <button type="submit" style="width:100%;padding:.65rem;border-radius:10px;cursor:pointer;font-size:.875rem;background:rgba(220,53,69,.1);color:#ff6b6b;border:1px solid rgba(220,53,69,.25)">
-          <i class="bi bi-x-circle me-2"></i>Отменить
-        </button>
-      </form>
+      <button type="button" class="bk-action-btn bk-action-cancel" data-modal="modal-cancel">
+        <i class="bi bi-x-circle"></i>Отменить бронь
+      </button>
       {% endif %}
 
-      {% if booking.status not in "pending,confirmed,checked_in" %}
-      <div style="color:rgba(255,255,255,.3);font-size:.8rem;text-align:center;padding:.5rem">
+      {% if booking.status not in "pending,confirmed,checked_in,checked_out" %}
+      <div style="color:rgba(13,13,13,.3);font-size:.8rem;text-align:center;padding:.5rem">
         Действия недоступны для этого статуса
       </div>
       {% endif %}
@@ -238,5 +215,398 @@
 
   </div>
 </div>
+
+{# ================================================================= #}
+{# MODALS                                                             #}
+{# ================================================================= #}
+
+<style>
+.bk-modal-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(13,13,13,.45);
+  z-index: 1050;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.bk-modal-overlay.active { display: flex; }
+.bk-modal {
+  background: #ffffff;
+  border: 1px solid rgba(13,13,13,.1);
+  border-radius: 16px;
+  padding: 1.75rem;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 20px 60px rgba(13,13,13,.18);
+}
+.bk-modal-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0d0d0d;
+  margin-bottom: .5rem;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.bk-modal-body {
+  font-size: .875rem;
+  color: rgba(13,13,13,.55);
+  margin-bottom: 1.25rem;
+  line-height: 1.6;
+}
+.bk-modal-body strong { color: #0d0d0d; }
+.bk-modal-actions { display: flex; gap: .75rem; }
+.bk-modal-actions button,
+.bk-modal-actions .bk-btn {
+  flex: 1; padding: .65rem; border-radius: 10px;
+  font-size: .875rem; font-weight: 600; cursor: pointer;
+  border: 1px solid transparent; transition: opacity .15s;
+}
+.bk-modal-actions button:hover,
+.bk-modal-actions .bk-btn:hover { opacity: .82; }
+
+/* Кнопка "Назад" / вторичная */
+.bk-btn-secondary {
+  background: rgba(13,13,13,.05);
+  color: rgba(13,13,13,.55);
+  border-color: rgba(13,13,13,.1) !important;
+}
+/* Подтвердить / Заселить — зелёный */
+.bk-btn-success {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: #fff;
+  border-color: transparent !important;
+}
+/* Выселить — акцентный gold */
+.bk-btn-gold {
+  background: linear-gradient(135deg, #ff8e3c, #d9376e);
+  color: #0d0d0d;
+  border-color: transparent !important;
+}
+/* Отменить бронь / Незаезд — красный */
+.bk-btn-danger {
+  background: linear-gradient(135deg, #dc3545, #c82333);
+  color: #fff;
+  border-color: transparent !important;
+}
+/* Отменить заселение/выселение — янтарный */
+.bk-btn-warning {
+  background: linear-gradient(135deg, #ff8e3c, #ffc107);
+  color: #0d0d0d;
+  border-color: transparent !important;
+}
+/* Заселить — синий */
+.bk-btn-primary {
+  background: linear-gradient(135deg, #0d6efd, #6ea8fe);
+  color: #fff;
+  border-color: transparent !important;
+}
+
+/* Разделитель в модалке */
+.bk-modal-divider {
+  height: 1px;
+  background: rgba(13,13,13,.08);
+  margin: 1rem 0;
+}
+
+/* Иконка-кружок в заголовке */
+.bk-modal-icon {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: .9rem; flex-shrink: 0;
+}
+.bk-icon-green   { background: rgba(40,167,69,.12);  color: #28a745; }
+.bk-icon-blue    { background: rgba(13,110,253,.12); color: #0d6efd; }
+.bk-icon-teal    { background: rgba(32,201,151,.12); color: #20c997; }
+.bk-icon-red     { background: rgba(220,53,69,.12);  color: #dc3545; }
+.bk-icon-amber   { background: rgba(255,142,60,.12); color: #ff8e3c; }
+.bk-icon-gray    { background: rgba(13,13,13,.07);   color: rgba(13,13,13,.5); }
+
+/* select/textarea внутри модалки */
+.bk-modal select,
+.bk-modal textarea {
+  width: 100%;
+  background: #f8f9fa;
+  border: 1px solid rgba(13,13,13,.12);
+  border-radius: 8px;
+  padding: .5rem .75rem;
+  font-size: .875rem;
+  color: #0d0d0d;
+  outline: none;
+  transition: border-color .15s;
+}
+.bk-modal select:focus,
+.bk-modal textarea:focus {
+  border-color: #ff8e3c;
+  box-shadow: 0 0 0 3px rgba(255,142,60,.12);
+}
+.bk-modal textarea { resize: none; }
+.bk-modal label {
+  font-size: .75rem;
+  font-weight: 600;
+  color: rgba(13,13,13,.45);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: .4rem;
+}
+
+/* Кнопки-триггеры действий */
+.bk-action-btn {
+  width: 100%;
+  padding: .65rem;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: .875rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+  transition: opacity .15s, transform .1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  margin-bottom: .5rem;
+  text-align: center;
+}
+.bk-action-btn:hover { opacity: .85; transform: translateY(-1px); }
+.bk-action-btn:active { transform: translateY(0); }
+
+.bk-action-confirm {
+  background: rgba(40,167,69,.1);
+  color: #28a745;
+  border-color: rgba(40,167,69,.25);
+}
+.bk-action-checkin {
+  background: rgba(13,110,253,.1);
+  color: #0d6efd;
+  border-color: rgba(13,110,253,.25);
+}
+.bk-action-checkout {
+  background: rgba(255,142,60,.1);
+  color: #ff8e3c;
+  border-color: rgba(255,142,60,.3);
+}
+.bk-action-noshow {
+  background: rgba(13,13,13,.05);
+  color: rgba(13,13,13,.5);
+  border-color: rgba(13,13,13,.12);
+}
+.bk-action-undo {
+  background: rgba(255,193,7,.1);
+  color: #d97706;
+  border-color: rgba(255,193,7,.3);
+}
+.bk-action-cancel {
+  background: rgba(220,53,69,.08);
+  color: #dc3545;
+  border-color: rgba(220,53,69,.2);
+}
+</style>
+
+{# --- Подтвердить бронь --- #}
+<div class="bk-modal-overlay" id="modal-confirm">
+  <div class="bk-modal">
+    <div class="bk-modal-title">
+      <span class="bk-modal-icon bk-icon-green"><i class="bi bi-check-circle-fill"></i></span>
+      Подтвердить бронь?
+    </div>
+    <div class="bk-modal-divider"></div>
+    <div class="bk-modal-body">
+      Бронь <strong>{{ booking.confirmation_number }}</strong> будет подтверждена.<br>
+      Гость получит уведомление на email.
+    </div>
+    <div class="bk-modal-actions">
+      <button class="bk-btn bk-btn-secondary" onclick="closeModal('modal-confirm')">Отмена</button>
+      <form method="post" action="{% url 'bookings:confirm' booking.pk %}" style="flex:1">
+        {% csrf_token %}
+        <button type="submit" class="bk-btn bk-btn-success" style="width:100%">Подтвердить</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+{# --- Заселить --- #}
+<div class="bk-modal-overlay" id="modal-checkin">
+  <div class="bk-modal">
+    <div class="bk-modal-title">
+      <span class="bk-modal-icon bk-icon-blue"><i class="bi bi-door-open-fill"></i></span>
+      Заселить гостя?
+    </div>
+    <div class="bk-modal-divider"></div>
+    <div class="bk-modal-body">
+      Гость <strong>{{ booking.guest_full_name }}</strong> будет заселён.<br>
+      Выберите номер или оставьте автоматическое назначение.
+    </div>
+    <form method="post" action="{% url 'bookings:checkin' booking.pk %}">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label>Номер (необязательно)</label>
+        <select name="room_id">
+          <option value="">— Назначить автоматически —</option>
+          {% for room in available_rooms %}
+          <option value="{{ room.id }}">
+            {{ room.full_number }}
+            {% if room.max_guests_per_room > 1 %}({{ room.current_occupancy }}/{{ room.max_guests_per_room }}){% endif %}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="bk-modal-actions">
+        <button type="button" class="bk-btn bk-btn-secondary" onclick="closeModal('modal-checkin')">Отмена</button>
+        <button type="submit" class="bk-btn bk-btn-primary">Заселить</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{# --- Незаезд --- #}
+<div class="bk-modal-overlay" id="modal-noshow">
+  <div class="bk-modal">
+    <div class="bk-modal-title">
+      <span class="bk-modal-icon bk-icon-gray"><i class="bi bi-person-x-fill"></i></span>
+      Отметить незаезд?
+    </div>
+    <div class="bk-modal-divider"></div>
+    <div class="bk-modal-body">
+      Бронь <strong>{{ booking.confirmation_number }}</strong> будет отмечена как «Незаезд».<br>
+      Это действие нельзя отменить.
+    </div>
+    <div class="bk-modal-actions">
+      <button class="bk-btn bk-btn-secondary" onclick="closeModal('modal-noshow')">Отмена</button>
+      <form method="post" action="{% url 'bookings:noshow' booking.pk %}" style="flex:1">
+        {% csrf_token %}
+        <button type="submit" class="bk-btn bk-btn-danger" style="width:100%">Незаезд</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+{# --- Выселить --- #}
+<div class="bk-modal-overlay" id="modal-checkout">
+  <div class="bk-modal">
+    <div class="bk-modal-title">
+      <span class="bk-modal-icon bk-icon-amber"><i class="bi bi-check2-all"></i></span>
+      Выселить гостя?
+    </div>
+    <div class="bk-modal-divider"></div>
+    <div class="bk-modal-body">
+      Гость <strong>{{ booking.guest_full_name }}</strong> будет выселен
+      {% if booking.room %}из номера <strong>{{ booking.room.full_number }}</strong>{% endif %}.<br>
+      Бронь перейдёт в статус «Завершена».
+    </div>
+    <div class="bk-modal-actions">
+      <button class="bk-btn bk-btn-secondary" onclick="closeModal('modal-checkout')">Отмена</button>
+      <form method="post" action="{% url 'bookings:checkout' booking.pk %}" style="flex:1">
+        {% csrf_token %}
+        <button type="submit" class="bk-btn bk-btn-gold" style="width:100%">Выселить</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+{# --- Отменить заселение --- #}
+<div class="bk-modal-overlay" id="modal-undo-checkin">
+  <div class="bk-modal">
+    <div class="bk-modal-title">
+      <span class="bk-modal-icon bk-icon-amber"><i class="bi bi-arrow-counterclockwise"></i></span>
+      Отменить заселение?
+    </div>
+    <div class="bk-modal-divider"></div>
+    <div class="bk-modal-body">
+      Гость <strong>{{ booking.guest_full_name }}</strong> будет выписан
+      {% if booking.room %}из номера <strong>{{ booking.room.full_number }}</strong>{% endif %}.<br>
+      Бронь вернётся в статус «Подтверждена». Используйте, если заселение выполнено ошибочно.
+    </div>
+    <div class="bk-modal-actions">
+      <button class="bk-btn bk-btn-secondary" onclick="closeModal('modal-undo-checkin')">Отмена</button>
+      <form method="post" action="{% url 'bookings:undo_checkin' booking.pk %}" style="flex:1">
+        {% csrf_token %}
+        <button type="submit" class="bk-btn bk-btn-warning" style="width:100%">Отменить заселение</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+{# --- Отменить выселение --- #}
+<div class="bk-modal-overlay" id="modal-undo-checkout">
+  <div class="bk-modal">
+    <div class="bk-modal-title">
+      <span class="bk-modal-icon bk-icon-amber"><i class="bi bi-arrow-counterclockwise"></i></span>
+      Отменить выселение?
+    </div>
+    <div class="bk-modal-divider"></div>
+    <div class="bk-modal-body">
+      Гость <strong>{{ booking.guest_full_name }}</strong> будет возвращён
+      {% if booking.room %}в номер <strong>{{ booking.room.full_number }}</strong>{% endif %}.<br>
+      Бронь вернётся в статус «Заселён». Используйте, если выселение выполнено ошибочно.
+    </div>
+    <div class="bk-modal-actions">
+      <button class="bk-btn bk-btn-secondary" onclick="closeModal('modal-undo-checkout')">Отмена</button>
+      <form method="post" action="{% url 'bookings:undo_checkout' booking.pk %}" style="flex:1">
+        {% csrf_token %}
+        <button type="submit" class="bk-btn bk-btn-warning" style="width:100%">Отменить выселение</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+{# --- Отменить бронь --- #}
+<div class="bk-modal-overlay" id="modal-cancel">
+  <div class="bk-modal">
+    <div class="bk-modal-title">
+      <span class="bk-modal-icon bk-icon-red"><i class="bi bi-x-circle-fill"></i></span>
+      Отменить бронь?
+    </div>
+    <div class="bk-modal-divider"></div>
+    <div class="bk-modal-body">
+      Бронь <strong>{{ booking.confirmation_number }}</strong> будет отменена.<br>
+      Это действие нельзя отменить.
+    </div>
+    <form method="post" action="{% url 'bookings:staff_cancel' booking.pk %}">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label>Причина отмены</label>
+        <textarea name="reason" rows="2" placeholder="Укажите причину...">Отменено сотрудником.</textarea>
+      </div>
+      <div class="bk-modal-actions">
+        <button type="button" class="bk-btn bk-btn-secondary" onclick="closeModal('modal-cancel')">Назад</button>
+        <button type="submit" class="bk-btn bk-btn-danger">Отменить бронь</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+// Открытие модального окна
+document.querySelectorAll('[data-modal]').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var id = this.getAttribute('data-modal');
+    var overlay = document.getElementById(id);
+    if (overlay) overlay.classList.add('active');
+  });
+});
+
+// Закрытие по клику на оверлей
+document.querySelectorAll('.bk-modal-overlay').forEach(function(overlay) {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('active');
+  });
+});
+
+// Закрытие по Escape
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.bk-modal-overlay.active').forEach(function(o) {
+      o.classList.remove('active');
+    });
+  }
+});
+
+function closeModal(id) {
+  var overlay = document.getElementById(id);
+  if (overlay) overlay.classList.remove('active');
+}
+</script>
 
 {% endblock %}

@@ -136,3 +136,15 @@ def get_revenue_stats(start: date, end: date) -> dict:
         "total_revenue":  result["total_revenue"]  or 0,
         "total_bookings": result["total_bookings"] or 0,
     }
+
+
+def check_category_availability_for_group(
+    category_id: int,
+    check_in: date,
+    check_out: date,
+    rooms_needed: int,
+) -> bool:
+    """Проверяет, есть ли rooms_needed свободных номеров в категории."""
+    from apps.hotel.selectors import get_available_rooms_for_group
+    rooms = get_available_rooms_for_group(category_id, check_in, check_out, rooms_needed)
+    return len(rooms) >= rooms_needed

@@ -25,7 +25,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
 from django.views.generic import TemplateView, ListView
 
-from apps.core.permissions import ManagerRequiredMixin
+from apps.core.permissions import ManagerRequiredMixin, ReceptionistRequiredMixin
 from .forms import (
     ClientProfileForm, AdminCommentForm, InteractionForm,
     TaskForm, ClientStatusForm, OrganizationForm,
@@ -50,7 +50,7 @@ from .services import (
 # Dashboard
 # ===========================================================================
 
-class CrmDashboardView(ManagerRequiredMixin, TemplateView):
+class CrmDashboardView(ReceptionistRequiredMixin, TemplateView):
     template_name = "crm/dashboard.html"
 
     def get_context_data(self, **kwargs):
@@ -71,7 +71,7 @@ class CrmDashboardView(ManagerRequiredMixin, TemplateView):
 # Clients
 # ===========================================================================
 
-class ClientListView(ManagerRequiredMixin, View):
+class ClientListView(ReceptionistRequiredMixin, View):
     template_name = "crm/client_list.html"
     paginate_by   = 25
 
@@ -103,7 +103,7 @@ class ClientListView(ManagerRequiredMixin, View):
         })
 
 
-class ClientDetailView(ManagerRequiredMixin, View):
+class ClientDetailView(ReceptionistRequiredMixin, View):
     template_name = "crm/client_detail.html"
 
     def get(self, request, pk):
@@ -212,7 +212,7 @@ class ClientDetailView(ManagerRequiredMixin, View):
         return redirect("crm:client_detail", pk=pk)
 
 
-class ClientStatusUpdateView(ManagerRequiredMixin, View):
+class ClientStatusUpdateView(ReceptionistRequiredMixin, View):
     """Quick status change from the client list."""
 
     def post(self, request, pk):
@@ -228,7 +228,7 @@ class ClientStatusUpdateView(ManagerRequiredMixin, View):
 # Admin Comments
 # ===========================================================================
 
-class AdminCommentDeleteView(ManagerRequiredMixin, View):
+class AdminCommentDeleteView(ReceptionistRequiredMixin, View):
     def post(self, request, pk, comment_pk):
         comment = get_object_or_404(AdminComment, pk=comment_pk, client__user_id=pk)
         # Only author or admin can delete
@@ -240,7 +240,7 @@ class AdminCommentDeleteView(ManagerRequiredMixin, View):
         return redirect("crm:client_detail", pk=pk)
 
 
-class AdminCommentPinView(ManagerRequiredMixin, View):
+class AdminCommentPinView(ReceptionistRequiredMixin, View):
     def post(self, request, pk, comment_pk):
         get_object_or_404(AdminComment, pk=comment_pk, client__user_id=pk)
         toggle_pin_comment(comment_pk)
@@ -251,7 +251,7 @@ class AdminCommentPinView(ManagerRequiredMixin, View):
 # Interactions
 # ===========================================================================
 
-class InteractionResolveView(ManagerRequiredMixin, View):
+class InteractionResolveView(ReceptionistRequiredMixin, View):
     def post(self, request, pk, interaction_pk):
         resolve_interaction(interaction_pk)
         messages.success(request, "Взаимодействие отмечено как решённое.")
@@ -262,7 +262,7 @@ class InteractionResolveView(ManagerRequiredMixin, View):
 # Tasks
 # ===========================================================================
 
-class TaskListView(ManagerRequiredMixin, View):
+class TaskListView(ReceptionistRequiredMixin, View):
     template_name = "crm/task_list.html"
 
     def get(self, request):
@@ -279,7 +279,7 @@ class TaskListView(ManagerRequiredMixin, View):
         })
 
 
-class TaskCreateView(ManagerRequiredMixin, View):
+class TaskCreateView(ReceptionistRequiredMixin, View):
     template_name = "crm/task_form.html"
 
     def get(self, request):
@@ -301,14 +301,14 @@ class TaskCreateView(ManagerRequiredMixin, View):
         return render(request, self.template_name, {"form": form})
 
 
-class TaskCompleteView(ManagerRequiredMixin, View):
+class TaskCompleteView(ReceptionistRequiredMixin, View):
     def post(self, request, pk):
         complete_task(pk, actor=request.user)
         messages.success(request, "Задача выполнена.")
         return redirect(request.POST.get("next", "crm:task_list"))
 
 
-class TaskCancelView(ManagerRequiredMixin, View):
+class TaskCancelView(ReceptionistRequiredMixin, View):
     def post(self, request, pk):
         cancel_task(pk, actor=request.user)
         messages.info(request, "Задача отменена.")
@@ -319,7 +319,7 @@ class TaskCancelView(ManagerRequiredMixin, View):
 # Organizations
 # ===========================================================================
 
-class OrganizationListView(ManagerRequiredMixin, View):
+class OrganizationListView(ReceptionistRequiredMixin, View):
     template_name = "crm/organization_list.html"
 
     def get(self, request):
@@ -330,7 +330,7 @@ class OrganizationListView(ManagerRequiredMixin, View):
         })
 
 
-class OrganizationCreateView(ManagerRequiredMixin, View):
+class OrganizationCreateView(ReceptionistRequiredMixin, View):
     template_name = "crm/organization_form.html"
 
     def get(self, request):
@@ -347,7 +347,7 @@ class OrganizationCreateView(ManagerRequiredMixin, View):
         return render(request, self.template_name, {"form": form, "title": "Новая организация"})
 
 
-class OrganizationDetailView(ManagerRequiredMixin, View):
+class OrganizationDetailView(ReceptionistRequiredMixin, View):
     template_name = "crm/organization_detail.html"
 
     def get(self, request, pk):
@@ -368,7 +368,7 @@ class OrganizationDetailView(ManagerRequiredMixin, View):
         return render(request, self.template_name, {"org": org, "details": details})
 
 
-class OrganizationUpdateView(ManagerRequiredMixin, View):
+class OrganizationUpdateView(ReceptionistRequiredMixin, View):
     template_name = "crm/organization_form.html"
 
     def get(self, request, pk):

@@ -30,8 +30,9 @@ THIRD_PARTY_APPS = [
     "crispy_forms",
     "crispy_bootstrap5",
     "django_filters",
-    "django_celery_beat",
-    "django_celery_results",
+    # Temporarily disabled Celery apps
+    # "django_celery_beat",
+    # "django_celery_results",
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
@@ -83,6 +84,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "apps.core.context_processors.site_settings",
+                "apps.core.context_processors.contact_messages_count",
                 # Injects perms_ctx into every template
                 "apps.core.permissions.permissions_context",
             ],
@@ -98,19 +100,27 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.mysql",
-        "NAME": config("DB_NAME", default="zori_vaha"),
-        "USER": config("DB_USER", default="root"),
-        "PASSWORD": config("DB_PASSWORD", default=""),
-        "HOST": config("DB_HOST", default="localhost"),
-        "PORT": config("DB_PORT", default="3306"),
-        "CONN_MAX_AGE": 60,
-        "OPTIONS": {
-            "connect_timeout": 10,
-            "charset": "utf8mb4",
-        },
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     }
 }
+
+# For production, use MySQL (uncomment below and comment SQLite above)
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.mysql",
+#         "NAME": config("DB_NAME", default="zori_vaha"),
+#         "USER": config("DB_USER", default="root"),
+#         "PASSWORD": config("DB_PASSWORD", default=""),
+#         "HOST": config("DB_HOST", default="localhost"),
+#         "PORT": config("DB_PORT", default="3306"),
+#         "CONN_MAX_AGE": 60,
+#         "OPTIONS": {
+#             "connect_timeout": 10,
+#             "charset": "utf8mb4",
+#         },
+#     }
+# }
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 

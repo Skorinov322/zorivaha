@@ -17,7 +17,7 @@
 
 /* ── Page hero ── */
 .page-hero{background:radial-gradient(ellipse 70% 60% at 50% 0%,rgba(255,142,60,.12) 0%,transparent 65%),linear-gradient(160deg,#eff0f3 0%,#f4f5f8 50%,#ffffff 100%);padding:5rem 0 3.5rem;border-bottom:1px solid rgba(255,142,60,.1)}
-.page-hero-title{font-family:'Playfair Display',serif;font-size:clamp(2rem,5vw,3.5rem);font-weight:800;color:#0d0d0d;line-height:1.1;margin-bottom:.75rem}
+.page-hero-title{font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,5vw,3.5rem);font-weight:800;color:#0d0d0d;line-height:1.1;margin-bottom:.75rem}
 .page-hero-title em{font-style:normal;color:var(--gold)}
 .breadcrumb-lux{display:flex;align-items:center;gap:.5rem;font-size:.78rem;color:rgba(13,13,13,.45);margin-bottom:1.25rem;flex-wrap:wrap}
 .breadcrumb-lux a{color:rgba(13,13,13,.45);text-decoration:none;transition:color .2s}
@@ -28,7 +28,7 @@
 /* ── Contacts section ── */
 .contacts-section{background:var(--dark-800);padding:5rem 0 6rem}
 .contact-info-card{background:var(--dark-600);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:2.25rem;height:100%}
-.contact-info-heading{font-family:'Playfair Display',serif;font-size:1.35rem;font-weight:700;color:#0d0d0d;margin-bottom:1.75rem;display:flex;align-items:center;gap:.6rem}
+.contact-info-heading{font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-weight:700;color:#0d0d0d;margin-bottom:1.75rem;display:flex;align-items:center;gap:.6rem}
 .contact-info-heading i{color:var(--gold)}
 .contact-item{display:flex;align-items:flex-start;gap:1rem;padding:1.1rem 0;border-bottom:1px solid var(--border-subtle)}
 .contact-item:last-child{border-bottom:none}
@@ -45,7 +45,7 @@
 .map-placeholder{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;padding:3rem;background:linear-gradient(135deg,var(--dark-600),var(--dark-500));position:relative;overflow:hidden}
 .map-placeholder::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 50%,rgba(201,168,76,.06) 0%,transparent 70%);pointer-events:none}
 .map-icon-wrap{width:80px;height:80px;border-radius:50%;background:var(--gold-dim);border:2px solid var(--gold-border);display:flex;align-items:center;justify-content:center;font-size:2rem;color:var(--gold);animation:pulse-gold 3s ease-in-out infinite}
-.map-title{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:#0d0d0d;text-align:center}
+.map-title{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:700;color:#0d0d0d;text-align:center}
 .map-address{font-size:.875rem;color:rgba(13,13,13,.55);text-align:center;line-height:1.6}
 .map-footer{padding:1.25rem 1.75rem;border-top:1px solid var(--border-subtle);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem}
 .map-footer-text{font-size:.8rem;color:rgba(13,13,13,.55)}
@@ -55,7 +55,7 @@
 /* ── Form section ── */
 .form-section{background:var(--dark-700);padding:5rem 0 6rem;border-top:1px solid var(--border-subtle)}
 .form-card{background:var(--dark-600);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:2.5rem;max-width:680px;margin:0 auto}
-.form-section-heading{font-family:'Playfair Display',serif;font-size:clamp(1.75rem,3vw,2.5rem);font-weight:700;color:#0d0d0d;margin-bottom:.75rem}
+.form-section-heading{font-family:'Cormorant Garamond',serif;font-size:clamp(1.75rem,3vw,2.5rem);font-weight:700;color:#0d0d0d;margin-bottom:.75rem}
 .form-section-heading em{font-style:normal;color:var(--gold)}
 .form-field-label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:.5rem;display:block}
 .lux-input{width:100%;display:block;background:#ffffff;border:1px solid rgba(13,13,13,.12);color:#0d0d0d;border-radius:var(--radius-sm);padding:.75rem 1rem;font-size:.9rem;transition:border-color .2s,box-shadow .2s;font-family:'Inter',sans-serif}
@@ -155,14 +155,16 @@
       {# Map #}
       <div class="col-lg-7 reveal" style="transition-delay:.1s">
         <div class="map-card">
-          <div class="map-placeholder">
-            <div class="map-icon-wrap" aria-hidden="true"><i class="bi bi-map"></i></div>
-            <div class="map-title">Зори Ваха</div>
-            <div class="map-address">Школьная улица, 12<br>пгт Излучинск, Нижневартовский район<br>Ханты-Мансийский автономный округ — Югра</div>
-            <a href="https://yandex.ru/maps/?text=Школьная+улица+12,+пгт+Излучинск,+Нижневартовский+район,+Ханты-Мансийский+автономный+округ+—+Югра" target="_blank" rel="noopener noreferrer" class="btn-gold-sm mt-2">
-              <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
-              Открыть на карте
-            </a>
+          <div style="border-radius:16px 16px 0 0;overflow:hidden;line-height:0">
+            <iframe
+              src="https://yandex.ru/map-widget/v1/?ll=76.892500%2C60.952536&z=16&pt=76.892500%2C60.952536%2Cpm2rdm&l=map"
+              width="100%"
+              height="360"
+              frameborder="0"
+              allowfullscreen
+              style="display:block;border:none"
+              title="Карта расположения гостиницы Зори Ваха"
+            ></iframe>
           </div>
           <div class="map-footer">
             <span class="map-footer-text">

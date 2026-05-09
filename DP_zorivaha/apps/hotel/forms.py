@@ -136,7 +136,7 @@ class RoomForm(forms.ModelForm):
         model = Room
         fields = [
             'category', 'number', 'subdivision', 'floor', 'status',
-            'max_concurrent_bookings', 'has_balcony', 'has_sea_view',
+            'max_guests_per_room', 'has_balcony', 'has_sea_view',
             'has_mountain_view', 'extra_amenities', 'notes'
         ]
         widgets = {
@@ -145,7 +145,7 @@ class RoomForm(forms.ModelForm):
             'subdivision': forms.TextInput(attrs={'class': 'form-control'}),
             'floor': forms.NumberInput(attrs={'class': 'form-control'}),
             'status': forms.Select(attrs={'class': 'form-select'}),
-            'max_concurrent_bookings': forms.NumberInput(attrs={'class': 'form-control'}),
+            'max_guests_per_room': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
             'has_balcony': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'has_sea_view': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'has_mountain_view': forms.CheckboxInput(attrs={'class': 'form-check-input'}),

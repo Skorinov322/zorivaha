@@ -17,6 +17,9 @@ urlpatterns = [
     path("bookings/",                 views.MyBookingsView.as_view(),        name="my_bookings"),
     path("bookings/<uuid:pk>/",       views.MyBookingDetailView.as_view(),   name="my_booking_detail"),
     path("history/",                  views.StayHistoryView.as_view(),       name="stay_history"),
+    path("organizations/",            views.MyOrganizationsView.as_view(),   name="my_organizations"),
+    path("messages/",                 views.GuestContactMessagesView.as_view(),       name="my_messages"),
+    path("messages/<int:pk>/",        views.GuestContactMessageDetailView.as_view(),  name="my_message_detail"),
 
     # ---- User management (ADMIN+) ----
     path("users/",                    admin_views.UserListView.as_view(),         name="user_list"),

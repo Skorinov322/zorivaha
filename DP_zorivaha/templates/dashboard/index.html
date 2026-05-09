@@ -215,7 +215,7 @@
             {% for b in today_departures %}
             <tr>
               <td><div class="guest-name">{{ b.guest_full_name }}</div></td>
-              <td style="color:#ff8e3c;font-weight:700">{% if b.room %}{{ b.room.number }}{% else %}—{% endif %}</td>
+              <td style="color:#ff8e3c;font-weight:700">{% if b.room %}{{ b.room.number }}{% if b.room.subdivision %}<span style="color:rgba(13,13,13,.45);font-size:.8rem;font-weight:500"> / {{ b.room.subdivision }}</span>{% endif %}{% else %}—{% endif %}</td>
               <td class="text-muted-sm">{{ b.room_category.name }}</td>
               <td>
                 <a href="{% url 'bookings:staff_detail' b.pk %}" class="dash-row-link">

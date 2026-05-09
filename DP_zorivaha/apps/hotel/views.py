@@ -27,7 +27,7 @@ from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import TemplateView, ListView, DetailView, FormView
 
-from apps.core.permissions import AdminRequiredMixin, ManagerRequiredMixin
+from apps.core.permissions import AdminRequiredMixin, ManagerRequiredMixin, ReceptionistRequiredMixin
 from .forms import (
     AvailabilitySearchForm,
     ContactForm,
@@ -74,9 +74,9 @@ class IndexView(TemplateView):
         ctx["featured_rooms"] = get_featured_room_categories(limit=3)
         ctx["features"] = [
             ("bi-wifi",          "Бесплатный Wi-Fi",    "Высокоскоростной интернет во всех номерах"),
-            ("bi-cup-hot",       "Ресторан",            "Блюда чеченской и европейской кухни"),
-            ("bi-shield-check",  "Безопасность",        "Круглосуточная охрана и видеонаблюдение"),
-            ("bi-geo-alt",       "Центр города",        "В шаговой доступности от главных достопримечательностей"),
+            ("bi-cup-hot",       "Комфортный сервис",   "Внимательный персонал и уют на каждом шагу"),
+            ("bi-stars",         "Уборка номеров",      "Регулярная уборка и свежее бельё"),
+            ("bi-geo-alt",       "Центр населённого пункта", "В шаговой доступности от магазинов и инфраструктуры"),
         ]
         return ctx
 
@@ -122,6 +122,33 @@ class RoomCategoryDetailView(DetailView):
         return ctx
 
 
+class GalleryView(TemplateView):
+    """Public hotel gallery page, grouped by section."""
+    template_name = "hotel/gallery.html"
+
+    def get_context_data(self, **kwargs):
+        from apps.content.models import HotelGallery
+        ctx = super().get_context_data(**kwargs)
+
+        section_filter = self.request.GET.get("section", "")
+        qs = HotelGallery.objects.filter(is_active=True)
+        if section_filter:
+            qs = qs.filter(section=section_filter)
+
+        # Group photos by section for tab display
+        sections = {}
+        for photo in qs.order_by("section", "sort_order"):
+            label = photo.get_section_display()
+            sections.setdefault(photo.section, {"label": label, "photos": []})
+            sections[photo.section]["photos"].append(photo)
+
+        ctx["sections"]        = sections
+        ctx["all_photos"]      = qs
+        ctx["section_choices"] = HotelGallery.GallerySection.choices
+        ctx["active_section"]  = section_filter
+        return ctx
+
+
 class AboutView(TemplateView):
     template_name = "hotel/about.html"
 
@@ -134,14 +161,13 @@ class AboutView(TemplateView):
             ("10+", "Лет опыта"),
         ]
         ctx["services"] = [
-            ("bi-wifi",           "Бесплатный высокоскоростной Wi-Fi"),
-            ("bi-cup-hot",        "Ресторан и room service"),
-            ("bi-car-front",      "Парковка и трансфер"),
-            ("bi-heart-pulse",    "СПА и фитнес-центр"),
-            ("bi-camera-video",   "Конференц-залы"),
-            ("bi-shield-check",   "Круглосуточная охрана"),
-            ("bi-bag-check",      "Хранение багажа"),
-            ("bi-translate",      "Услуги переводчика"),
+            ("bi-person-badge",   "Круглосуточная стойка регистрации"),
+            ("bi-wifi",           "Бесплатный Wi-Fi"),
+            ("bi-thermometer-sun","Сауна"),
+            ("bi-bicycle",        "Фитнес-зал"),
+            ("bi-shield-check",   "Круглосуточное видеонаблюдение"),
+            ("bi-cup-hot",        "Вода, чай, кофе в холле 24/7"),
+            ("bi-basket",         "Прачечная"),
         ]
         return ctx
 
@@ -152,19 +178,46 @@ class ContactsView(FormView):
     success_url = reverse_lazy('hotel:contacts')
     
     def form_valid(self, form):
+        d = form.cleaned_data
+
+        # Сохраняем сообщение в БД
+        from apps.notifications.models import ContactMessage
+        contact_msg = ContactMessage.objects.create(
+            sender_user=self.request.user if self.request.user.is_authenticated else None,
+            sender_name=d["name"],
+            sender_email=d["email"],
+            sender_phone=d.get("phone", ""),
+            subject=d.get("subject", ""),
+            message=d["message"],
+        )
+
         # Отправляем email с обратной связью
         try:
-            self._send_contact_email(form.cleaned_data)
+            self._send_contact_email(d)
             messages.success(
-                self.request, 
+                self.request,
                 "Спасибо за ваше сообщение! Мы ответим в ближайшее время."
             )
-        except Exception as e:
+        except Exception:
             messages.error(
                 self.request,
                 "Произошла ошибка при отправке сообщения. Попробуйте позже или свяжитесь с нами по телефону."
             )
-        
+
+        # Уведомляем персонал через in-app уведомления
+        try:
+            from apps.notifications.models import notify_staff_contact_form
+            notify_staff_contact_form(
+                name=d["name"],
+                email=d["email"],
+                phone=d.get("phone", ""),
+                subject=d.get("subject", ""),
+                message=d["message"],
+                contact_message_id=contact_msg.pk,
+            )
+        except Exception:
+            pass
+
         return super().form_valid(form)
     
     def _send_contact_email(self, data):
@@ -229,7 +282,7 @@ Email: {settings.CONTACT_EMAIL}
 # STAFF: CATEGORY CRUD
 # ===========================================================================
 
-class CategoryListView(ManagerRequiredMixin, TemplateView):
+class CategoryListView(ReceptionistRequiredMixin, TemplateView):
     """Staff: list all room categories with stats."""
     template_name = "hotel/staff/category_list.html"
 
@@ -348,7 +401,7 @@ class CategoryImageDeleteView(AdminRequiredMixin, View):
 # STAFF: ROOM CRUD
 # ===========================================================================
 
-class RoomListStaffView(ManagerRequiredMixin, TemplateView):
+class RoomListStaffView(ReceptionistRequiredMixin, TemplateView):
     """Staff: list all physical rooms with filters."""
     template_name = "hotel/staff/room_list.html"
 
@@ -434,7 +487,7 @@ class RoomDeleteView(AdminRequiredMixin, View):
         return redirect("hotel:staff_room_list")
 
 
-class RoomStatusUpdateView(ManagerRequiredMixin, View):
+class RoomStatusUpdateView(ReceptionistRequiredMixin, View):
     """Quick status change — POST from the room list table."""
 
     def post(self, request, pk):

@@ -45,9 +45,9 @@
             {% for e in form.status.errors %}<div style="color:#dc3545;font-size:.8rem">{{ e }}</div>{% endfor %}
           </div>
           <div class="col-sm-6">
-            <label class="form-label">Макс. одновременных броней</label>
-            {{ form.max_concurrent_bookings }}
-            {% for e in form.max_concurrent_bookings.errors %}<div style="color:#dc3545;font-size:.8rem">{{ e }}</div>{% endfor %}
+            <label class="form-label">Макс. персон в номере</label>
+            {{ form.max_guests_per_room }}
+            {% for e in form.max_guests_per_room.errors %}<div style="color:#dc3545;font-size:.8rem">{{ e }}</div>{% endfor %}
           </div>
         </div>
       </div>

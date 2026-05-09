@@ -33,6 +33,7 @@ urlpatterns = [
     path("",                          views.IndexView.as_view(),              name="index"),
     path("rooms/",                    views.RoomListView.as_view(),           name="room_list"),
     path("rooms/<slug:slug>/",        views.RoomCategoryDetailView.as_view(), name="room_category_detail"),
+    path("gallery/",                  views.GalleryView.as_view(),            name="gallery"),
     path("about/",                    views.AboutView.as_view(),              name="about"),
     path("contacts/",                 views.ContactsView.as_view(),           name="contacts"),
 

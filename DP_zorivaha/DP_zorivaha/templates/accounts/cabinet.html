@@ -1,0 +1,181 @@
+{% extends "accounts/base_cabinet.html" %}
+
+{% block title %}Личный кабинет{% endblock %}
+
+{% block cabinet_content %}
+
+<h1 class="cabinet-page-title">
+  Добро пожаловать, {{ request.user.get_short_name }}!
+</h1>
+<p class="cabinet-page-subtitle">Управляйте бронированиями и настройками профиля</p>
+
+{# ---- Loyalty badge (if CRM profile exists) ---- #}
+{% if crm_profile %}
+<div style="display:inline-flex;align-items:center;gap:.65rem;
+            background:rgba(255,142,60,.08);border:1px solid rgba(255,142,60,.15);
+            border-radius:12px;padding:.65rem 1rem;margin-bottom:1.5rem">
+  <i class="bi bi-award" style="color:#ff8e3c;font-size:1.1rem"></i>
+  <div>
+    <div style="color:#ff8e3c;font-size:.8rem;font-weight:600">
+      {{ crm_profile.get_loyalty_tier_display }}
+    </div>
+    <div style="color:rgba(13,13,13,.5);font-size:.75rem">
+      {{ crm_profile.loyalty_points }} баллов лояльности
+    </div>
+  </div>
+  {% if crm_profile.status == "vip" %}
+  <span style="background:rgba(255,142,60,.15);color:#ff8e3c;border:1px solid rgba(255,142,60,.3);
+               border-radius:6px;padding:.15rem .55rem;font-size:.72rem;font-weight:700">
+    VIP
+  </span>
+  {% endif %}
+</div>
+{% endif %}
+
+{# ---- Stat cards ---- #}
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon"><i class="bi bi-calendar-check"></i></div>
+      <div class="stat-value">{{ stats.total }}</div>
+      <div class="stat-label">Всего броней</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon"><i class="bi bi-clock-history" style="color:#ffc107"></i></div>
+      <div class="stat-value">{{ stats.active }}</div>
+      <div class="stat-label">Активных</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon"><i class="bi bi-check-circle" style="color:#28a745"></i></div>
+      <div class="stat-value">{{ stats.completed }}</div>
+      <div class="stat-label">Завершённых</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon"><i class="bi bi-currency-exchange" style="color:#20c997"></i></div>
+      <div class="stat-value" style="font-size:1.3rem">
+        {{ stats.total_spent|floatformat:0 }} ₽
+      </div>
+      <div class="stat-label">Потрачено</div>
+    </div>
+  </div>
+</div>
+
+{# ---- Recent bookings ---- #}
+<div class="cabinet-card mb-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="cabinet-card-title mb-0">Мои заявки</div>
+    <a href="{% url 'accounts:my_bookings' %}"
+       style="font-size:.8rem;color:var(--gold);text-decoration:none">
+      Все заявки <i class="bi bi-arrow-right"></i>
+    </a>
+  </div>
+
+  {% if recent_bookings %}
+  <div class="table-responsive">
+    <table class="table table-dark table-hover mb-0" style="--bs-table-bg:transparent">
+      <thead>
+        <tr style="color:rgba(255,255,255,.4);font-size:.78rem;text-transform:uppercase;letter-spacing:.06em">
+          <th>№ брони</th>
+          <th>Номер</th>
+          <th>Заезд</th>
+          <th>Выезд</th>
+          <th>Статус</th>
+          <th>Сумма</th>
+        </tr>
+      </thead>
+      <tbody style="font-size:.875rem">
+        {% for b in recent_bookings %}
+        <tr>
+          <td>
+            <a href="{% url 'accounts:my_booking_detail' b.pk %}"
+               style="color:var(--gold);text-decoration:none;font-weight:600">
+              {{ b.confirmation_number }}
+            </a>
+          </td>
+          <td style="color:rgba(255,255,255,.7)">{{ b.room_category.name }}</td>
+          <td style="color:rgba(255,255,255,.7)">{{ b.check_in|date:"d.m.Y" }}</td>
+          <td style="color:rgba(255,255,255,.7)">{{ b.check_out|date:"d.m.Y" }}</td>
+          <td>
+            {% include "accounts/_booking_status_badge.html" with status=b.status label=b.get_status_display %}
+          </td>
+          <td style="color:#fff;font-weight:500">{{ b.final_price|floatformat:0 }} ₽</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="text-align:center;padding:2rem;color:rgba(255,255,255,.3)">
+    <i class="bi bi-calendar-x" style="font-size:2.5rem;display:block;margin-bottom:.75rem"></i>
+    У вас пока нет бронирований.
+    <br>
+    <a href="{% url 'hotel:room_list' %}" style="color:var(--gold);text-decoration:none;margin-top:.5rem;display:inline-block">
+      Посмотреть номера →
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+{# ---- Quick links ---- #}
+<div class="row g-3">
+  <div class="col-6 col-md-3">
+    <a href="{% url 'accounts:my_bookings' %}"
+       style="display:flex;flex-direction:column;align-items:center;gap:.5rem;
+              background:#ffffff;border:1px solid rgba(13,13,13,.08);
+              border-radius:14px;padding:1.25rem;text-decoration:none;
+              color:rgba(13,13,13,.55);font-size:.8rem;text-align:center;
+              transition:all .2s;box-shadow:0 2px 8px rgba(13,13,13,.04)"
+       onmouseover="this.style.background='rgba(255,142,60,.06)';this.style.color='#ff8e3c';this.style.borderColor='rgba(255,142,60,.2)'"
+       onmouseout="this.style.background='#ffffff';this.style.color='rgba(13,13,13,.55)';this.style.borderColor='rgba(13,13,13,.08)'">
+      <i class="bi bi-list-check" style="font-size:1.5rem"></i>
+      Мои заявки
+    </a>
+  </div>
+  <div class="col-6 col-md-3">
+    <a href="{% url 'accounts:stay_history' %}"
+       style="display:flex;flex-direction:column;align-items:center;gap:.5rem;
+              background:#ffffff;border:1px solid rgba(13,13,13,.08);
+              border-radius:14px;padding:1.25rem;text-decoration:none;
+              color:rgba(13,13,13,.55);font-size:.8rem;text-align:center;
+              transition:all .2s;box-shadow:0 2px 8px rgba(13,13,13,.04)"
+       onmouseover="this.style.background='rgba(255,142,60,.06)';this.style.color='#ff8e3c';this.style.borderColor='rgba(255,142,60,.2)'"
+       onmouseout="this.style.background='#ffffff';this.style.color='rgba(13,13,13,.55)';this.style.borderColor='rgba(13,13,13,.08)'">
+      <i class="bi bi-clock-history" style="font-size:1.5rem"></i>
+      История проживания
+    </a>
+  </div>
+  <div class="col-6 col-md-3">
+    <a href="{% url 'hotel:room_list' %}"
+       style="display:flex;flex-direction:column;align-items:center;gap:.5rem;
+              background:#ffffff;border:1px solid rgba(13,13,13,.08);
+              border-radius:14px;padding:1.25rem;text-decoration:none;
+              color:rgba(13,13,13,.55);font-size:.8rem;text-align:center;
+              transition:all .2s;box-shadow:0 2px 8px rgba(13,13,13,.04)"
+       onmouseover="this.style.background='rgba(255,142,60,.06)';this.style.color='#ff8e3c';this.style.borderColor='rgba(255,142,60,.2)'"
+       onmouseout="this.style.background='#ffffff';this.style.color='rgba(13,13,13,.55)';this.style.borderColor='rgba(13,13,13,.08)'">
+      <i class="bi bi-building" style="font-size:1.5rem"></i>
+      Забронировать
+    </a>
+  </div>
+  <div class="col-6 col-md-3">
+    <a href="{% url 'accounts:profile' %}"
+       style="display:flex;flex-direction:column;align-items:center;gap:.5rem;
+              background:#ffffff;border:1px solid rgba(13,13,13,.08);
+              border-radius:14px;padding:1.25rem;text-decoration:none;
+              color:rgba(13,13,13,.55);font-size:.8rem;text-align:center;
+              transition:all .2s;box-shadow:0 2px 8px rgba(13,13,13,.04)"
+       onmouseover="this.style.background='rgba(255,142,60,.06)';this.style.color='#ff8e3c';this.style.borderColor='rgba(255,142,60,.2)'"
+       onmouseout="this.style.background='#ffffff';this.style.color='rgba(13,13,13,.55)';this.style.borderColor='rgba(13,13,13,.08)'">
+      <i class="bi bi-person-gear" style="font-size:1.5rem"></i>
+      Профиль
+    </a>
+  </div>
+</div>
+
+{% endblock %}
