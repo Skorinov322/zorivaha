@@ -308,3 +308,54 @@ def send_no_show_email(self, booking_id: str) -> None:
 
 # Old name used in some places — routes to the "created" email
 send_booking_confirmation_email = send_booking_created_email
+
+
+# ---------------------------------------------------------------------------
+# 7. Групповое бронирование
+# ---------------------------------------------------------------------------
+
+@shared_task(
+    bind=True,
+    name="apps.notifications.tasks.send_group_booking_email",
+    max_retries=3,
+    default_retry_delay=60,
+    acks_late=True,
+)
+def send_group_booking_email(self, group_id: str) -> None:
+    """
+    Отправляет одно письмо со сводкой всех броней группы.
+    Если отправка падает — брони сохраняются, ошибка логируется.
+    """
+    import uuid as uuid_module
+    from apps.bookings.models import Booking
+    from apps.notifications.models import EmailLog
+
+    try:
+        bookings = list(
+            Booking.objects.filter(group_id=uuid_module.UUID(group_id))
+            .select_related("guest", "room_category")
+            .order_by("created_at")
+        )
+        if not bookings:
+            logger.warning("[email] group_booking: no bookings found for group_id=%s", group_id)
+            return
+
+        primary = bookings[0]
+        total_price = sum(b.total_price for b in bookings)
+
+        _send_email(
+            subject=f"Групповое бронирование — {len(bookings)} номера — Зори Ваха",
+            template="notifications/email/group_booking_created.html",
+            context={
+                "bookings": bookings,
+                "primary_booking": primary,
+                "total_price": total_price,
+                "rooms_count": len(bookings),
+            },
+            to=[primary.guest_email],
+            booking=primary,
+            email_type=EmailLog.EmailType.BOOKING_CONFIRMATION,
+        )
+    except Exception as exc:
+        logger.error("[email] group_booking failed for group_id=%s: %s", group_id, exc)
+        raise self.retry(exc=exc)

@@ -1,0 +1,370 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}{{ profile.user.get_full_name|default:profile.user.email }}{% endblock %}
+{% block dashboard_title %}Профиль клиента{% endblock %}
+{% block dashboard_subtitle %}CRM{% endblock %}
+
+{% block dashboard_content %}
+
+{# ---- Header ---- #}
+<div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
+  <a href="{% url 'crm:client_list' %}" style="color:rgba(255,255,255,.4);text-decoration:none;font-size:.875rem">
+    <i class="bi bi-arrow-left me-1"></i>Клиенты
+  </a>
+  <h1 class="cabinet-page-title mb-0">{{ profile.user.get_full_name|default:profile.user.email }}</h1>
+  {% include "crm/_status_badge.html" with status=profile.status label=profile.get_status_display %}
+</div>
+
+<div class="row g-4">
+
+  {# ---- Left: profile info ---- #}
+  <div class="col-lg-4">
+
+    {# Avatar + basic info #}
+    <div class="cabinet-card mb-3">
+      <div style="text-align:center;margin-bottom:1.25rem">
+        <div style="width:72px;height:72px;border-radius:50%;margin:0 auto .75rem;
+                    background:linear-gradient(135deg,var(--gold),#a07830);
+                    display:flex;align-items:center;justify-content:center;
+                    font-size:1.4rem;font-weight:700;color:#fff;overflow:hidden">
+          {% if profile.user.avatar %}
+            <img src="{{ profile.user.avatar.url }}" style="width:100%;height:100%;object-fit:cover" />
+          {% else %}
+            {{ profile.user.get_initials }}
+          {% endif %}
+        </div>
+        <div style="color:#fff;font-weight:600">{{ profile.user.get_full_name|default:"—" }}</div>
+        <div style="color:rgba(255,255,255,.4);font-size:.8rem">{{ profile.user.email }}</div>
+        {% if profile.user.phone %}
+        <div style="color:rgba(255,255,255,.4);font-size:.8rem">{{ profile.user.phone }}</div>
+        {% endif %}
+      </div>
+
+      {% for label, value in profile_rows %}
+      <div style="display:flex;justify-content:space-between;padding:.45rem 0;border-bottom:1px solid rgba(255,255,255,.05)">
+        <span style="color:rgba(255,255,255,.35);font-size:.78rem">{{ label }}</span>
+        <span style="color:rgba(255,255,255,.7);font-size:.78rem">{{ value }}</span>
+      </div>
+      {% endfor %}
+    </div>
+
+    {# Stats #}
+    <div class="cabinet-card mb-3">
+      <div class="cabinet-card-title">Статистика</div>
+      <div class="row g-2">
+        {% for label, value, color in stat_rows %}
+        <div class="col-6">
+          <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:.65rem;text-align:center">
+            <div style="font-size:1.2rem;font-weight:700;color:{{ color }}">{{ value }}</div>
+            <div style="font-size:.72rem;color:rgba(255,255,255,.35)">{{ label }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    {# Status change #}
+    <div class="cabinet-card mb-3">
+      <div class="cabinet-card-title">Изменить статус</div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update_status" />
+        {{ status_form.status }}
+        <button type="submit" style="width:100%;margin-top:.75rem;padding:.6rem;
+                background:rgba(201,168,76,.15);color:var(--gold);
+                border:1px solid rgba(201,168,76,.3);border-radius:10px;
+                cursor:pointer;font-size:.875rem">
+          Сохранить статус
+        </button>
+      </form>
+    </div>
+
+    {# Organization #}
+    {% if profile.organization %}
+    <div class="cabinet-card">
+      <div class="cabinet-card-title">Организация</div>
+      <a href="{% url 'crm:organization_detail' profile.organization.pk %}"
+         style="color:var(--gold);text-decoration:none;font-weight:500">
+        {{ profile.organization.name }}
+      </a>
+      {% if profile.organization.inn %}
+      <div style="color:rgba(255,255,255,.35);font-size:.78rem;margin-top:.25rem">ИНН: {{ profile.organization.inn }}</div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+  </div>
+
+  {# ---- Right: tabs ---- #}
+  <div class="col-lg-8">
+
+    {# Tab navigation #}
+    <div style="display:flex;gap:.4rem;margin-bottom:1.25rem;flex-wrap:wrap">
+      {% for tab_id, tab_label in tabs %}
+      <button onclick="showTab('{{ tab_id }}')" id="tab-btn-{{ tab_id }}"
+              style="padding:.45rem .9rem;border-radius:20px;font-size:.8rem;cursor:pointer;
+                     border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);
+                     color:rgba(255,255,255,.5);transition:all .2s"
+              class="tab-btn {% if forloop.first %}active-tab{% endif %}">
+        {{ tab_label }}
+      </button>
+      {% endfor %}
+    </div>
+
+    {# ---- Tab: Bookings ---- #}
+    <div id="tab-bookings" class="tab-content">
+      <div class="cabinet-card">
+        <div class="cabinet-card-title"><i class="bi bi-calendar-check me-1"></i>История бронирований</div>
+        {% if booking_history %}
+        <div class="table-responsive">
+          <table class="table table-dark table-hover mb-0" style="--bs-table-bg:transparent">
+            <thead>
+              <tr style="color:rgba(255,255,255,.35);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em">
+                <th>№ брони</th><th>Категория</th><th>Заезд</th><th>Выезд</th><th>Статус</th><th>Сумма</th>
+              </tr>
+            </thead>
+            <tbody style="font-size:.85rem">
+              {% for b in booking_history %}
+              <tr>
+                <td>
+                  <a href="{% url 'bookings:staff_detail' b.pk %}"
+                     style="color:var(--gold);font-weight:600;text-decoration:none">
+                    {{ b.confirmation_number }}
+                  </a>
+                </td>
+                <td style="color:rgba(255,255,255,.7)">{{ b.room_category.name }}</td>
+                <td style="color:rgba(255,255,255,.6)">{{ b.check_in|date:"d.m.Y" }}</td>
+                <td style="color:rgba(255,255,255,.6)">{{ b.check_out|date:"d.m.Y" }}</td>
+                <td>{% include "bookings/_status_badge.html" with status=b.status label=b.get_status_display %}</td>
+                <td style="color:#fff">{{ b.final_price|floatformat:0 }} ₽</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div style="text-align:center;padding:2rem;color:rgba(255,255,255,.3);font-size:.875rem">
+          Нет бронирований
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    {# ---- Tab: Comments ---- #}
+    <div id="tab-comments" class="tab-content" style="display:none">
+      <div class="cabinet-card mb-3">
+        <div class="cabinet-card-title"><i class="bi bi-chat-left-text me-1"></i>Добавить комментарий</div>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="add_comment" />
+          <div class="mb-2">{{ comment_form.body }}</div>
+          <div class="form-check mb-2">
+            {{ comment_form.is_pinned }}
+            <label class="form-check-label" for="{{ comment_form.is_pinned.id_for_label }}"
+                   style="color:rgba(255,255,255,.55);font-size:.85rem">
+              Закрепить комментарий
+            </label>
+          </div>
+          <button type="submit" style="background:rgba(201,168,76,.15);color:var(--gold);border:1px solid rgba(201,168,76,.3);border-radius:10px;padding:.55rem 1.25rem;font-size:.875rem;cursor:pointer">
+            Добавить
+          </button>
+        </form>
+      </div>
+
+      {% for comment in profile.admin_comments.all %}
+      <div style="background:{% if comment.is_pinned %}rgba(201,168,76,.06){% else %}rgba(255,255,255,.03){% endif %};
+                  border:1px solid {% if comment.is_pinned %}rgba(201,168,76,.2){% else %}rgba(255,255,255,.07){% endif %};
+                  border-radius:12px;padding:1rem;margin-bottom:.75rem">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem">
+          <div>
+            <span style="color:#fff;font-size:.85rem;font-weight:500">
+              {{ comment.author.get_short_name|default:"Сотрудник" }}
+            </span>
+            {% if comment.is_pinned %}
+            <span style="color:var(--gold);font-size:.72rem;margin-left:.5rem">
+              <i class="bi bi-pin-fill"></i> Закреплён
+            </span>
+            {% endif %}
+          </div>
+          <div style="display:flex;gap:.5rem;align-items:center">
+            <span style="color:rgba(255,255,255,.3);font-size:.75rem">{{ comment.created_at|date:"d.m.Y H:i" }}</span>
+            <form method="post" action="{% url 'crm:comment_pin' profile.user_id comment.pk %}" style="display:inline">
+              {% csrf_token %}
+              <button type="submit" title="{% if comment.is_pinned %}Открепить{% else %}Закрепить{% endif %}"
+                      style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,.3);font-size:.85rem;padding:0">
+                <i class="bi bi-pin{% if not comment.is_pinned %}-angle{% endif %}"></i>
+              </button>
+            </form>
+            <form method="post" action="{% url 'crm:comment_delete' profile.user_id comment.pk %}"
+                  onsubmit="return confirm('Удалить комментарий?')" style="display:inline">
+              {% csrf_token %}
+              <button type="submit" style="background:none;border:none;cursor:pointer;color:rgba(255,100,100,.5);font-size:.85rem;padding:0">
+                <i class="bi bi-trash"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+        <div style="color:rgba(255,255,255,.65);font-size:.875rem;line-height:1.6">{{ comment.body }}</div>
+      </div>
+      {% empty %}
+      <div style="text-align:center;padding:2rem;color:rgba(255,255,255,.3);font-size:.875rem">
+        Нет комментариев
+      </div>
+      {% endfor %}
+    </div>
+
+    {# ---- Tab: Interactions ---- #}
+    <div id="tab-interactions" class="tab-content" style="display:none">
+      <div class="cabinet-card mb-3">
+        <div class="cabinet-card-title"><i class="bi bi-telephone me-1"></i>Записать взаимодействие</div>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="add_interaction" />
+          <div class="row g-2">
+            <div class="col-sm-6">
+              <label style="color:rgba(255,255,255,.55);font-size:.8rem">Тип</label>
+              {{ interaction_form.interaction_type }}
+            </div>
+            <div class="col-sm-6">
+              <label style="color:rgba(255,255,255,.55);font-size:.8rem">Тема</label>
+              {{ interaction_form.subject }}
+            </div>
+            <div class="col-12">
+              <label style="color:rgba(255,255,255,.55);font-size:.8rem">Содержание</label>
+              {{ interaction_form.body }}
+            </div>
+            <div class="col-sm-6">
+              <label style="color:rgba(255,255,255,.55);font-size:.8rem">Итог</label>
+              {{ interaction_form.outcome }}
+            </div>
+            <div class="col-sm-6">
+              <label style="color:rgba(255,255,255,.55);font-size:.8rem">Дата повторного контакта</label>
+              {{ interaction_form.follow_up_date }}
+            </div>
+          </div>
+          <button type="submit" style="margin-top:.75rem;background:rgba(201,168,76,.15);color:var(--gold);border:1px solid rgba(201,168,76,.3);border-radius:10px;padding:.55rem 1.25rem;font-size:.875rem;cursor:pointer">
+            Записать
+          </button>
+        </form>
+      </div>
+
+      {% for interaction in profile.recent_interactions %}
+      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:.85rem 1rem;margin-bottom:.6rem">
+        <div style="display:flex;justify-content:space-between;margin-bottom:.35rem">
+          <span style="color:var(--gold);font-size:.8rem;font-weight:600">{{ interaction.get_interaction_type_display }}</span>
+          <span style="color:rgba(255,255,255,.3);font-size:.75rem">{{ interaction.created_at|date:"d.m.Y H:i" }}</span>
+        </div>
+        <div style="color:#fff;font-size:.875rem;font-weight:500">{{ interaction.subject }}</div>
+        <div style="color:rgba(255,255,255,.55);font-size:.8rem;margin-top:.25rem">{{ interaction.body }}</div>
+        {% if interaction.outcome %}
+        <div style="color:rgba(255,255,255,.35);font-size:.78rem;margin-top:.25rem">
+          Итог: {{ interaction.outcome }}
+        </div>
+        {% endif %}
+        {% if not interaction.is_resolved %}
+        <form method="post" action="{% url 'crm:interaction_resolve' profile.user_id interaction.pk %}" style="display:inline">
+          {% csrf_token %}
+          <button type="submit" style="background:none;border:none;cursor:pointer;color:rgba(40,167,69,.6);font-size:.78rem;padding:0;margin-top:.35rem">
+            <i class="bi bi-check-circle me-1"></i>Отметить решённым
+          </button>
+        </form>
+        {% else %}
+        <span style="color:rgba(40,167,69,.5);font-size:.78rem;display:block;margin-top:.35rem">
+          <i class="bi bi-check-circle-fill me-1"></i>Решено
+        </span>
+        {% endif %}
+      </div>
+      {% empty %}
+      <div style="text-align:center;padding:2rem;color:rgba(255,255,255,.3);font-size:.875rem">
+        Нет взаимодействий
+      </div>
+      {% endfor %}
+    </div>
+
+    {# ---- Tab: Tasks ---- #}
+    <div id="tab-tasks" class="tab-content" style="display:none">
+      <div class="cabinet-card mb-3">
+        <div class="cabinet-card-title"><i class="bi bi-list-task me-1"></i>Создать задачу</div>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="add_task" />
+          <div class="row g-2">
+            <div class="col-12">
+              <label style="color:rgba(255,255,255,.55);font-size:.8rem">Заголовок</label>
+              {{ task_form.title }}
+            </div>
+            <div class="col-sm-6">
+              <label style="color:rgba(255,255,255,.55);font-size:.8rem">Исполнитель</label>
+              {{ task_form.assigned_to }}
+            </div>
+            <div class="col-sm-3">
+              <label style="color:rgba(255,255,255,.55);font-size:.8rem">Приоритет</label>
+              {{ task_form.priority }}
+            </div>
+            <div class="col-sm-3">
+              <label style="color:rgba(255,255,255,.55);font-size:.8rem">Срок</label>
+              {{ task_form.due_date }}
+            </div>
+          </div>
+          <button type="submit" style="margin-top:.75rem;background:rgba(201,168,76,.15);color:var(--gold);border:1px solid rgba(201,168,76,.3);border-radius:10px;padding:.55rem 1.25rem;font-size:.875rem;cursor:pointer">
+            Создать задачу
+          </button>
+        </form>
+      </div>
+
+      {% for task in profile.open_tasks %}
+      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:.85rem 1rem;margin-bottom:.6rem;display:flex;align-items:center;gap:.75rem">
+        <div style="flex:1">
+          <div style="color:#fff;font-size:.875rem;font-weight:500">{{ task.title }}</div>
+          <div style="color:rgba(255,255,255,.35);font-size:.75rem">
+            {{ task.assigned_to.get_short_name|default:"—" }}
+            {% if task.due_date %} · до {{ task.due_date|date:"d.m.Y" }}{% endif %}
+          </div>
+        </div>
+        {% include "crm/_priority_badge.html" with priority=task.priority label=task.get_priority_display %}
+        <form method="post" action="{% url 'crm:task_complete' task.pk %}">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.path }}" />
+          <button type="submit" title="Выполнить" style="background:none;border:none;cursor:pointer;color:rgba(40,167,69,.6);font-size:1rem;padding:0">
+            <i class="bi bi-check-circle"></i>
+          </button>
+        </form>
+      </div>
+      {% empty %}
+      <div style="text-align:center;padding:2rem;color:rgba(255,255,255,.3);font-size:.875rem">
+        Нет открытых задач
+      </div>
+      {% endfor %}
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  const tabContents = document.querySelectorAll('.tab-content');
+
+  function showTab(id) {
+    tabContents.forEach(t => t.style.display = 'none');
+    tabBtns.forEach(b => {
+      b.style.background = 'rgba(13,13,13,.05)';
+      b.style.color = 'rgba(13,13,13,.55)';
+      b.style.borderColor = 'rgba(13,13,13,.1)';
+    });
+    const content = document.getElementById('tab-' + id);
+    const btn = document.getElementById('tab-btn-' + id);
+    if (content) content.style.display = 'block';
+    if (btn) {
+      btn.style.background = 'rgba(255,142,60,.12)';
+      btn.style.color = '#ff8e3c';
+      btn.style.borderColor = 'rgba(255,142,60,.25)';
+    }
+  }
+
+  // Activate first tab on load
+  showTab('bookings');
+</script>
+{% endblock %}

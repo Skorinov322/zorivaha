@@ -46,7 +46,7 @@ class HealthCheckView(View):
             status_code = 503
             logger.error("Health check DB failed: %s", exc)
 
-        # ── Cache (Redis) ─────────────────────────────────────────────────────
+        # ── Cache ─────────────────────────────────────────────────────────────
         try:
             from django.core.cache import cache
             cache.set("_health_check", "1", timeout=5)
@@ -55,19 +55,23 @@ class HealthCheckView(View):
             if val != "1":
                 status_code = 503
         except Exception as exc:
-            checks["cache"] = f"error: {exc}"
-            status_code = 503
-            logger.error("Health check cache failed: %s", exc)
+            checks["cache"] = f"unavailable: {exc}"
+            # Cache failure is non-fatal — app can still serve requests
+            logger.warning("Health check cache failed: %s", exc)
 
-        # ── Celery broker (Redis ping) ─────────────────────────────────────────
+        # ── Celery broker ─────────────────────────────────────────────────────
         try:
             from django.conf import settings
-            import redis as redis_lib
-            r = redis_lib.from_url(settings.CELERY_BROKER_URL, socket_timeout=2)
-            r.ping()
-            checks["celery_broker"] = "ok"
+            broker_url = getattr(settings, "CELERY_BROKER_URL", None)
+            if broker_url and broker_url.startswith("redis"):
+                import redis as redis_lib
+                r = redis_lib.from_url(broker_url, socket_timeout=2)
+                r.ping()
+                checks["celery_broker"] = "ok"
+            else:
+                checks["celery_broker"] = "not configured"
         except Exception as exc:
-            checks["celery_broker"] = f"error: {exc}"
+            checks["celery_broker"] = f"unavailable: {exc}"
             # Don't fail health check for Celery — app still serves requests
             logger.warning("Health check Celery broker failed: %s", exc)
 

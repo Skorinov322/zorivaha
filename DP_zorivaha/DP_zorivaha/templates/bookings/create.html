@@ -11,7 +11,7 @@
     border-bottom: 1px solid rgba(255,142,60,.15);
   }
   .booking-hero h1 {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Cormorant Garamond', serif;
     font-size: 2rem; color: #0d0d0d;
   }
   .booking-hero p { color: rgba(13,13,13,.5); }
@@ -63,7 +63,7 @@
     box-shadow: 0 4px 20px rgba(255,142,60,.1);
   }
   .price-preview h3 {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Cormorant Garamond', serif;
     font-size: 1.1rem; color: #0d0d0d; margin-bottom: 1rem;
   }
   .price-row {
@@ -129,6 +129,45 @@
       {% for e in form.non_field_errors %}
         <div><i class="bi bi-exclamation-triangle me-2"></i>{{ e }}</div>
       {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if alternatives %}
+    <div style="background:rgba(255,193,7,.08);border:1px solid rgba(255,193,7,.25);
+                border-radius:12px;padding:1.25rem;margin-bottom:1.5rem">
+      <div style="font-weight:700;color:#856404;margin-bottom:.75rem">
+        <i class="bi bi-exclamation-triangle me-2"></i>Недостаточно номеров в выбранной категории
+      </div>
+      <p style="font-size:.875rem;color:rgba(13,13,13,.6);margin-bottom:.75rem">
+        Попробуйте выбрать другую категорию или уменьшить количество гостей.
+      </p>
+      {% if alternatives %}
+      <div style="font-size:.8rem;font-weight:600;color:rgba(13,13,13,.5);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.05em">
+        Доступные альтернативы:
+      </div>
+      <ul style="list-style:none;padding:0;margin:0">
+        {% for cat in alternatives %}
+        <li style="padding:.4rem 0;border-bottom:1px solid rgba(13,13,13,.07);font-size:.875rem">
+          <i class="bi bi-building me-2" style="color:#ff8e3c"></i>
+          <strong>{{ cat.name }}</strong>
+          {% if cat.base_price_per_night %}
+          — от {{ cat.base_price_per_night|floatformat:0 }} ₽/ночь
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+      {% if contact_phone %}
+      <div style="margin-top:.85rem;font-size:.875rem;color:rgba(13,13,13,.6)">
+        <i class="bi bi-telephone me-2" style="color:#ff8e3c"></i>
+        Свяжитесь с администрацией: <a href="tel:{{ contact_phone }}" style="color:#ff8e3c;font-weight:600">{{ contact_phone }}</a>
+      </div>
+      {% else %}
+      <div style="margin-top:.85rem;font-size:.875rem;color:rgba(13,13,13,.6)">
+        <i class="bi bi-telephone me-2" style="color:#ff8e3c"></i>
+        Свяжитесь с администрацией для подбора подходящего варианта.
+      </div>
+      {% endif %}
     </div>
     {% endif %}
 
@@ -212,13 +251,25 @@
           {{ form.check_out }}
           {% for e in form.check_out.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
         </div>
+      </div>
+    </div>
+
+    {# 3. Guests #}
+    <div class="booking-card mb-4">
+      <div class="section-title"><i class="bi bi-people"></i>Гости</div>
+      <div class="row g-3">
         <div class="col-sm-6">
-          <label class="form-label">Взрослых <span class="required-star">*</span></label>
+          <label class="form-label">Взрослые <span class="required-star">*</span></label>
           {{ form.adults }}
+          <div id="adultsMaxHint" style="font-size:.75rem;color:rgba(13,13,13,.4);margin-top:.3rem"></div>
+          {% for e in form.adults.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
         </div>
         <div class="col-sm-6">
-          <label class="form-label">Детей</label>
+          <label class="form-label">
+            Дети (от 1 года)
+          </label>
           {{ form.children }}
+          {% for e in form.children.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
         </div>
       </div>
     </div>
@@ -227,17 +278,142 @@
     <div class="booking-card">
       <div class="section-title"><i class="bi bi-three-dots"></i>Дополнительно</div>
       <div class="row g-3">
-        <div class="col-sm-6">
-          <label class="form-label">Организация</label>
-          {{ form.organization }}
-          <div style="font-size:.75rem;color:rgba(13,13,13,.4);margin-top:.3rem">{{ form.organization.help_text }}</div>
+        <div class="col-12">
+          <label class="form-label">Тип клиента</label>
+          <div style="display: flex; gap: 2rem; margin-top: 0.5rem;">
+            {% for choice in form.client_type %}
+              <div class="form-check">
+                {{ choice.tag }}
+                <label class="form-check-label" for="{{ choice.id_for_label }}">
+                  {{ choice.choice_label }}
+                </label>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+        
+        <!-- Organization selection (shown when organization is selected) -->
+        <div class="col-12" id="organizationSection" style="display: none;">
+          <div class="row g-3">
+            <div class="col-12">
+              <div class="form-check">
+                {{ form.create_new_organization }}
+                <label class="form-check-label" for="{{ form.create_new_organization.id_for_label }}">
+                  {{ form.create_new_organization.label }}
+                </label>
+              </div>
+            </div>
+            
+            <!-- Existing organization selection -->
+            <div class="col-12" id="existingOrgSection">
+              <label class="form-label">{{ form.organization.label }}</label>
+              {{ form.organization }}
+              <div style="font-size:.75rem;color:rgba(13,13,13,.4);margin-top:.3rem">{{ form.organization.help_text }}</div>
+              {% for error in form.organization.errors %}
+                <div class="invalid-feedback d-block">{{ error }}</div>
+              {% endfor %}
+            </div>
+            
+            <!-- New organization form -->
+            <div id="newOrgSection" style="display: none;">
+              <div class="row g-3">
+                <div class="col-12">
+                  <div style="background: rgba(255, 142, 60, 0.1); border: 1px solid rgba(255, 142, 60, 0.3); border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+                    <h6 style="color: #ff8e3c; margin: 0 0 0.5rem 0;">
+                      <i class="bi bi-info-circle me-2"></i>Создание новой организации
+                    </h6>
+                    <p style="font-size: 0.875rem; margin: 0; color: rgba(13, 13, 13, 0.7);">
+                      Заполните данные организации. После отправки заявки администратор проверит и подтвердит организацию.
+                    </p>
+                  </div>
+                </div>
+                
+                <div class="col-md-8">
+                  <label class="form-label">{{ form.new_org_name.label }} <span class="required-star">*</span></label>
+                  {{ form.new_org_name }}
+                  {% for error in form.new_org_name.errors %}
+                    <div class="invalid-feedback d-block">{{ error }}</div>
+                  {% endfor %}
+                </div>
+                
+                <div class="col-md-4">
+                  <label class="form-label">{{ form.new_org_inn.label }} <span class="required-star">*</span></label>
+                  {{ form.new_org_inn }}
+                  {% for error in form.new_org_inn.errors %}
+                    <div class="invalid-feedback d-block">{{ error }}</div>
+                  {% endfor %}
+                </div>
+                
+                <div class="col-md-6">
+                  <label class="form-label">{{ form.new_org_kpp.label }}</label>
+                  {{ form.new_org_kpp }}
+                  {% for error in form.new_org_kpp.errors %}
+                    <div class="invalid-feedback d-block">{{ error }}</div>
+                  {% endfor %}
+                </div>
+                
+                <div class="col-md-6">
+                  <label class="form-label">{{ form.new_org_contact_person.label }} <span class="required-star">*</span></label>
+                  {{ form.new_org_contact_person }}
+                  {% for error in form.new_org_contact_person.errors %}
+                    <div class="invalid-feedback d-block">{{ error }}</div>
+                  {% endfor %}
+                </div>
+                
+                <div class="col-12">
+                  <label class="form-label">{{ form.new_org_legal_address.label }} <span class="required-star">*</span></label>
+                  {{ form.new_org_legal_address }}
+                  {% for error in form.new_org_legal_address.errors %}
+                    <div class="invalid-feedback d-block">{{ error }}</div>
+                  {% endfor %}
+                </div>
+                
+                <div class="col-md-6">
+                  <label class="form-label">{{ form.new_org_phone.label }}</label>
+                  {{ form.new_org_phone }}
+                  {% for error in form.new_org_phone.errors %}
+                    <div class="invalid-feedback d-block">{{ error }}</div>
+                  {% endfor %}
+                </div>
+                
+                <div class="col-md-6">
+                  <label class="form-label">{{ form.new_org_email.label }}</label>
+                  {{ form.new_org_email }}
+                  {% for error in form.new_org_email.errors %}
+                    <div class="invalid-feedback d-block">{{ error }}</div>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="col-sm-6">
           <label class="form-label">Примерное время прибытия</label>
-          {{ form.arrival_time }}
+          <input type="time" name="{{ form.arrival_time.html_name }}"
+                 id="id_arrival_time"
+                 class="form-control"
+                 value="{{ form.arrival_time.value|default:'' }}" />
         </div>
+        <div class="col-12" id="earlyCheckinNotice" style="display:none">
+          <div style="font-size:.78rem;color:#856404;
+                      background:rgba(255,193,7,.12);border:1px solid rgba(255,193,7,.4);
+                      border-radius:8px;padding:.6rem .85rem;display:flex;align-items:center;gap:.5rem">
+            <i class="bi bi-sunrise" style="color:#e6a817;font-size:1rem"></i>
+            <span>Ранний заезд (до 12:00) — автоматически добавляется стоимость одних суток.</span>
+          </div>
+        </div>
+        <div class="col-12" id="normalCheckinNotice">
+          <div style="font-size:.78rem;color:rgba(13,13,13,.45);
+                      background:rgba(40,167,69,.06);border:1px solid rgba(40,167,69,.15);
+                      border-radius:8px;padding:.6rem .85rem">
+            <i class="bi bi-clock me-1" style="color:#28a745"></i>
+            Стандартное время заезда — с 12:00. Заезд до 12:00 считается ранним и добавляет стоимость одних суток.
+          </div>
+        </div>
+        <input type="hidden" name="early_check_in" id="id_early_check_in"
+               value="{% if form.early_check_in.value %}on{% endif %}" />
         <div class="col-12">
-          <label class="form-label">Особые пожелания</label>
+          <label class="form-label">Комментарий</label>
           {{ form.special_requests }}
         </div>
       </div>
@@ -255,6 +431,10 @@
         <span class="value" id="previewCategoryName">—</span>
       </div>
       <div class="price-row">
+        <span class="label">Гостей</span>
+        <span class="value" id="previewGuestsValue">—</span>
+      </div>
+      <div class="price-row">
         <span class="label">Даты</span>
         <span class="value" id="previewDatesValue">—</span>
       </div>
@@ -265,6 +445,10 @@
       <div class="price-row">
         <span class="label">Цена за ночь</span>
         <span class="value" id="previewPricePerNight">—</span>
+      </div>
+      <div class="price-row" id="earlyCheckinRow" style="display:none">
+        <span class="label">Ранний заезд</span>
+        <span class="value" id="previewEarlyCheckin" style="color:#ff8e3c">+ 1 сутки</span>
       </div>
       <div class="price-total">
         <span class="label">Итого</span>
@@ -294,50 +478,170 @@
 {% block extra_js %}
 <script src="{% static 'js/booking.js' %}"></script>
 <script>
-// Legacy support for room selection (only for staff)
 document.addEventListener('DOMContentLoaded', () => {
-  const catSelect = document.getElementById('id_room_category');
-  const roomSelect = document.getElementById('id_room');
-  
-  // Only enable room selection for staff users
-  {% if user.is_staff or user.is_admin %}
-  if (catSelect && roomSelect) {
-    catSelect.addEventListener('change', function() {
-      const catId = this.value;
-      if (!catId) { 
-        roomSelect.innerHTML = '<option value="">— Назначить автоматически —</option>'; 
-        return; 
-      }
-      
-      fetch(`/bookings/rooms-for-category/?category=${catId}`)
-        .then(r => r.json())
-        .then(data => {
+  const catSelect    = document.getElementById('id_room_category');
+  const roomSelect   = document.getElementById('id_room');
+  const adultsInput  = document.getElementById('id_adults');
+  const childrenInput = document.querySelector('input[name="children"]');
+
+  // Update guests preview
+  function updateGuestsPreview() {
+    const adults   = parseInt(adultsInput?.value || 1);
+    const children = parseInt(childrenInput?.value || 0);
+    const guestsEl = document.getElementById('previewGuestsValue');
+    if (guestsEl) {
+      let txt = `${adults} взр.`;
+      if (children > 0) txt += `, ${children} дет.`;
+      guestsEl.textContent = txt;
+    }
+    // Trigger price recalc
+    document.dispatchEvent(new CustomEvent('earlyCheckinChanged'));
+  }
+
+  if (adultsInput) {
+    adultsInput.addEventListener('change', updateGuestsPreview);
+    adultsInput.addEventListener('input',  updateGuestsPreview);
+    updateGuestsPreview();
+  }
+  if (childrenInput) {
+    childrenInput.addEventListener('change', updateGuestsPreview);
+    childrenInput.addEventListener('input',  updateGuestsPreview);
+  }
+
+  // Fetch max_guests when category changes
+  function onCategoryChange(catId) {
+    if (!catId) return;
+    fetch(`/bookings/rooms-for-category/?category=${catId}`)
+      .then(r => r.json())
+      .then(data => {
+        // Update category name in preview
+        const catNameEl = document.getElementById('previewCategoryName');
+        if (catNameEl && data.category_name) catNameEl.textContent = data.category_name;
+
+        // Staff: also populate room select
+        {% if user.is_staff or user.is_admin %}
+        if (roomSelect) {
           roomSelect.innerHTML = '<option value="">— Назначить автоматически —</option>';
           if (data.rooms) {
             data.rooms.forEach(r => {
               roomSelect.innerHTML += `<option value="${r.id}">${r.display_name}</option>`;
             });
           }
-        }).catch(() => {
-          roomSelect.innerHTML = '<option value="">— Ошибка загрузки —</option>';
-        });
-    });
+        }
+        {% endif %}
+      })
+      .catch(() => {
+        {% if user.is_staff or user.is_admin %}
+        if (roomSelect) roomSelect.innerHTML = '<option value="">— Ошибка загрузки —</option>';
+        {% endif %}
+      });
   }
-  {% endif %}
+
+  if (catSelect) {
+    catSelect.addEventListener('change', function() { onCategoryChange(this.value); });
+    // Init on load if category already selected
+    if (catSelect.value) onCategoryChange(catSelect.value);
+  }
 
   // Form submission loading state
   const form = document.getElementById('bookingForm');
   if (form) {
     form.addEventListener('submit', () => {
-      const btnText = document.getElementById('btnText');
+      const btnText    = document.getElementById('btnText');
       const btnLoading = document.getElementById('btnLoading');
-      const submitBtn = document.getElementById('submitBtn');
-      
-      if (btnText) btnText.style.display = 'none';
+      const submitBtn  = document.getElementById('submitBtn');
+      if (btnText)    btnText.style.display    = 'none';
       if (btnLoading) btnLoading.style.display = 'inline';
-      if (submitBtn) submitBtn.disabled = true;
+      if (submitBtn)  submitBtn.disabled       = true;
     });
   }
+
+  // Early check-in toggle (hidden input)
+  function updateEarlyCheckin(state) {
+    const input  = document.getElementById('id_early_check_in');
+    const row    = document.getElementById('earlyCheckinRow');
+    const notice = document.getElementById('earlyCheckinNotice');
+    const normal = document.getElementById('normalCheckinNotice');
+    if (input) input.value = state ? 'on' : '';
+    if (row)   row.style.display = state ? 'flex' : 'none';
+    if (notice) notice.style.display = state ? 'block' : 'none';
+    if (normal) normal.style.display = state ? 'none' : 'block';
+    // Notify BookingPriceCalculator to recalculate
+    document.dispatchEvent(new CustomEvent('earlyCheckinChanged'));
+  }
+
+  // Auto-set early check-in if arrival time < 12:00
+  function checkEarlyArrival(input) {
+    if (!input.value) {
+      updateEarlyCheckin(false);
+      return;
+    }
+    const [hours] = input.value.split(':').map(Number);
+    updateEarlyCheckin(hours < 12);
+  }
+
+  // Attach listener to arrival time input
+  const arrivalInput = document.getElementById('id_arrival_time');
+  if (arrivalInput) {
+    arrivalInput.addEventListener('change', function() { checkEarlyArrival(this); });
+    // Init on load if value already set (e.g. form re-render after error)
+    if (arrivalInput.value) checkEarlyArrival(arrivalInput);
+  }
+
+  // Init early check-in display on load
+  const earlyInput = document.getElementById('id_early_check_in');
+  if (earlyInput && !arrivalInput?.value) {
+    updateEarlyCheckin(earlyInput.value === 'on');
+  }
+
+  // Client type and organization management
+  function toggleOrganizationSection() {
+    const clientTypeRadios = document.querySelectorAll('input[name="client_type"]');
+    const organizationSection = document.getElementById('organizationSection');
+    
+    let selectedType = 'individual';
+    clientTypeRadios.forEach(radio => {
+      if (radio.checked) {
+        selectedType = radio.value;
+      }
+    });
+    
+    if (selectedType === 'organization') {
+      organizationSection.style.display = 'block';
+    } else {
+      organizationSection.style.display = 'none';
+    }
+  }
+
+  function toggleNewOrgSection() {
+    const createNewCheckbox = document.getElementById('id_create_new_organization');
+    const existingOrgSection = document.getElementById('existingOrgSection');
+    const newOrgSection = document.getElementById('newOrgSection');
+    
+    if (createNewCheckbox && createNewCheckbox.checked) {
+      existingOrgSection.style.display = 'none';
+      newOrgSection.style.display = 'block';
+    } else {
+      existingOrgSection.style.display = 'block';
+      newOrgSection.style.display = 'none';
+    }
+  }
+
+  // Attach listeners for client type
+  const clientTypeRadios = document.querySelectorAll('input[name="client_type"]');
+  clientTypeRadios.forEach(radio => {
+    radio.addEventListener('change', toggleOrganizationSection);
+  });
+
+  // Attach listener for create new organization checkbox
+  const createNewCheckbox = document.getElementById('id_create_new_organization');
+  if (createNewCheckbox) {
+    createNewCheckbox.addEventListener('change', toggleNewOrgSection);
+  }
+
+  // Initialize on page load
+  toggleOrganizationSection();
+  toggleNewOrgSection();
 });
 </script>
 {% endblock %}

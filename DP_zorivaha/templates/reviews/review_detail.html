@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ review.title }} — Отзывы — Зори Ваха{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <a href="{% url 'reviews:list' %}" class="btn btn-sm btn-outline-secondary mb-3">← Все отзывы</a>
+            
+            <div class="card">
+                <div class="card-body">
+                    <!-- Заголовок и общая оценка -->
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h2 class="card-title mb-2">{{ review.title }}</h2>
+                            <p class="text-muted mb-0">
+                                <strong>{{ review.guest_name }}</strong> • {{ review.created_at|date:"d F Y" }}
+                            </p>
+                        </div>
+                        <div class="text-center">
+                            <h3 class="mb-0">{{ review.overall_rating }}.0</h3>
+                            <div class="text-warning mb-1">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= review.overall_rating %}⭐{% endif %}
+                                {% endfor %}
+                            </div>
+                            <small class="text-muted">Общая оценка</small>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <!-- Детальные оценки -->
+                    <h5 class="mb-3">Детальные оценки</h5>
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-2">
+                            <div class="d-flex justify-content-between">
+                                <span>Чистота:</span>
+                                <span class="text-warning">{{ review.cleanliness_rating }}/5 ⭐</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <div class="d-flex justify-content-between">
+                                <span>Комфорт:</span>
+                                <span class="text-warning">{{ review.comfort_rating }}/5 ⭐</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <div class="d-flex justify-content-between">
+                                <span>Персонал:</span>
+                                <span class="text-warning">{{ review.staff_rating }}/5 ⭐</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <div class="d-flex justify-content-between">
+                                <span>Цена/качество:</span>
+                                <span class="text-warning">{{ review.value_rating }}/5 ⭐</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <div class="d-flex justify-content-between">
+                                <span>Расположение:</span>
+                                <span class="text-warning">{{ review.location_rating }}/5 ⭐</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <!-- Текст отзыва -->
+                    <h5 class="mb-3">Отзыв</h5>
+                    <p class="mb-4" style="white-space: pre-line;">{{ review.text }}</p>
+                    
+                    <!-- Достоинства и недостатки -->
+                    {% if review.pros or review.cons %}
+                    <div class="row mb-4">
+                        {% if review.pros %}
+                        <div class="col-md-6">
+                            <div class="alert alert-success">
+                                <h6 class="alert-heading">✓ Достоинства</h6>
+                                <p class="mb-0" style="white-space: pre-line;">{{ review.pros }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if review.cons %}
+                        <div class="col-md-6">
+                            <div class="alert alert-warning">
+                                <h6 class="alert-heading">✗ Недостатки</h6>
+                                <p class="mb-0" style="white-space: pre-line;">{{ review.cons }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Ответ администрации -->
+                    {% if review.has_response %}
+                    <hr>
+                    <div class="alert alert-light">
+                        <h5 class="alert-heading">Ответ администрации</h5>
+                        <p style="white-space: pre-line;">{{ review.response.text }}</p>
+                        <hr>
+                        <p class="mb-0 text-muted">
+                            <strong>{{ review.response.author_name }}</strong>
+                            {% if review.response.author_position %} — {{ review.response.author_position }}{% endif %}
+                            <br>
+                            <small>{{ review.response.created_at|date:"d F Y, H:i" }}</small>
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

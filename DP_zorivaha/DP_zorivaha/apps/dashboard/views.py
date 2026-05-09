@@ -6,7 +6,7 @@ import json
 from decimal import Decimal
 from django.contrib import messages
 from django.core.serializers.json import DjangoJSONEncoder
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views import View
 from django.views.generic import TemplateView, ListView
@@ -34,7 +34,7 @@ from .selectors import (
 # Main dashboard
 # ---------------------------------------------------------------------------
 
-class DashboardView(ManagerRequiredMixin, TemplateView):
+class DashboardView(ReceptionistRequiredMixin, TemplateView):
     template_name = "dashboard/index.html"
 
     def get_context_data(self, **kwargs):
@@ -67,7 +67,7 @@ class DashboardView(ManagerRequiredMixin, TemplateView):
                 ("Брони",       "/bookings/staff/",          "bi-calendar-check",  "#6ea8fe"),
                 ("Новая бронь", "/bookings/staff/create/",   "bi-plus-circle",     "#28a745"),
                 ("Номера",      "/rooms/manage/rooms/",      "bi-building",        "var(--gold)"),
-                ("CRM",         "/crm/",                     "bi-people",          "#20c997"),
+                ("Галерея",     "/dashboard/gallery/",       "bi-images",          "#d9376e"),
                 ("Отчёты",      "/reports/",                 "bi-bar-chart",       "#ffc107"),
                 ("Пользователи","/cabinet/users/",           "bi-person-gear",     "#adb5bd"),
             ],
@@ -79,7 +79,7 @@ class DashboardView(ManagerRequiredMixin, TemplateView):
 # Occupancy calendar
 # ---------------------------------------------------------------------------
 
-class OccupancyCalendarView(ManagerRequiredMixin, TemplateView):
+class OccupancyCalendarView(ReceptionistRequiredMixin, TemplateView):
     template_name = "dashboard/calendar.html"
 
     def get_context_data(self, **kwargs):
@@ -177,7 +177,7 @@ class StatisticsView(ManagerRequiredMixin, TemplateView):
 # Booking management
 # ---------------------------------------------------------------------------
 
-class BookingManagementView(ManagerRequiredMixin, ListView):
+class BookingManagementView(ReceptionistRequiredMixin, ListView):
     template_name       = "dashboard/bookings.html"
     context_object_name = "bookings"
     paginate_by         = 20
@@ -235,7 +235,7 @@ class CheckOutView(ReceptionistRequiredMixin, View):
 # Room management
 # ---------------------------------------------------------------------------
 
-class RoomManagementView(ManagerRequiredMixin, TemplateView):
+class RoomManagementView(ReceptionistRequiredMixin, TemplateView):
     template_name = "dashboard/rooms.html"
 
     def get_context_data(self, **kwargs):
@@ -331,3 +331,84 @@ class MetricsView(ManagerRequiredMixin, TemplateView):
             "funnel_colors":       json.dumps([s["color"] for s in funnel["steps"]], cls=DjangoJSONEncoder),
         })
         return ctx
+
+
+# ---------------------------------------------------------------------------
+# Gallery management
+# ---------------------------------------------------------------------------
+
+class GalleryManagementView(ReceptionistRequiredMixin, View):
+    """
+    Dashboard gallery management: list, upload, delete, reorder photos.
+    """
+    template_name = "dashboard/gallery.html"
+
+    def get(self, request):
+        from apps.content.models import HotelGallery
+        section_filter = request.GET.get("section", "")
+        qs = HotelGallery.objects.all()
+        if section_filter:
+            qs = qs.filter(section=section_filter)
+        return render(request, self.template_name, {
+            "photos":          qs.order_by("section", "sort_order"),
+            "section_choices": HotelGallery.GallerySection.choices,
+            "active_section":  section_filter,
+            "total_count":     HotelGallery.objects.count(),
+            "active_count":    HotelGallery.objects.filter(is_active=True).count(),
+        })
+
+    def post(self, request):
+        from apps.content.models import HotelGallery
+        action = request.POST.get("action")
+
+        if action == "upload":
+            images = request.FILES.getlist("images")
+            section = request.POST.get("section", "other")
+            title   = request.POST.get("title", "")
+            is_featured = request.POST.get("is_featured") == "on"
+            count = 0
+            for img in images:
+                HotelGallery.objects.create(
+                    image=img,
+                    section=section,
+                    title=title,
+                    alt_text=title,
+                    is_featured=is_featured,
+                    is_active=True,
+                )
+                count += 1
+            messages.success(request, f"Загружено фото: {count}.")
+
+        elif action == "delete":
+            pk = request.POST.get("pk")
+            photo = get_object_or_404(HotelGallery, pk=pk)
+            if photo.image:
+                import os
+                if os.path.isfile(photo.image.path):
+                    os.remove(photo.image.path)
+            photo.delete()
+            messages.success(request, "Фото удалено.")
+
+        elif action == "toggle_active":
+            pk = request.POST.get("pk")
+            photo = get_object_or_404(HotelGallery, pk=pk)
+            photo.is_active = not photo.is_active
+            photo.save(update_fields=["is_active", "updated_at"])
+
+        elif action == "toggle_featured":
+            pk = request.POST.get("pk")
+            photo = get_object_or_404(HotelGallery, pk=pk)
+            photo.is_featured = not photo.is_featured
+            photo.save(update_fields=["is_featured", "updated_at"])
+
+        elif action == "update":
+            pk      = request.POST.get("pk")
+            photo   = get_object_or_404(HotelGallery, pk=pk)
+            photo.title      = request.POST.get("title", photo.title)
+            photo.alt_text   = request.POST.get("alt_text", photo.alt_text)
+            photo.section    = request.POST.get("section", photo.section)
+            photo.sort_order = int(request.POST.get("sort_order", photo.sort_order) or 0)
+            photo.save(update_fields=["title", "alt_text", "section", "sort_order", "updated_at"])
+            messages.success(request, "Фото обновлено.")
+
+        return redirect(request.get_full_path())

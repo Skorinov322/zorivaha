@@ -12,9 +12,10 @@ from .base import *  # noqa
 
 DEBUG = True
 
-INSTALLED_APPS += ["debug_toolbar"]  # noqa
+# Temporarily disabled debug_toolbar
+# INSTALLED_APPS += ["debug_toolbar"]  # noqa
 
-MIDDLEWARE = ["debug_toolbar.middleware.DebugToolbarMiddleware"] + MIDDLEWARE  # noqa
+# MIDDLEWARE = ["debug_toolbar.middleware.DebugToolbarMiddleware"] + MIDDLEWARE  # noqa
 
 INTERNAL_IPS = ["127.0.0.1"]
 

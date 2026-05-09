@@ -15,6 +15,8 @@ Staff views:
   BookingCheckOutView     — выселить гостя
   BookingNoShowView       — отметить незаезд
   BookingCancelStaffView  — отменить бронь (staff)
+  BookingUndoCheckInView  — отменить заселение
+  BookingUndoCheckOutView — отменить выселение
   BookingCreateStaffView  — создать бронь вручную
 """
 
@@ -37,6 +39,7 @@ from .selectors import (
 )
 from .services import (
     create_booking,
+    create_booking_group,
     confirm_booking,
     cancel_booking,
     perform_check_in,
@@ -75,32 +78,94 @@ class BookingCreateView(LoginRequiredMixin, View):
             return render(request, self.template_name, {"form": form}, status=400)
 
         d = form.cleaned_data
+        
+        # Handle organization creation
+        organization = None
+        if d.get("client_type") == "organization":
+            if d.get("create_new_organization"):
+                # Create new organization (pending approval)
+                from apps.crm.models import Organization
+                organization = Organization.objects.create(
+                    name=d["new_org_name"],
+                    inn=d["new_org_inn"],
+                    kpp=d.get("new_org_kpp", ""),
+                    legal_address=d["new_org_legal_address"],
+                    phone=d.get("new_org_phone", ""),
+                    email=d.get("new_org_email", ""),
+                    contact_person=d["new_org_contact_person"],
+                    is_approved=False,  # Requires admin approval
+                    created_by_user=request.user,
+                )
+                messages.info(request, 
+                    _("Организация «{}» создана и отправлена на модерацию администратору.").format(organization.name)
+                )
+            else:
+                organization = d.get("organization")
+        
+        total_persons = d["adults"] + d.get("children", 0)
+        category = d["room_category"]
+        needs_group = total_persons > category.max_guests
+
         try:
-            booking = create_booking(
-                guest=request.user,
-                room_category=d["room_category"],
-                check_in=d["check_in"],
-                check_out=d["check_out"],
-                guest_first_name=d["guest_first_name"],
-                guest_last_name=d["guest_last_name"],
-                guest_patronymic=d.get("guest_patronymic", ""),
-                guest_phone=d["guest_phone"],
-                guest_email=d["guest_email"],
-                adults=d["adults"],
-                children=d["children"],
-                room=d.get("room"),
-                organization=d.get("organization"),
-                special_requests=d.get("special_requests", ""),
-                arrival_time=d.get("arrival_time"),
-                source="website",
-            )
+            if needs_group:
+                bookings = create_booking_group(
+                    guest=request.user,
+                    room_category=category,
+                    check_in=d["check_in"],
+                    check_out=d["check_out"],
+                    guest_first_name=d["guest_first_name"],
+                    guest_last_name=d["guest_last_name"],
+                    guest_patronymic=d.get("guest_patronymic", ""),
+                    guest_phone=d["guest_phone"],
+                    guest_email=d["guest_email"],
+                    adults=d["adults"],
+                    children=d.get("children", 0),
+                    early_check_in=d.get("early_check_in", False),
+                    organization=organization,
+                    special_requests=d.get("special_requests", ""),
+                    arrival_time=d.get("arrival_time"),
+                    source="website",
+                )
+            else:
+                booking = create_booking(
+                    guest=request.user,
+                    room_category=category,
+                    check_in=d["check_in"],
+                    check_out=d["check_out"],
+                    guest_first_name=d["guest_first_name"],
+                    guest_last_name=d["guest_last_name"],
+                    guest_patronymic=d.get("guest_patronymic", ""),
+                    guest_phone=d["guest_phone"],
+                    guest_email=d["guest_email"],
+                    adults=d["adults"],
+                    children=d.get("children", 0),
+                    occupancy_type=d.get("occupancy_type", "solo"),
+                    early_check_in=d.get("early_check_in", False),
+                    room=d.get("room"),
+                    organization=organization,
+                    special_requests=d.get("special_requests", ""),
+                    arrival_time=d.get("arrival_time"),
+                    source="website",
+                )
         except BookingUnavailableError as e:
             messages.error(request, str(e))
-            return render(request, self.template_name, {"form": form}, status=400)
+            return render(request, self.template_name, {
+                "form": form,
+                "alternatives": e.alternatives,
+                "contact_phone": e.contact_phone,
+            }, status=400)
 
-        logger.info("Booking created: %s by user %s", booking.confirmation_number, request.user.email)
-        messages.success(request, f"Бронь #{booking.confirmation_number} создана. Ожидайте подтверждения.")
-        return redirect("bookings:success", pk=booking.pk)
+        if needs_group:
+            logger.info(
+                "Group booking created: group_id=%s (%d rooms) by user %s",
+                bookings[0].group_id, len(bookings), request.user.email,
+            )
+            messages.success(request, f"Групповая бронь на {len(bookings)} номера создана. Ожидайте подтверждения.")
+            return redirect("bookings:group_success", group_id=str(bookings[0].group_id))
+        else:
+            logger.info("Booking created: %s by user %s", booking.confirmation_number, request.user.email)
+            messages.success(request, f"Бронь #{booking.confirmation_number} создана. Ожидайте подтверждения.")
+            return redirect("bookings:success", pk=booking.pk)
 
 
 class BookingDetailView(LoginRequiredMixin, DetailView):
@@ -121,6 +186,28 @@ class BookingSuccessView(LoginRequiredMixin, DetailView):
 
     def get_object(self, queryset=None):
         return get_booking_for_guest(self.kwargs["pk"], self.request.user)
+
+
+class BookingGroupSuccessView(LoginRequiredMixin, View):
+    """Страница успеха для групповой брони."""
+    template_name = "bookings/group_success.html"
+    login_url = "/auth/login/"
+
+    def get(self, request, group_id):
+        from django.http import Http404
+        bookings = Booking.objects.filter(
+            group_id=group_id, guest=request.user
+        ).select_related("room_category").order_by("created_at")
+
+        if not bookings.exists():
+            raise Http404
+
+        total_price = sum(b.total_price for b in bookings)
+        return render(request, self.template_name, {
+            "bookings": bookings,
+            "total_price": total_price,
+            "group_id": group_id,
+        })
 
 
 class BookingCancelView(LoginRequiredMixin, View):
@@ -261,7 +348,31 @@ class BookingCancelStaffView(ReceptionistRequiredMixin, View):
         return redirect("bookings:staff_list")
 
 
-class BookingCreateStaffView(ManagerRequiredMixin, View):
+class BookingUndoCheckInView(ReceptionistRequiredMixin, View):
+    """Отменить заселение: checked_in → confirmed."""
+    def post(self, request, pk):
+        from .services import undo_check_in
+        try:
+            booking = undo_check_in(pk, actor=request.user)
+            messages.success(request, f"Заселение отменено. Бронь #{booking.confirmation_number} возвращена в статус «Подтверждена».")
+        except (BookingStateError, ValueError) as e:
+            messages.error(request, str(e))
+        return redirect("bookings:staff_detail", pk=pk)
+
+
+class BookingUndoCheckOutView(ReceptionistRequiredMixin, View):
+    """Отменить выселение: checked_out → checked_in."""
+    def post(self, request, pk):
+        from .services import undo_check_out
+        try:
+            booking = undo_check_out(pk, actor=request.user)
+            messages.success(request, f"Выселение отменено. Гость возвращён в номер.")
+        except (BookingStateError, ValueError) as e:
+            messages.error(request, str(e))
+        return redirect("bookings:staff_detail", pk=pk)
+
+
+class BookingCreateStaffView(ReceptionistRequiredMixin, View):
     """Staff: manually create a booking for any guest."""
     template_name = "bookings/staff/create.html"
 
@@ -277,6 +388,16 @@ class BookingCreateStaffView(ManagerRequiredMixin, View):
         # Staff bookings are linked to the currently logged-in user as guest
         # unless a guest lookup is implemented — use request.user as fallback
         try:
+            # Calculate discount from percent if apply_discount is checked
+            from decimal import Decimal
+            discount_amount = d.get("discount_amount") or Decimal("0")
+            discount_reason = d.get("discount_reason", "")
+            if d.get("apply_discount") and d.get("discount_percent"):
+                # We'll calculate the actual amount after price calculation in create_booking
+                # Pass percent as a special marker via discount_reason for now,
+                # actual calculation happens in service
+                discount_reason = discount_reason or "Скидка администратора"
+
             booking = create_booking(
                 guest=request.user,
                 room_category=d["room_category"],
@@ -288,15 +409,18 @@ class BookingCreateStaffView(ManagerRequiredMixin, View):
                 guest_phone=d["guest_phone"],
                 guest_email=d["guest_email"],
                 adults=d["adults"],
-                children=d["children"],
+                children=d.get("children", 0),
+                occupancy_type=d.get("occupancy_type", "solo"),
                 room=d.get("room"),
                 organization=d.get("organization"),
                 special_requests=d.get("special_requests", ""),
                 arrival_time=d.get("arrival_time"),
+                early_check_in=d.get("early_check_in", False),
                 source=d.get("source", "walk_in"),
                 internal_notes=d.get("internal_notes", ""),
-                discount_amount=d.get("discount_amount") or 0,
-                discount_reason=d.get("discount_reason", ""),
+                discount_amount=discount_amount,
+                discount_reason=discount_reason,
+                discount_percent=d.get("discount_percent") if d.get("apply_discount") else None,
                 created_by=request.user,
             )
             messages.success(request, f"Бронь #{booking.confirmation_number} создана.")
