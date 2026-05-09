@@ -78,10 +78,23 @@ if DATABASE_URL:
                 "PORT": port,
                 "CONN_MAX_AGE": 60,
                 "CONN_HEALTH_CHECKS": True,
+                "OPTIONS": {
+                    "connect_timeout": 10,
+                },
+            }
+        }
+    else:
+        # Fallback к SQLite если URL неправильный
+        print("WARNING: DATABASE_URL format invalid, using SQLite")
+        DATABASES = {
+            "default": {
+                "ENGINE": "django.db.backends.sqlite3",
+                "NAME": BASE_DIR / "db.sqlite3",  # noqa: F405
             }
         }
 else:
-    # Fallback к SQLite
+    # Fallback к SQLite если DATABASE_URL не установлен
+    print("WARNING: DATABASE_URL not set, using SQLite")
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
