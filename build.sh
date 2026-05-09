@@ -6,6 +6,12 @@ echo "Installing dependencies..."
 pip install --upgrade pip
 pip install -r requirements.txt
 
+echo "Running database migrations..."
+python manage.py migrate --no-input
+
+echo "Creating cache table..."
+python manage.py createcachetable || echo "Cache table already exists or not needed"
+
 echo "Collecting static files..."
 python manage.py collectstatic --no-input
 
