@@ -79,28 +79,40 @@ else:
     })
 
 # ---------------------------------------------------------------------------
-# Cache — Redis with connection pool
+# Cache — Redis with connection pool (опционально)
 # ---------------------------------------------------------------------------
 
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": config("REDIS_URL", default="redis://redis:6379/2"),
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "SOCKET_CONNECT_TIMEOUT": 5,
-            "SOCKET_TIMEOUT": 5,
-            "RETRY_ON_TIMEOUT": True,
-            "MAX_CONNECTIONS": 100,
-            "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",
-        },
-        "KEY_PREFIX": "zv_prod",
-        "TIMEOUT": 300,
-    }
-}
+REDIS_URL = config("REDIS_URL", default=None)
 
-SESSION_ENGINE      = "django.contrib.sessions.backends.cache"
-SESSION_CACHE_ALIAS = "default"
+if REDIS_URL:
+    # Если Redis доступен, используем его для кеша и сессий
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": REDIS_URL,
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                "SOCKET_CONNECT_TIMEOUT": 5,
+                "SOCKET_TIMEOUT": 5,
+                "RETRY_ON_TIMEOUT": True,
+                "MAX_CONNECTIONS": 100,
+                "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",
+            },
+            "KEY_PREFIX": "zv_prod",
+            "TIMEOUT": 300,
+        }
+    }
+    SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+    SESSION_CACHE_ALIAS = "default"
+else:
+    # Fallback: используем database cache и database sessions
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+            "LOCATION": "django_cache_table",
+        }
+    }
+    SESSION_ENGINE = "django.contrib.sessions.backends.db"
 
 # ---------------------------------------------------------------------------
 # Email
