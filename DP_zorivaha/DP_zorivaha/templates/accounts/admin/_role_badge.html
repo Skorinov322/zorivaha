@@ -1,0 +1,28 @@
+{% comment %}Role badge partial. Usage: {% include "..." with role=u.role label=u.get_role_display %}{% endcomment %}
+{% if role == "super_admin" %}
+  <span style="background:rgba(255,142,60,.12);color:#ff8e3c;border:1px solid rgba(255,142,60,.3);
+               border-radius:6px;padding:.2rem .6rem;font-size:.75rem;font-weight:600">
+    <i class="bi bi-shield-fill-check me-1"></i>{{ label }}
+  </span>
+{% elif role == "admin" %}
+  <span style="background:rgba(13,110,253,.1);color:#3d8bfd;border:1px solid rgba(13,110,253,.25);
+               border-radius:6px;padding:.2rem .6rem;font-size:.75rem">
+    <i class="bi bi-shield me-1"></i>{{ label }}
+  </span>
+{% elif role == "manager" %}
+  <span style="background:rgba(32,201,151,.1);color:#0ca678;border:1px solid rgba(32,201,151,.25);
+               border-radius:6px;padding:.2rem .6rem;font-size:.75rem">
+    <i class="bi bi-person-gear me-1"></i>{{ label }}
+  </span>
+{% elif role == "receptionist" %}
+  <span style="background:rgba(255,193,7,.1);color:#d4a017;border:1px solid rgba(255,193,7,.25);
+               border-radius:6px;padding:.2rem .6rem;font-size:.75rem">
+    <i class="bi bi-person-badge me-1"></i>{{ label }}
+  </span>
+{% else %}
+  <span style="background:rgba(13,13,13,.06);color:rgba(13,13,13,.5);
+               border:1px solid rgba(13,13,13,.1);
+               border-radius:6px;padding:.2rem .6rem;font-size:.75rem">
+    <i class="bi bi-person me-1"></i>{{ label }}
+  </span>
+{% endif %}

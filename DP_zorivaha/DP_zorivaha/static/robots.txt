@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+Allow: /rooms/
+Allow: /about/
+Allow: /contacts/
+
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /crm/
+Disallow: /reports/
+Disallow: /cabinet/
+Disallow: /auth/
+Disallow: /setup/
+Disallow: /bookings/staff/
+Disallow: /notifications/
+
+Sitemap: https://yourdomain.ru/sitemap.xml

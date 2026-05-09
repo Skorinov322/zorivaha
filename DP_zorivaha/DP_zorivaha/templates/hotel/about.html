@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}О гостинице{% endblock %}
+
+{% block extra_css %}
+<style>
+  body { background: #eff0f3; }
+  .page-hero {
+    background: linear-gradient(135deg, #eff0f3, #ffffff);
+    padding: 4rem 0 3rem;
+    border-bottom: 1px solid rgba(201,168,76,.1);
+  }
+  .page-hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 5vw, 3rem); color: #0d0d0d;
+  }
+  .content-section { padding: 4rem 0; }
+  .content-card {
+    background: #ffffff; border: 1px solid rgba(13,13,13,.08);
+    border-radius: 20px; padding: 2rem;
+  }
+  .content-card h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem; color: #0d0d0d; margin-bottom: 1rem;
+  }
+  .content-card p { color: rgba(13,13,13,.62); line-height: 1.8; font-size: .95rem; }
+  .stat-item { text-align: center; padding: 1.5rem; }
+  .stat-item .num {
+    font-size: 2.5rem; font-weight: 800; color: #ff8e3c; line-height: 1;
+  }
+  .stat-item .lbl { color: rgba(13,13,13,.52); font-size: .85rem; margin-top: .35rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-hero">
+  <div class="container">
+    <nav style="font-size:.8rem;color:rgba(13,13,13,.45);margin-bottom:.75rem">
+      <a href="{% url 'hotel:index' %}" style="color:rgba(13,13,13,.45);text-decoration:none">Главная</a>
+      <span class="mx-2">/</span>
+      <span style="color:rgba(13,13,13,.72)">О гостинице</span>
+    </nav>
+    <h1>О гостинице «Зори Ваха»</h1>
+    <p style="color:rgba(13,13,13,.55);max-width:560px;margin-top:.75rem">
+      Все для вас в «Зори Ваха» 
+    </p>
+  </div>
+</div>
+
+<div class="content-section">
+  <div class="container">
+    <div class="row g-4 mb-5">
+      {% for num, lbl in stats %}
+      <div class="col-6 col-md-3">
+        <div class="content-card stat-item">
+          <div class="num">{{ num }}</div>
+          <div class="lbl">{{ lbl }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="row g-4">
+      <div class="col-lg-7">
+        <div class="content-card">
+          <h2>История и миссия</h2>
+          <p>
+            Гостиница «Зори Ваха» расположенная по адресу:
+            Школьная улица, 12, пгт Излучинск, Нижневартовский район, Ханты-Мансийский автономный округ — Югра. Наша миссия — предоставить каждому гостю незабываемый опыт пребывания,
+            сочетая традиционное гостеприимство с стандартами сервиса.
+          </p>
+          <p>
+            Этимология: «Вах» часто ассоциируется с нефтегазовыми месторождениями (река Вах) или является частью фамилии. Если гостиница находится в регионах Западной Сибири или Югры, её история, скорее всего, связана с обслуживанием вахтового персонала или туристов, прибывающих в нефтяные районы.
+          </p>
+          <p>
+            Миссия: Если это современная гостиница в удалённом регионе, её миссия, вероятно, заключается в обеспечении комфортного и безопасного временного проживания для командированных специалистов и путешественников, а также в предоставлении базовых услуг питания и отдыха.
+          </p>
+        </div>
+      </div>
+      <div class="col-lg-5">
+        <div class="content-card">
+          <h2>Наши услуги</h2>
+          {% for icon, service in services %}
+          <div style="display:flex;align-items:center;gap:.75rem;padding:.6rem 0;
+                      border-bottom:1px solid rgba(13,13,13,.08)">
+            <i class="{{ icon }}" style="color:#ff8e3c;font-size:1.1rem;flex-shrink:0;width:20px"></i>
+            <span style="color:rgba(13,13,13,.65);font-size:.9rem">{{ service }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

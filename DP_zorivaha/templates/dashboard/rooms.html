@@ -1,0 +1,72 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}Номера{% endblock %}
+{% block dashboard_title %}Номера{% endblock %}
+{% block dashboard_subtitle %}Статус физических номеров{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="d-flex justify-content-end mb-4">
+  {% if perms_ctx.can_manage_rooms %}
+  <a href="{% url 'hotel:staff_room_create' %}"
+     style="background:linear-gradient(135deg,#ff8e3c,#d9376e);border:none;border-radius:10px;
+            color:#0d0d0d;padding:.65rem 1.25rem;font-size:.875rem;font-weight:700;
+            text-decoration:none;display:inline-flex;align-items:center;gap:.5rem">
+    <i class="bi bi-plus-lg"></i>Добавить номер
+  </a>
+  {% endif %}
+</div>
+
+<div class="dash-card">
+  <div class="dash-table-wrap">
+    <table class="dash-table">
+      <thead>
+        <tr>
+          <th>Номер</th><th>Категория</th><th>Этаж</th><th>Статус</th><th>Особенности</th>
+          {% if perms_ctx.can_manage_rooms %}<th></th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for room in rooms %}
+        <tr>
+          <td style="color:#ff8e3c;font-weight:700;font-size:1rem">
+            {{ room.number }}{% if room.subdivision %}<span style="color:rgba(13,13,13,.45);font-size:.8rem;font-weight:500"> / {{ room.subdivision }}</span>{% endif %}
+          </td>
+          <td class="guest-name">{{ room.category.name }}</td>
+          <td class="text-muted-sm">{{ room.floor }} эт.</td>
+          <td>
+            {% if room.status == "available" %}
+              <span style="color:#28a745;font-size:.8rem"><i class="bi bi-circle-fill me-1" style="font-size:.45rem"></i>Свободен</span>
+            {% elif room.status == "occupied" %}
+              <span style="color:#6ea8fe;font-size:.8rem"><i class="bi bi-circle-fill me-1" style="font-size:.45rem"></i>Занят</span>
+            {% elif room.status == "cleaning" %}
+              <span style="color:#ffc107;font-size:.8rem"><i class="bi bi-circle-fill me-1" style="font-size:.45rem"></i>Уборка</span>
+            {% elif room.status == "maintenance" %}
+              <span style="color:#dc3545;font-size:.8rem"><i class="bi bi-circle-fill me-1" style="font-size:.45rem"></i>Обслуживание</span>
+            {% else %}
+              <span class="text-muted-sm">{{ room.get_status_display }}</span>
+            {% endif %}
+          </td>
+          <td class="text-muted-sm">
+            {% if room.has_balcony %}<span class="me-2"><i class="bi bi-door-open me-1"></i>Балкон</span>{% endif %}
+            {% if room.has_mountain_view %}<span class="me-2"><i class="bi bi-triangle me-1"></i>Горы</span>{% endif %}
+          </td>
+          {% if perms_ctx.can_manage_rooms %}
+          <td>
+            <a href="{% url 'hotel:staff_room_edit' room.pk %}" class="dash-row-link">
+              <i class="bi bi-pencil"></i>
+            </a>
+          </td>
+          {% endif %}
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="dash-empty"><i class="bi bi-building"></i>Номера не найдены</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}
