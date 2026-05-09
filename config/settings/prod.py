@@ -59,11 +59,12 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 # Database — production pool settings
 # ---------------------------------------------------------------------------
 
-# Парсим DATABASE_URL вручную (без dj-database-url)
+# Используем SQLite для простоты деплоя
+# PostgreSQL можно подключить позже через DATABASE_URL
 DATABASE_URL = config("DATABASE_URL", default=None)
 
-if DATABASE_URL:
-    # Парсим URL вручную: postgresql://user:password@host:port/dbname
+if DATABASE_URL and DATABASE_URL.startswith("postgres"):
+    # Если есть PostgreSQL - используем его
     import re
     match = re.match(r'postgres(?:ql)?://([^:]+):([^@]+)@([^:]+):(\d+)/(.+)', DATABASE_URL)
     if match:
@@ -83,6 +84,7 @@ if DATABASE_URL:
                 },
             }
         }
+        print("INFO: Using PostgreSQL database")
     else:
         # Fallback к SQLite если URL неправильный
         print("WARNING: DATABASE_URL format invalid, using SQLite")
@@ -93,8 +95,8 @@ if DATABASE_URL:
             }
         }
 else:
-    # Fallback к SQLite если DATABASE_URL не установлен
-    print("WARNING: DATABASE_URL not set, using SQLite")
+    # По умолчанию используем SQLite
+    print("INFO: Using SQLite database (set DATABASE_URL for PostgreSQL)")
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
