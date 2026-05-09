@@ -6,7 +6,6 @@ Views для работы с отзывами.
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q, Avg
 from django.shortcuts import render, redirect, get_object_or_404
@@ -15,7 +14,7 @@ from django.utils.translation import gettext_lazy as _
 from django.views.generic import ListView, DetailView, CreateView, UpdateView
 
 from apps.bookings.models import Booking, BookingStatus
-from apps.core.mixins import StaffRequiredMixin
+from apps.core.mixins import LoginRequiredMixin, StaffRequiredMixin
 from .models import Review, ReviewResponse, ReviewStatus
 from .forms import ReviewForm, ReviewModerationForm, ReviewResponseForm
 
