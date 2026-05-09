@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Уютная гостиница в Излучинске" />
+  <meta name="theme-color" content="#eff0f3" />
+  <title>Зори Ваха — Зори Ваха</title>
+
+  <!-- Favicon -->
+  
+  <link rel="icon" type="image/png" href="../img/logoZV.png">
+  <link rel="shortcut icon" href="../img/logoZV.png">
+
+  <!-- Preconnect -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+  <!-- Google Fonts: Cormorant Garamond + DM Sans -->
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap"
+        rel="stylesheet" />
+
+  <!-- Prevent font jump: lock layout font until webfont loads -->
+  <style>
+    html { font-family: 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    body { font-family: 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  </style>
+
+  <!-- Bootstrap 5 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
+  <!-- Custom CSS -->
+  
+  <link rel="stylesheet" href="../css/grand-soleil.css?v=202605041200" />
+  <link rel="stylesheet" href="../css/main.css?v=202604271812345" />
+  <link rel="stylesheet" href="../css/hotel.css?v=202604271812345" />
+
+  
+</head>
+<body style="padding-top: 72px;">{# Отступ для fixed navbar #}
+
+  {% include "partials/_navbar.html" %}
+
+  <!-- Django messages -->
+  {% if messages %}
+  <div style="position:fixed;top:80px;right:1rem;z-index:99999;max-width:380px;width:100%">
+    <!-- Динамический контент (for loop) -->
+    <div class="alert alert- alert-dismissible fade show shadow"
+         role="alert" style="border-radius:12px;font-size:.875rem;background:#fff;border:1px solid rgba(13,13,13,.1);color:#0d0d0d">
+      
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <!-- /for -->
+  </div>
+  {% endif %}
+
+  <main>
+    
+
+{# ══ PAGE HERO ══ #}
+<section class="page-hero" aria-label="Заголовок страницы">
+  <div class="container">
+    <nav class="breadcrumb-lux" aria-label="Навигация">
+      <a href="index.html"><i class="bi bi-house" aria-hidden="true"></i> Главная</a>
+      <span class="sep" aria-hidden="true">/</span>
+      <span class="current">Галерея</span>
+    </nav>
+    <div class="eyebrow mb-3">Фотогалерея</div>
+    <h1 class="page-hero-title">Галерея <em>гостиницы</em></h1>
+    <p style="font-size:1rem;color:rgba(13,13,13,.55);margin-bottom:0">
+      Откройте для себя атмосферу нашей гостиницы
+    </p>
+  </div>
+</section>
+
+{# ══ GALLERY ══ #}
+<section class="gallery-section">
+  <div class="container">
+
+    {# Filter tabs #}
+    <div class="section-tabs reveal">
+      <a href="pages/gallery.html" class="section-tab {% if not active_section %}active{% endif %}">Все</a>
+      <a href="pages/gallery.html?section=exterior" class="section-tab {% if active_section == 'exterior' %}active{% endif %}">Экстерьер</a>
+      <a href="pages/gallery.html?section=lobby" class="section-tab {% if active_section == 'lobby' %}active{% endif %}">Лобби</a>
+      <a href="pages/gallery.html?section=other" class="section-tab {% if active_section == 'other' %}active{% endif %}">Другое</a>
+    </div>
+
+    {# Grid #}
+    {% if all_photos %}
+    <div class="gallery-grid" id="galleryGrid">
+      <!-- Динамический контент (for loop) -->
+      <div class="gallery-item reveal"
+           onclick="openLightbox()"
+           data-src=""
+           data-caption="">
+        <img src=""
+             alt=""
+             loading="lazy" />
+        <div class="overlay">
+          {% if photo.title %}<span></span>{% endif %}
+        </div>
+      </div>
+      <!-- /for -->
+    </div>
+    {% else %}
+    <div style="text-align:center;padding:5rem 0;color:rgba(13,13,13,.35)">
+      <i class="bi bi-images" style="font-size:3rem;display:block;margin-bottom:1rem;opacity:.4"></i>
+      <p style="font-size:.95rem;margin:0">Фотографии скоро появятся</p>
+    </div>
+    {% endif %}
+
+  </div>
+</section>
+
+{# Lightbox #}
+<div id="lightbox" role="dialog" aria-modal="true" aria-label="Просмотр фото">
+  <button id="lightbox-close" onclick="closeLightbox()" aria-label="Закрыть"><i class="bi bi-x-lg"></i></button>
+  <button id="lightbox-prev" onclick="shiftLightbox(-1)" aria-label="Предыдущее"><i class="bi bi-chevron-left"></i></button>
+  <img id="lightbox-img" src="" alt="" />
+  <p id="lightbox-caption"></p>
+  <button id="lightbox-next" onclick="shiftLightbox(1)" aria-label="Следующее"><i class="bi bi-chevron-right"></i></button>
+</div>
+
+
+  </main>
+
+  
+  {% include "partials/_footer.html" %}
+  
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <script src="../js/main.js"></script>
+
+  <!-- Intersection Observer for reveal animations -->
+  <script>
+    const observer = new IntersectionObserver(
+      entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }),
+      { threshold: 0.12 }
+    );
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  </script>
+
+  
+</body>
+</html>

@@ -1,0 +1,13 @@
+-r base.txt
+
+# Error tracking
+sentry-sdk[django,celery,redis]==1.45.0
+
+# Redis cache backend
+django-redis==5.4.0
+
+# Gunicorn WSGI server
+gunicorn==22.0.0
+
+# Process management
+supervisor==4.2.5

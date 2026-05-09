@@ -1,0 +1,39 @@
+[Unit]
+Description=Зори Ваха — Celery Beat Scheduler
+Documentation=https://docs.celeryq.dev
+After=network.target mysql.service redis.service
+Requires=mysql.service redis.service
+# Beat must start after worker
+After=zorivaha-celery-worker.service
+
+[Service]
+Type=simple
+User=zorivaha
+Group=zorivaha
+WorkingDirectory=/var/www/zorivaha
+
+EnvironmentFile=/var/www/zorivaha/.env
+Environment="DJANGO_SETTINGS_MODULE=config.settings.prod"
+
+ExecStart=/var/www/zorivaha/venv/bin/celery \
+    -A config beat \
+    --loglevel=info \
+    --scheduler django_celery_beat.schedulers:DatabaseScheduler \
+    --logfile=/var/log/zorivaha/celery-beat.log \
+    --pidfile=/run/zorivaha/celery-beat.pid
+
+Restart=on-failure
+RestartSec=10s
+
+NoNewPrivileges=true
+PrivateTmp=true
+RuntimeDirectory=zorivaha
+RuntimeDirectoryMode=0755
+ReadWritePaths=/var/www/zorivaha /var/log/zorivaha /run/zorivaha
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=zorivaha-celery-beat
+
+[Install]
+WantedBy=multi-user.target

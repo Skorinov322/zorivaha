@@ -1,0 +1,82 @@
+{% comment %}
+Reusable booking info table partial.
+Usage: {% include "notifications/email/_booking_info_table.html" with booking=booking %}
+{% endcomment %}
+<table role="presentation" class="info-table" width="100%" cellpadding="0" cellspacing="0" border="0"
+       style="background:#faf8f3;border:1px solid #ede8dc;border-radius:10px;
+              border-left:4px solid #c9a84c;overflow:hidden;margin:20px 0;">
+  {% if booking.room_category %}
+  <tr>
+    <td class="info-label-td"
+        style="padding:10px 16px;font-size:13px;color:#888;
+               border-bottom:1px solid #ede8dc;width:45%;">
+      Категория номера
+    </td>
+    <td class="info-value-td"
+        style="padding:10px 16px;font-size:13px;color:#222;font-weight:600;
+               border-bottom:1px solid #ede8dc;">
+      {{ booking.room_category.name }}
+    </td>
+  </tr>
+  {% endif %}
+  {% if booking.room %}
+  <tr>
+    <td style="padding:10px 16px;font-size:13px;color:#888;border-bottom:1px solid #ede8dc;">
+      Номер комнаты
+    </td>
+    <td style="padding:10px 16px;font-size:13px;color:#222;font-weight:600;border-bottom:1px solid #ede8dc;">
+      {{ booking.room.number }}
+    </td>
+  </tr>
+  {% endif %}
+  <tr>
+    <td style="padding:10px 16px;font-size:13px;color:#888;border-bottom:1px solid #ede8dc;">
+      Дата заезда
+    </td>
+    <td style="padding:10px 16px;font-size:13px;color:#222;font-weight:600;border-bottom:1px solid #ede8dc;">
+      {{ booking.check_in|date:"d F Y" }} ({{ booking.check_in|date:"l" }})
+    </td>
+  </tr>
+  <tr>
+    <td style="padding:10px 16px;font-size:13px;color:#888;border-bottom:1px solid #ede8dc;">
+      Дата выезда
+    </td>
+    <td style="padding:10px 16px;font-size:13px;color:#222;font-weight:600;border-bottom:1px solid #ede8dc;">
+      {{ booking.check_out|date:"d F Y" }} ({{ booking.check_out|date:"l" }})
+    </td>
+  </tr>
+  <tr>
+    <td style="padding:10px 16px;font-size:13px;color:#888;border-bottom:1px solid #ede8dc;">
+      Количество ночей
+    </td>
+    <td style="padding:10px 16px;font-size:13px;color:#222;font-weight:600;border-bottom:1px solid #ede8dc;">
+      {{ booking.nights }}
+    </td>
+  </tr>
+  <tr>
+    <td style="padding:10px 16px;font-size:13px;color:#888;border-bottom:1px solid #ede8dc;">
+      Гостей
+    </td>
+    <td style="padding:10px 16px;font-size:13px;color:#222;font-weight:600;border-bottom:1px solid #ede8dc;">
+      {{ booking.adults }} взр.{% if booking.children %}, {{ booking.children }} дет.{% endif %}
+    </td>
+  </tr>
+  {% if booking.arrival_time %}
+  <tr>
+    <td style="padding:10px 16px;font-size:13px;color:#888;border-bottom:1px solid #ede8dc;">
+      Время прибытия
+    </td>
+    <td style="padding:10px 16px;font-size:13px;color:#222;font-weight:600;border-bottom:1px solid #ede8dc;">
+      {{ booking.arrival_time|time:"H:i" }}
+    </td>
+  </tr>
+  {% endif %}
+  <tr>
+    <td style="padding:10px 16px;font-size:13px;color:#888;">
+      Итого к оплате
+    </td>
+    <td style="padding:10px 16px;font-size:15px;color:#c9a84c;font-weight:700;">
+      {{ booking.final_price|floatformat:0 }} ₽
+    </td>
+  </tr>
+</table>

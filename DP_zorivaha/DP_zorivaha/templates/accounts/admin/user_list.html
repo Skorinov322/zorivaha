@@ -1,0 +1,94 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}Пользователи{% endblock %}
+{% block dashboard_title %}Пользователи{% endblock %}
+{% block dashboard_subtitle %}Управление учётными записями{% endblock %}
+
+{% block dashboard_content %}
+
+{# ---- Filters ---- #}
+<form method="get" class="d-flex gap-2 flex-wrap mb-4">
+  <input type="text" name="q" value="{{ search_query }}"
+         placeholder="Поиск по email или имени…"
+         class="form-control"
+         style="max-width:260px;font-size:.875rem" />
+
+  <select name="role" class="form-select" style="max-width:180px;font-size:.875rem"
+          onchange="this.form.submit()">
+    <option value="">Все роли</option>
+    {% for value, label in role_choices %}
+    <option value="{{ value }}" {% if role_filter == value %}selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+  </select>
+
+  <button type="submit" class="btn btn-sm"
+          style="background:rgba(255,142,60,.12);color:#ff8e3c;border:1px solid rgba(255,142,60,.25);border-radius:8px">
+    <i class="bi bi-search me-1"></i>Найти
+  </button>
+  {% if search_query or role_filter %}
+  <a href="{% url 'accounts:user_list' %}"
+     style="color:rgba(13,13,13,.4);font-size:.875rem;display:flex;align-items:center;text-decoration:none">
+    Сбросить
+  </a>
+  {% endif %}
+</form>
+
+{# ---- Table ---- #}
+<div class="dash-card">
+  <div class="dash-table-wrap">
+    <table class="dash-table">
+      <thead>
+        <tr>
+          <th>Пользователь</th>
+          <th>Email</th>
+          <th>Роль</th>
+          <th>Статус</th>
+          <th>Регистрация</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td>
+            <div style="display:flex;align-items:center;gap:.65rem">
+              <div style="width:34px;height:34px;border-radius:50%;flex-shrink:0;
+                          background:linear-gradient(135deg,#ff8e3c,#d9376e);
+                          display:flex;align-items:center;justify-content:center;
+                          font-size:.75rem;font-weight:700;color:#0d0d0d;overflow:hidden">
+                {% if u.avatar %}
+                  <img src="{{ u.avatar.url }}" style="width:100%;height:100%;object-fit:cover" />
+                {% else %}
+                  {{ u.get_initials }}
+                {% endif %}
+              </div>
+              <span class="guest-name">{{ u.get_full_name|default:"—" }}</span>
+            </div>
+          </td>
+          <td class="text-muted-sm">{{ u.email }}</td>
+          <td>{% include "accounts/admin/_role_badge.html" with role=u.role label=u.get_role_display %}</td>
+          <td>
+            {% if u.is_active %}
+              <span style="color:#28a745;font-size:.8rem"><i class="bi bi-circle-fill me-1" style="font-size:.45rem"></i>Активен</span>
+            {% else %}
+              <span style="color:#dc3545;font-size:.8rem"><i class="bi bi-circle-fill me-1" style="font-size:.45rem"></i>Отключён</span>
+            {% endif %}
+          </td>
+          <td class="text-muted-sm">{{ u.created_at|date:"d.m.Y" }}</td>
+          <td>
+            <a href="{% url 'accounts:user_detail' u.pk %}" class="dash-row-link">
+              Открыть <i class="bi bi-chevron-right"></i>
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="dash-empty"><i class="bi bi-people"></i>Пользователи не найдены</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

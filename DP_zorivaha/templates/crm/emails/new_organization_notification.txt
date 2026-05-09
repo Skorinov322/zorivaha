@@ -1,0 +1,18 @@
+Новая организация требует подтверждения
+
+Пользователь {{ user.get_full_name }} ({{ user.email }}) создал новую организацию, которая требует подтверждения администратором.
+
+Данные организации:
+Название: {{ organization.name }}
+ИНН: {{ organization.inn }}
+{% if organization.kpp %}КПП: {{ organization.kpp }}{% endif %}
+Юридический адрес: {{ organization.legal_address }}
+Контактное лицо: {{ organization.contact_person }}
+{% if organization.phone %}Телефон: {{ organization.phone }}{% endif %}
+{% if organization.email %}Email: {{ organization.email }}{% endif %}
+
+Для подтверждения или отклонения организации перейдите в административную панель:
+{{ admin_url }}
+
+--
+Система управления гостиницей "Зори Ваха"

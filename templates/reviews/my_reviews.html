@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Мои отзывы — Зори Ваха{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1 class="mb-4">Мои отзывы</h1>
+    
+    {% for review in reviews %}
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <h5 class="card-title">{{ review.title }}</h5>
+                    <small class="text-muted">
+                        Бронирование: {{ review.booking.confirmation_number }}<br>
+                        Дата отзыва: {{ review.created_at|date:"d.m.Y" }}
+                    </small>
+                </div>
+                <div>
+                    {% if review.status == 'pending' %}
+                        <span class="badge bg-warning">На модерации</span>
+                    {% elif review.status == 'approved' %}
+                        <span class="badge bg-success">Опубликован</span>
+                    {% elif review.status == 'rejected' %}
+                        <span class="badge bg-danger">Отклонен</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="text-warning mb-2">
+                Оценка: {{ review.overall_rating }}/5 ⭐
+            </div>
+            
+            <p class="card-text">{{ review.text|truncatewords:30 }}</p>
+            
+            {% if review.is_approved %}
+            <a href="{% url 'reviews:detail' review.pk %}" class="btn btn-sm btn-outline-primary">Просмотр</a>
+            {% endif %}
+            
+            {% if review.is_rejected and review.moderation_comment %}
+            <div class="alert alert-danger mt-3">
+                <strong>Причина отклонения:</strong> {{ review.moderation_comment }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% empty %}
+    <div class="alert alert-info">
+        У вас пока нет отзывов.
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

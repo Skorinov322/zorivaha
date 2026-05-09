@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Часто задаваемые вопросы{% endblock %}
+
+{% block meta_description %}Ответы на часто задаваемые вопросы о бронировании, заезде, услугах и оплате в гостинице {{ SITE_NAME }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .faq-hero {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 4rem 0 3rem;
+    margin-bottom: 3rem;
+  }
+  
+  .faq-hero h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 3rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+  }
+  
+  .faq-hero p {
+    font-size: 1.125rem;
+    opacity: 0.95;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  
+  .faq-category {
+    margin-bottom: 3rem;
+  }
+  
+  .faq-category-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 3px solid #667eea;
+    display: inline-block;
+  }
+  
+  .accordion-button {
+    font-weight: 500;
+    font-size: 1.0625rem;
+    color: #2d3748;
+    background-color: #f7fafc;
+    border: none;
+    padding: 1.25rem 1.5rem;
+  }
+  
+  .accordion-button:not(.collapsed) {
+    background-color: #edf2f7;
+    color: #667eea;
+    box-shadow: none;
+  }
+  
+  .accordion-button:focus {
+    box-shadow: none;
+    border-color: transparent;
+  }
+  
+  .accordion-button::after {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23667eea'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+  }
+  
+  .accordion-body {
+    padding: 1.5rem;
+    font-size: 1rem;
+    line-height: 1.7;
+    color: #4a5568;
+    background-color: #fff;
+  }
+  
+  .accordion-item {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px !important;
+    margin-bottom: 1rem;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: box-shadow 0.2s;
+  }
+  
+  .accordion-item:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+  
+  .no-faqs {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #718096;
+  }
+  
+  .no-faqs i {
+    font-size: 4rem;
+    color: #cbd5e0;
+    margin-bottom: 1rem;
+  }
+  
+  .contact-cta {
+    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+    border-radius: 16px;
+    padding: 3rem 2rem;
+    text-align: center;
+    margin-top: 4rem;
+  }
+  
+  .contact-cta h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 1rem;
+  }
+  
+  .contact-cta p {
+    color: #4a5568;
+    font-size: 1.0625rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .contact-cta .btn {
+    padding: 0.875rem 2rem;
+    font-size: 1.0625rem;
+    border-radius: 8px;
+  }
+  
+  @media (max-width: 768px) {
+    .faq-hero h1 {
+      font-size: 2.25rem;
+    }
+    
+    .faq-category-title {
+      font-size: 1.5rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="faq-hero">
+  <div class="container text-center">
+    <h1>Часто задаваемые вопросы</h1>
+    <p>Здесь вы найдете ответы на самые популярные вопросы о нашей гостинице</p>
+  </div>
+</section>
+
+<!-- FAQ Content -->
+<section class="py-5">
+  <div class="container">
+    {% if faqs_by_category %}
+      {% for category, category_faqs in faqs_by_category.items %}
+        <div class="faq-category reveal">
+          <h2 class="faq-category-title">
+            {% if category == "Бронирование" %}
+              <i class="bi bi-calendar-check me-2"></i>
+            {% elif category == "Заезд и выезд" %}
+              <i class="bi bi-door-open me-2"></i>
+            {% elif category == "Услуги" %}
+              <i class="bi bi-star me-2"></i>
+            {% elif category == "Оплата" %}
+              <i class="bi bi-credit-card me-2"></i>
+            {% else %}
+              <i class="bi bi-info-circle me-2"></i>
+            {% endif %}
+            {{ category }}
+          </h2>
+          
+          <div class="accordion" id="accordion-{{ forloop.counter }}">
+            {% for faq in category_faqs %}
+              <div class="accordion-item">
+                <h3 class="accordion-header" id="heading-{{ faq.id }}">
+                  <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" 
+                          type="button" 
+                          data-bs-toggle="collapse" 
+                          data-bs-target="#collapse-{{ faq.id }}" 
+                          aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" 
+                          aria-controls="collapse-{{ faq.id }}">
+                    {{ faq.question }}
+                  </button>
+                </h3>
+                <div id="collapse-{{ faq.id }}" 
+                     class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" 
+                     aria-labelledby="heading-{{ faq.id }}" 
+                     data-bs-parent="#accordion-{{ forloop.parentloop.counter }}">
+                  <div class="accordion-body">
+                    {{ faq.answer|linebreaks }}
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="no-faqs">
+        <i class="bi bi-question-circle"></i>
+        <h3>Вопросы пока не добавлены</h3>
+        <p>Скоро здесь появятся ответы на часто задаваемые вопросы</p>
+      </div>
+    {% endif %}
+    
+    <!-- Contact CTA -->
+    <div class="contact-cta reveal">
+      <h3>Не нашли ответ на свой вопрос?</h3>
+      <p>Свяжитесь с нами, и мы с радостью вам поможем</p>
+      <a href="{% url 'hotel:contacts' %}" class="btn btn-primary">
+        <i class="bi bi-envelope me-2"></i>Связаться с нами
+      </a>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Auto-collapse other accordions when opening a new one across categories
+  document.addEventListener('DOMContentLoaded', function() {
+    const accordionButtons = document.querySelectorAll('.accordion-button');
+    
+    accordionButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        // Optional: Add analytics tracking
+        if (typeof gtag !== 'undefined') {
+          gtag('event', 'faq_click', {
+            'event_category': 'FAQ',
+            'event_label': this.textContent.trim()
+          });
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}

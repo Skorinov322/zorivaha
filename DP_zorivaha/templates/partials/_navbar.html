@@ -1,0 +1,350 @@
+{% load static %}
+<nav id="navbar" style="
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  background: rgba(253, 250, 246, 0.92);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(200, 185, 154, 0.35);
+  padding: 0 48px;
+  height: 72px;
+  display: flex; align-items: center; justify-content: center;
+  transition: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+">
+  <div style="display: flex; align-items: center; width: 100%; max-width: 1400px; margin: 0 auto; justify-content: space-between; position: relative;">
+    
+    {# Logo with image - Updated font to match hero title #}
+    <a href="{% url 'hotel:index' %}" style="
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: 'Cormorant Garamond', serif !important;
+      font-size: 26px;
+      font-weight: 700;
+      color: #2C1F10;
+      letter-spacing: 0.02em;
+      text-decoration: none;
+      flex-shrink: 0;
+    " class="navbar-logo-v2">
+      <img src="{% static 'img/logoZV.png' %}" alt="Зори Ваха" style="height: 40px; width: auto;">
+      <span>Зори<span style="color: #E8700A; font-family: 'Cormorant Garamond', serif !important; font-weight: 700;">Ваха</span></span>
+    </a>
+
+    {# Desktop Navigation #}
+    <ul id="navLinks" style="
+      display: flex; gap: 36px; list-style: none;
+      margin: 0; padding: 0;
+    " class="nav-links-desktop">
+      <li>
+        <a href="{% url 'hotel:index' %}" style="
+          font-size: 13.5px;
+          font-weight: 500;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          color: #8B7355;
+          text-decoration: none;
+          transition: color 0.35s;
+          position: relative;
+        " class="nav-link-item">Главная</a>
+      </li>
+      <li>
+        <a href="{% url 'hotel:room_list' %}" style="
+          font-size: 13.5px;
+          font-weight: 500;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          color: #8B7355;
+          text-decoration: none;
+          transition: color 0.35s;
+          position: relative;
+        " class="nav-link-item">Номера</a>
+      </li>
+      <li>
+        <a href="{% url 'hotel:about' %}" style="
+          font-size: 13.5px;
+          font-weight: 500;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          color: #8B7355;
+          text-decoration: none;
+          transition: color 0.35s;
+          position: relative;
+        " class="nav-link-item">О нас</a>
+      </li>
+      <li>
+        <a href="{% url 'hotel:gallery' %}" style="
+          font-size: 13.5px;
+          font-weight: 500;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          color: #8B7355;
+          text-decoration: none;
+          transition: color 0.35s;
+          position: relative;
+        " class="nav-link-item">Галерея</a>
+      </li>
+      <li>
+        <a href="{% url 'hotel:contacts' %}" style="
+          font-size: 13.5px;
+          font-weight: 500;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          color: #8B7355;
+          text-decoration: none;
+          transition: color 0.35s;
+          position: relative;
+        " class="nav-link-item">Контакты</a>
+      </li>
+    </ul>
+
+    {# Right side #}
+    <div style="display: flex; align-items: center; gap: 16px;">
+      {% if request.user.is_authenticated %}
+        {# Staff links #}
+        {% if perms_ctx.can_view_dashboard %}
+        <a href="{% url 'dashboard:index' %}" style="
+          font-size: 13.5px;
+          font-weight: 500;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          color: #8B7355;
+          text-decoration: none;
+          transition: color 0.35s;
+        " class="nav-link-item">
+          Панель
+        </a>
+        {% endif %}
+
+        {# User dropdown #}
+        <div class="dropdown">
+          <button class="btn d-flex align-items-center gap-2 p-0 border-0"
+                  data-bs-toggle="dropdown"
+                  style="background:transparent">
+            <div style="width:34px;height:34px;border-radius:50%;
+                        background:linear-gradient(135deg,#E8700A,#F5A04A);
+                        display:flex;align-items:center;justify-content:center;
+                        font-size:.75rem;font-weight:700;color:#fff;overflow:hidden;
+                        flex-shrink:0">
+              {% if request.user.avatar %}
+                <img src="{{ request.user.avatar.url }}"
+                     style="width:100%;height:100%;object-fit:cover" alt="" />
+              {% else %}
+                {{ request.user.get_initials }}
+              {% endif %}
+            </div>
+          </button>
+
+          <ul class="dropdown-menu dropdown-menu-end"
+              style="background:#ffffff;border:1px solid rgba(200,185,154,0.35);
+                     border-radius:14px;padding:.5rem;min-width:200px;
+                     box-shadow:0 16px 48px rgba(44,31,16,0.15)">
+            {% if perms_ctx.can_view_dashboard %}
+            <li>
+              <a class="dropdown-item" href="{% url 'dashboard:index' %}"
+                 style="color:#3D2E1E;border-radius:8px;font-size:.875rem;padding:.5rem .75rem">
+                <i class="bi bi-speedometer2 me-2" style="color:#E8700A"></i>Панель управления
+              </a>
+            </li>
+            {% else %}
+              <li>
+                <a class="dropdown-item" href="{% url 'accounts:cabinet' %}"
+                   style="color:#3D2E1E;border-radius:8px;font-size:.875rem;padding:.5rem .75rem">
+                  <i class="bi bi-house me-2" style="color:#E8700A"></i>Личный кабинет
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item" href="{% url 'accounts:my_bookings' %}"
+                   style="color:#3D2E1E;border-radius:8px;font-size:.875rem;padding:.5rem .75rem">
+                  <i class="bi bi-calendar-check me-2" style="color:#E8700A"></i>Мои заявки
+                </a>
+              </li>
+            {% endif %}
+            <li>
+              <a class="dropdown-item" href="{% url 'accounts:profile' %}"
+                 style="color:#3D2E1E;border-radius:8px;font-size:.875rem;padding:.5rem .75rem">
+                <i class="bi bi-person me-2" style="color:#E8700A"></i>Профиль
+              </a>
+            </li>
+            <li><hr class="dropdown-divider" style="border-color:rgba(200,185,154,0.2);margin:.35rem 0"></li>
+            <li>
+              <form method="post" action="/auth/logout/">
+                {% csrf_token %}
+                <button type="submit" class="dropdown-item"
+                        style="color:#d9376e;border-radius:8px;font-size:.875rem;padding:.5rem .75rem;background:none;border:none;width:100%;text-align:left;cursor:pointer">
+                  <i class="bi bi-box-arrow-right me-2"></i>Выйти
+                </button>
+              </form>
+            </li>
+          </ul>
+        </div>
+
+      {% else %}
+        <a href="/auth/login/" style="
+          color: #8B7355;
+          font-size: 13.5px;
+          font-weight: 500;
+          text-decoration: none;
+          padding: 10px 22px;
+          border-radius: 50px;
+          border: 1.5px solid rgba(200, 185, 154, 0.35);
+          transition: all 0.35s;
+        " onmouseover="this.style.borderColor='#E8700A';this.style.color='#E8700A'"
+           onmouseout="this.style.borderColor='rgba(200,185,154,0.35)';this.style.color='#8B7355'">
+          Войти
+        </a>
+        <a href="/auth/register/" style="
+          background: #E8700A;
+          color: #fff;
+          padding: 10px 22px;
+          border-radius: 50px;
+          font-size: 13.5px;
+          font-weight: 500;
+          text-decoration: none;
+          letter-spacing: 0.04em;
+          transition: background 0.35s, transform 0.35s;
+        " onmouseover="this.style.background='#7A5C3A';this.style.transform='translateY(-1px)'"
+           onmouseout="this.style.background='#E8700A';this.style.transform='translateY(0)'">
+          Регистрация
+        </a>
+      {% endif %}
+    </div>
+
+    {# Mobile burger #}
+    <button id="burger" class="burger" style="
+      display: none; flex-direction: column; gap: 4px; cursor: pointer;
+      background: none; border: none; padding: 8px;
+      border-radius: 6px;
+      transition: background-color 0.2s;
+      flex-shrink: 0;
+      z-index: 1001;
+    " onclick="toggleMobileMenu()" 
+       onmouseover="this.style.backgroundColor='rgba(232,112,10,0.1)'"
+       onmouseout="this.style.backgroundColor='transparent'">
+      <span style="display: block; width: 22px; height: 2px; background: #2C1F10; border-radius: 1px; transition: 0.3s;"></span>
+      <span style="display: block; width: 22px; height: 2px; background: #2C1F10; border-radius: 1px; transition: 0.3s;"></span>
+      <span style="display: block; width: 22px; height: 2px; background: #2C1F10; border-radius: 1px; transition: 0.3s;"></span>
+    </button>
+  </div>
+</nav>
+
+<style>
+  .nav-link-item::after {
+    content: '';
+    position: absolute; bottom: -4px; left: 0; right: 0; height: 2px;
+    background: #E8700A;
+    transform: scaleX(0);
+    transition: transform 0.35s;
+    border-radius: 1px;
+  }
+  .nav-link-item:hover { color: #E8700A !important; }
+  .nav-link-item:hover::after { transform: scaleX(1); }
+  
+  /* Force logo font update */
+  .navbar-logo-v2 {
+    font-family: 'Cormorant Garamond', serif !important;
+    font-weight: 700 !important;
+  }
+  
+  .navbar-logo-v2 span {
+    font-family: 'Cormorant Garamond', serif !important;
+    font-weight: 700 !important;
+  }
+  
+  #navbar.scrolled {
+    box-shadow: 0 4px 30px rgba(44,31,16,0.1);
+  }
+
+  /* Burger menu animation */
+  .burger.open span:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+  }
+  .burger.open span:nth-child(2) {
+    opacity: 0;
+  }
+  .burger.open span:nth-child(3) {
+    transform: rotate(-45deg) translate(7px, -6px);
+  }
+
+  @media (max-width: 900px) {
+    #navbar { 
+      padding: 0 16px; 
+      height: 64px;
+    }
+    #navbar > div {
+      justify-content: space-between !important;
+    }
+    .nav-links-desktop { display: none !important; }
+    .burger { display: flex !important; }
+    .nav-links-desktop.open {
+      display: flex !important; flex-direction: column; gap: 0;
+      position: absolute; top: 64px; left: 0; right: 0;
+      background: rgba(253,250,246,0.98);
+      backdrop-filter: blur(20px);
+      padding: 16px 0;
+      border-bottom: 1px solid rgba(200,185,154,0.35);
+      box-shadow: 0 8px 40px rgba(44,31,16,0.1);
+    }
+    .nav-links-desktop.open li a {
+      display: block; padding: 14px 24px;
+    }
+    
+    /* Mobile logo adjustments */
+    .navbar-logo-v2 {
+      font-size: 18px !important;
+      gap: 8px !important;
+      flex-shrink: 0;
+    }
+    .navbar-logo-v2 img {
+      height: 28px !important;
+    }
+  }
+
+  @media (max-width: 600px) {
+    #navbar { 
+      padding: 0 12px;
+      height: 60px;
+    }
+    .nav-links-desktop.open {
+      top: 60px;
+    }
+    .navbar-logo-v2 {
+      font-size: 16px !important;
+      gap: 6px !important;
+    }
+    .navbar-logo-v2 img {
+      height: 24px !important;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .navbar-logo-v2 span {
+      display: none;
+    }
+    .navbar-logo-v2 {
+      gap: 0 !important;
+    }
+  }
+</style>
+
+<script>
+  function toggleMobileMenu() {
+    const navLinks = document.getElementById('navLinks');
+    const burger = document.getElementById('burger');
+    
+    navLinks.classList.toggle('open');
+    burger.classList.toggle('open');
+  }
+  
+  // Close mobile menu when clicking on a link
+  document.addEventListener('DOMContentLoaded', function() {
+    const navLinks = document.querySelectorAll('.nav-links-desktop a');
+    navLinks.forEach(link => {
+      link.addEventListener('click', () => {
+        document.getElementById('navLinks').classList.remove('open');
+        document.getElementById('burger').classList.remove('open');
+      });
+    });
+  });
+  
+  window.addEventListener('scroll', () => {
+    document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 20);
+  });
+</script>
