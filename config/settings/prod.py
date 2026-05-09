@@ -6,6 +6,7 @@ config/settings/prod.py — Production settings.
 
 from .base import *  # noqa: F401, F403
 from decouple import config
+import dj_database_url
 
 # ---------------------------------------------------------------------------
 # Core
@@ -58,13 +59,24 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 # Database — production pool settings
 # ---------------------------------------------------------------------------
 
-DATABASES["default"].update({  # noqa: F405
-    "CONN_MAX_AGE": 60,
-    "OPTIONS": {
-        "connect_timeout": 10,
-        "options": "-c default_transaction_isolation=read committed",
-    },
-})
+# Railway provides DATABASE_URL automatically
+DATABASE_URL = config("DATABASE_URL", default=None)
+if DATABASE_URL:
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=60,
+            conn_health_checks=True,
+        )
+    }
+else:
+    DATABASES["default"].update({  # noqa: F405
+        "CONN_MAX_AGE": 60,
+        "OPTIONS": {
+            "connect_timeout": 10,
+            "options": "-c default_transaction_isolation=read committed",
+        },
+    })
 
 # ---------------------------------------------------------------------------
 # Cache — Redis with connection pool
