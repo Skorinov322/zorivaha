@@ -101,6 +101,16 @@ class DailyMetrics(models.Model):
 
 class PageView(models.Model):
     """
+    ⚠️ DEPRECATED: This model will be removed in v2.0
+    
+    Use Google Analytics or Yandex.Metrica instead.
+    This table is no longer being populated with new data.
+    
+    Reason: Redundant - external analytics tools provide better insights.
+    Migration guide: docs/DEPRECATION_PLAN.md
+    
+    ---
+    
     Lightweight page view log for internal analytics.
     Not a replacement for Google Analytics — used for booking funnel analysis.
     """
@@ -169,6 +179,16 @@ class PageView(models.Model):
 
 class BookingFunnel(models.Model):
     """
+    ⚠️ DEPRECATED: This model will be removed in v2.0
+    
+    Use Google Analytics Goals or Yandex.Metrica Goals instead.
+    This table is no longer being populated with new data.
+    
+    Reason: Redundant for small hotels - external analytics provide better funnel tracking.
+    Migration guide: docs/DEPRECATION_PLAN.md
+    
+    ---
+    
     Tracks a single user's journey through the booking funnel.
     One record per session — updated as the user progresses.
 
@@ -232,6 +252,16 @@ class BookingFunnel(models.Model):
 
 class RevenueSnapshot(models.Model):
     """
+    ⚠️ DEPRECATED: This model will be removed in v2.0
+    
+    Use DailyMetrics.objects.filter(date__year=X, date__month=Y).aggregate() instead.
+    This table is no longer being populated with new data.
+    
+    Reason: Duplicates DailyMetrics - monthly aggregates can be calculated on-demand.
+    Migration guide: docs/DEPRECATION_PLAN.md
+    
+    ---
+    
     Monthly revenue snapshot for charts and year-over-year comparison.
     Populated by a monthly Celery Beat task on the 1st of each month.
     """

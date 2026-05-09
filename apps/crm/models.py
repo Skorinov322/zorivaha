@@ -278,7 +278,19 @@ class AdminComment(TimeStampedModel):
 # ---------------------------------------------------------------------------
 
 class Interaction(TimeStampedModel):
-    """Immutable log of every contact with a guest — append only."""
+    """
+    ⚠️ DEPRECATED: This model will be removed in v2.0
+    
+    Use bookings.BookingHistory for booking-related interactions.
+    Use crm.AdminComment for general client notes.
+    
+    Reason: Duplicates functionality of BookingHistory + AdminComment.
+    Migration guide: docs/DEPRECATION_PLAN.md
+    
+    ---
+    
+    Immutable log of every contact with a guest — append only.
+    """
 
     class InteractionType(models.TextChoices):
         CALL      = "call",      _("Звонок")
@@ -325,7 +337,23 @@ class Interaction(TimeStampedModel):
 # ---------------------------------------------------------------------------
 
 class Task(TimeStampedModel):
-    """CRM task assigned to a staff member."""
+    """
+    ⚠️ DEPRECATED: This model will be removed in v2.0
+    
+    Use external task management tools instead:
+    - Trello (https://trello.com)
+    - Asana (https://asana.com)
+    - Notion (https://notion.so)
+    - Microsoft To Do
+    
+    Reason: Redundant - external tools provide better task management.
+    Migration guide: docs/DEPRECATION_PLAN.md
+    Export script: python manage.py export_tasks_to_csv
+    
+    ---
+    
+    CRM task assigned to a staff member.
+    """
 
     class Priority(models.TextChoices):
         LOW    = "low",    _("Низкий")
@@ -394,7 +422,23 @@ class Task(TimeStampedModel):
 # ---------------------------------------------------------------------------
 
 class Message(TimeStampedModel):
-    """Internal messaging between staff and guests."""
+    """
+    ⚠️ DEPRECATED: This model will be removed in v2.0
+    
+    Use notifications.ContactMessage instead - it has better features:
+    - Thread support (replies)
+    - Staff/guest distinction
+    - Read status tracking
+    - Better integration with notifications
+    
+    Reason: Duplicates ContactMessage functionality.
+    Migration guide: docs/DEPRECATION_PLAN.md
+    Migration script: python manage.py migrate_crm_messages
+    
+    ---
+    
+    Internal messaging between staff and guests.
+    """
 
     class MessageStatus(models.TextChoices):
         UNREAD   = "unread",   _("Не прочитано")
