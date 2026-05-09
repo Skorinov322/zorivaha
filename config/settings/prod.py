@@ -79,40 +79,17 @@ else:
     })
 
 # ---------------------------------------------------------------------------
-# Cache — Redis with connection pool (опционально)
+# Cache — Database cache (простой вариант для начала)
 # ---------------------------------------------------------------------------
 
-REDIS_URL = config("REDIS_URL", default=None)
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "django_cache_table",
+    }
+}
 
-if REDIS_URL:
-    # Если Redis доступен, используем его для кеша и сессий
-    CACHES = {
-        "default": {
-            "BACKEND": "django_redis.cache.RedisCache",
-            "LOCATION": REDIS_URL,
-            "OPTIONS": {
-                "CLIENT_CLASS": "django_redis.client.DefaultClient",
-                "SOCKET_CONNECT_TIMEOUT": 5,
-                "SOCKET_TIMEOUT": 5,
-                "RETRY_ON_TIMEOUT": True,
-                "MAX_CONNECTIONS": 100,
-                "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",
-            },
-            "KEY_PREFIX": "zv_prod",
-            "TIMEOUT": 300,
-        }
-    }
-    SESSION_ENGINE = "django.contrib.sessions.backends.cache"
-    SESSION_CACHE_ALIAS = "default"
-else:
-    # Fallback: используем database cache и database sessions
-    CACHES = {
-        "default": {
-            "BACKEND": "django.core.cache.backends.db.DatabaseCache",
-            "LOCATION": "django_cache_table",
-        }
-    }
-    SESSION_ENGINE = "django.contrib.sessions.backends.db"
+SESSION_ENGINE = "django.contrib.sessions.backends.db"
 
 # ---------------------------------------------------------------------------
 # Email
@@ -121,31 +98,7 @@ else:
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
 # ---------------------------------------------------------------------------
-# Sentry — error tracking
-# ---------------------------------------------------------------------------
-
-SENTRY_DSN = config("SENTRY_DSN", default="")
-if SENTRY_DSN:
-    import sentry_sdk
-    from sentry_sdk.integrations.django import DjangoIntegration
-    from sentry_sdk.integrations.celery import CeleryIntegration
-    from sentry_sdk.integrations.redis import RedisIntegration
-
-    sentry_sdk.init(
-        dsn=SENTRY_DSN,
-        integrations=[
-            DjangoIntegration(transaction_style="url"),
-            CeleryIntegration(),
-            RedisIntegration(),
-        ],
-        traces_sample_rate=0.1,
-        profiles_sample_rate=0.05,
-        send_default_pii=False,
-        environment="production",
-    )
-
-# ---------------------------------------------------------------------------
-# Logging — structured, to stdout (Docker/systemd captures it)
+# Logging — structured, to stdout
 # ---------------------------------------------------------------------------
 
 LOGGING = {
