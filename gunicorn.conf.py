@@ -9,8 +9,7 @@ import multiprocessing
 import os
 
 # ── Binding ───────────────────────────────────────────────────────────────────
-# Use Unix socket when behind Nginx (faster than TCP)
-bind = os.getenv("GUNICORN_BIND", "unix:/run/gunicorn/zorivaha.sock")
+bind = os.getenv("GUNICORN_BIND", "0.0.0.0:" + os.getenv("PORT", "8000"))
 
 # ── Workers ───────────────────────────────────────────────────────────────────
 # Rule of thumb: (2 × CPU cores) + 1
@@ -37,10 +36,8 @@ capture_output = True           # capture Django print() to error log
 
 # ── Process ───────────────────────────────────────────────────────────────────
 proc_name     = "zorivaha"
-pidfile       = "/run/gunicorn/zorivaha.pid"
-user          = os.getenv("GUNICORN_USER",  "zorivaha")
-group         = os.getenv("GUNICORN_GROUP", "zorivaha")
-umask         = 0o007
+pidfile       = None
+# user/group not set — Railway runs as root in container
 
 # ── Security ──────────────────────────────────────────────────────────────────
 limit_request_line   = 8190
