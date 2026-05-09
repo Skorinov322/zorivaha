@@ -53,7 +53,7 @@ SECURE_REFERRER_POLICY          = "strict-origin-when-cross-origin"
 # Static files — WhiteNoise serves compressed, cached static files
 # ---------------------------------------------------------------------------
 
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
 # ---------------------------------------------------------------------------
 # Database — production pool settings
