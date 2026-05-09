@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Мои организации — Зори Ваха{% endblock %}
+
+{% block content %}
+<div style="padding: 2rem 8%; max-width: 1400px; margin: 0 auto;">
+  
+  <div style="margin-bottom: 2rem;">
+    <h1 style="font-family: 'Cormorant Garamond', serif; font-size: 2.5rem; color: #0d0d0d; margin-bottom: 0.5rem;">
+      Мои организации
+    </h1>
+    <p style="color: rgba(13,13,13,0.6); font-size: 1.1rem;">
+      Организации, которые вы создали для корпоративных бронирований
+    </p>
+  </div>
+
+  {% if organizations %}
+    <div class="row g-4">
+      {% for org in organizations %}
+        <div class="col-md-6 col-lg-4">
+          <div style="background: white; border: 1px solid rgba(13,13,13,0.1); border-radius: 12px; padding: 1.5rem; height: 100%;">
+            
+            <div style="display: flex; justify-content: between; align-items: start; margin-bottom: 1rem;">
+              <h3 style="font-size: 1.25rem; color: #0d0d0d; margin: 0; flex: 1;">{{ org.name }}</h3>
+              {% if org.is_approved %}
+                <span style="background: #28a745; color: white; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">
+                  Подтверждена
+                </span>
+              {% else %}
+                <span style="background: #ffc107; color: #856404; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">
+                  На модерации
+                </span>
+              {% endif %}
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+              {% if org.inn %}
+                <p style="margin: 0.25rem 0; font-size: 0.9rem; color: rgba(13,13,13,0.7);">
+                  <strong>ИНН:</strong> {{ org.inn }}
+                </p>
+              {% endif %}
+              {% if org.contact_person %}
+                <p style="margin: 0.25rem 0; font-size: 0.9rem; color: rgba(13,13,13,0.7);">
+                  <strong>Контактное лицо:</strong> {{ org.contact_person }}
+                </p>
+              {% endif %}
+              {% if org.phone %}
+                <p style="margin: 0.25rem 0; font-size: 0.9rem; color: rgba(13,13,13,0.7);">
+                  <strong>Телефон:</strong> {{ org.phone }}
+                </p>
+              {% endif %}
+            </div>
+
+            <div style="font-size: 0.8rem; color: rgba(13,13,13,0.5);">
+              Создана: {{ org.created_at|date:"d.m.Y" }}
+            </div>
+
+            {% if not org.is_approved %}
+              <div style="margin-top: 1rem; padding: 0.75rem; background: rgba(255,193,7,0.1); border: 1px solid rgba(255,193,7,0.3); border-radius: 6px;">
+                <p style="margin: 0; font-size: 0.85rem; color: #856404;">
+                  <i class="bi bi-clock me-1"></i>
+                  Организация отправлена на модерацию. Администратор проверит данные и подтвердит организацию.
+                </p>
+              </div>
+            {% endif %}
+
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div style="text-align: center; padding: 3rem 1rem; background: rgba(13,13,13,0.02); border-radius: 12px;">
+      <i class="bi bi-building" style="font-size: 3rem; color: rgba(13,13,13,0.3); margin-bottom: 1rem;"></i>
+      <h3 style="color: rgba(13,13,13,0.7); margin-bottom: 1rem;">У вас пока нет организаций</h3>
+      <p style="color: rgba(13,13,13,0.5); margin-bottom: 2rem;">
+        Создайте организацию при оформлении корпоративного бронирования
+      </p>
+      <a href="{% url 'hotel:room_list' %}" 
+         style="background: #ff8e3c; color: white; padding: 0.75rem 2rem; border-radius: 50px; text-decoration: none; font-weight: 600;">
+        Забронировать номер
+      </a>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,131 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block dashboard_title %}{{ title }}{% endblock %}
+{% block dashboard_subtitle %}Категории номеров{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="mb-4">
+  <a href="{% url 'hotel:staff_category_list' %}" style="color:rgba(13,13,13,.4);text-decoration:none;font-size:.875rem">
+    <i class="bi bi-arrow-left me-1"></i>Категории
+  </a>
+</div>
+
+<form method="post" enctype="multipart/form-data" novalidate>
+  {% csrf_token %}
+  <div class="row g-4">
+
+    <div class="col-lg-8">
+      <div class="dash-card mb-4">
+        <div class="dash-card-title">Основное</div>
+        <div class="row g-3">
+          <div class="col-sm-8">
+            <label class="form-label">Название *</label>
+            {{ form.name }}
+            {% for e in form.name.errors %}<div style="color:#dc3545;font-size:.8rem">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="col-sm-4">
+            <label class="form-label">Slug</label>
+            {{ form.slug }}
+          </div>
+          <div class="col-12">
+            <label class="form-label">Краткое описание *</label>
+            {{ form.short_description }}
+          </div>
+          <div class="col-12">
+            <label class="form-label">Полное описание *</label>
+            {{ form.description }}
+          </div>
+        </div>
+      </div>
+
+      <div class="dash-card mb-4">
+        <div class="dash-card-title">Параметры</div>
+        <div class="row g-3">
+          <div class="col-sm-4">
+            <label class="form-label">Макс. гостей</label>
+            {{ form.max_guests }}
+          </div>
+          <div class="col-sm-4">
+            <label class="form-label">Тип кровати</label>
+            {{ form.bed_type }}
+          </div>
+          <div class="col-sm-4">
+            <label class="form-label">Площадь (м²)</label>
+            {{ form.area_sqm }}
+          </div>
+        </div>
+      </div>
+
+      <div class="dash-card mb-4">
+        <div class="dash-card-title">Цены</div>
+        <div class="row g-3">
+          <div class="col-sm-6">
+            <label class="form-label">Базовая цена / ночь *</label>
+            {{ form.base_price_per_night }}
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label">Цена выходных / ночь</label>
+            {{ form.weekend_price_per_night }}
+          </div>
+        </div>
+      </div>
+
+      <div class="dash-card">
+        <div class="dash-card-title">Удобства</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.5rem">
+          {% for checkbox in form.amenities %}
+          <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;
+                        background:rgba(13,13,13,.02);border:1px solid rgba(13,13,13,.08);
+                        border-radius:8px;padding:.5rem .75rem;font-size:.85rem;color:rgba(13,13,13,.6)">
+            {{ checkbox.tag }} {{ checkbox.choice_label }}
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="dash-card mb-3">
+        <div class="dash-card-title">Медиа</div>
+        <label class="form-label">Превью (thumbnail)</label>
+        {{ form.thumbnail }}
+        {% if form.instance.thumbnail %}
+        <div style="margin-top:.5rem">
+          <img src="{{ form.instance.thumbnail.url }}" style="width:100%;border-radius:8px;max-height:120px;object-fit:cover" />
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="dash-card mb-3">
+        <div class="dash-card-title">Видимость</div>
+        <div class="form-check mb-2">
+          {{ form.is_active }}
+          <label class="form-check-label" for="{{ form.is_active.id_for_label }}">Активна (показывать на сайте)</label>
+        </div>
+        <div class="form-check mb-3">
+          {{ form.is_featured }}
+          <label class="form-check-label" for="{{ form.is_featured.id_for_label }}">Показывать на главной</label>
+        </div>
+        <label class="form-label">Порядок сортировки</label>
+        {{ form.sort_order }}
+      </div>
+
+      <button type="submit"
+              style="width:100%;padding:.85rem;background:linear-gradient(135deg,#ff8e3c,#d9376e);
+                     border:none;border-radius:12px;color:#0d0d0d;font-weight:700;cursor:pointer;font-size:.95rem">
+        {% if is_create %}Создать категорию{% else %}Сохранить изменения{% endif %}
+      </button>
+      {% if not is_create %}
+      <a href="{% url 'hotel:staff_category_images' category.pk %}"
+         style="display:block;text-align:center;margin-top:.75rem;color:#ff8e3c;font-size:.875rem;text-decoration:none">
+        <i class="bi bi-images me-1"></i>Управление фото
+      </a>
+      {% endif %}
+    </div>
+
+  </div>
+</form>
+
+{% endblock %}
