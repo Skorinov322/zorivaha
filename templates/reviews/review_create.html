@@ -29,28 +29,19 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0; /* hide numeric text */
   line-height: 1;
   transition: transform 0.1s ease;
 }
-.star-rating label::before {
-  font-family: "bootstrap-icons";
-  font-style: normal;
-  font-weight: normal;
+.star-rating label i {
   font-size: 1.6rem;
-  content: "\f466"; /* bi-star outline */
-  color: var(--star-inactive);
-  display: block;
-  line-height: 1;
+  color: rgba(13, 13, 13, 0.15);
 }
-.star-rating label:hover::before,
-.star-rating label:hover ~ label::before {
-  content: "\f467"; /* bi-star-fill on hover */
-  color: var(--star-hover);
+.star-rating label.checked i {
+  color: var(--gold) !important;
 }
-.star-rating label.checked::before {
-  content: "\f467"; /* bi-star-fill when checked */
-  color: var(--star-active);
+.star-rating label:hover i,
+.star-rating label:hover ~ label i {
+  color: var(--gold-light) !important;
 }
 .star-rating label:active {
   transform: scale(0.9);
@@ -113,94 +104,208 @@
           <h5 class="mb-3">Оцените ваше проживание</h5>
 
           <!-- Оценки -->
-          <div class="rating-field">
-            <label class="rating-label">
-              <i class="bi bi-star-fill" aria-hidden="true"></i>
-              Общая оценка <span class="text-danger">*</span>
-            </label>
-            <div class="star-wrapper">
-              <div class="star-rating" data-field="overall_rating">
-                {{ form.overall_rating }}
-              </div>
-              <span class="current-rating" id="overall_rating_text">Выберите оценку</span>
-            </div>
-          </div>
+<div class="rating-field">
+             <label class="rating-label">
+               <i class="bi bi-star-fill" aria-hidden="true"></i>
+               Общая оценка <span class="text-danger">*</span>
+             </label>
+             <div class="star-wrapper">
+               <div class="star-rating" data-field="overall_rating">
+                 <label for="id_overall_rating_5">
+                   <input type="radio" name="overall_rating" value="5" id="id_overall_rating_5">
+                   <i class="bi bi-star-fill" style="color: var(--gold);"></i>
+                 </label>
+                 <label for="id_overall_rating_4">
+                   <input type="radio" name="overall_rating" value="4" id="id_overall_rating_4">
+                   <i class="bi bi-star" style="color: rgba(13,13,13,0.15);"></i>
+                 </label>
+                 <label for="id_overall_rating_3">
+                   <input type="radio" name="overall_rating" value="3" id="id_overall_rating_3">
+                   <i class="bi bi-star" style="color: rgba(13,13,13,0.15);"></i>
+                 </label>
+                 <label for="id_overall_rating_2">
+                   <input type="radio" name="overall_rating" value="2" id="id_overall_rating_2">
+                   <i class="bi bi-star" style="color: rgba(13,13,13,0.15);"></i>
+                 </label>
+                 <label for="id_overall_rating_1">
+                   <input type="radio" name="overall_rating" value="1" id="id_overall_rating_1">
+                   <i class="bi bi-star" style="color: rgba(13,13,13,0.15);"></i>
+                 </label>
+               </div>
+               <span class="current-rating" id="overall_rating_text">Выберите оценку</span>
+             </div>
+           </div>
 
           <div class="row">
-            <div class="col-md-6">
-              <div class="rating-field">
-                <label class="rating-label">
-                  <i class="bi bi-droplet-fill" aria-hidden="true"></i>
-                  Чистота <span class="text-danger">*</span>
-                </label>
-                <div class="star-wrapper">
-                  <div class="star-rating" data-field="cleanliness_rating">
-                    {{ form.cleanliness_rating }}
-                  </div>
-                  <span class="current-rating" id="cleanliness_rating_text">Выберите оценку</span>
-                </div>
-              </div>
-            </div>
+<div class="col-md-6">
+               <div class="rating-field">
+                 <label class="rating-label">
+                   <i class="bi bi-droplet-fill" aria-hidden="true"></i>
+                   Чистота <span class="text-danger">*</span>
+                 </label>
+                 <div class="star-wrapper">
+                   <div class="star-rating" data-field="cleanliness_rating">
+                     <label for="id_cleanliness_rating_5">
+                       <input type="radio" name="cleanliness_rating" value="5" id="id_cleanliness_rating_5">
+                       <i class="bi bi-star-fill" style="color: var(--gold);"></i>
+                     </label>
+                     <label for="id_cleanliness_rating_4">
+                       <input type="radio" name="cleanliness_rating" value="4" id="id_cleanliness_rating_4">
+                       <i class="bi bi-star" style="color: rgba(13,13,13,0.15);"></i>
+                     </label>
+                     <label for="id_cleanliness_rating_3">
+                       <input type="radio" name="cleanliness_rating" value="3" id="id_cleanliness_rating_3">
+                       <i class="bi bi-star" style="color: rgba(13,13,13,0.15);"></i>
+                     </label>
+                     <label for="id_cleanliness_rating_2">
+                       <input type="radio" name="cleanliness_rating" value="2" id="id_cleanliness_rating_2">
+                       <i class="bi bi-star" style="color: rgba(13,13,13,0.15);"></i>
+                     </label>
+                     <label for="id_cleanliness_rating_1">
+                       <input type="radio" name="cleanliness_rating" value="1" id="id_cleanliness_rating_1">
+                       <i class="bi bi-star" style="color: rgba(13,13,13,0.15);"></i>
+                     </label>
+                   </div>
+                   <span class="current-rating" id="cleanliness_rating_text">Выберите оценку</span>
+                 </div>
+               </div>
+             </div>
 
-            <div class="col-md-6">
-              <div class="rating-field">
-                <label class="rating-label">
-                  <i class="bi bi-house-heart-fill" aria-hidden="true"></i>
-                  Комфорт <span class="text-danger">*</span>
-                </label>
-                <div class="star-wrapper">
-                  <div class="star-rating" data-field="comfort_rating">
-                    {{ form.comfort_rating }}
-                  </div>
-                  <span class="current-rating" id="comfort_rating_text">Выберите оценку</span>
-                </div>
-              </div>
-            </div>
+<div class="col-md-6">
+               <div class="rating-field">
+                 <label class="rating-label">
+                   <i class="bi bi-house-heart-fill" aria-hidden="true"></i>
+                   Комфорт <span class="text-danger">*</span>
+                 </label>
+                 <div class="star-wrapper">
+                   <div class="star-rating" data-field="comfort_rating">
+                     <label for="id_comfort_rating_5">
+                       <input type="radio" name="comfort_rating" value="5" id="id_comfort_rating_5">
+                       <i class="bi bi-star-fill" style="color: var(--gold);"></i>
+                     </label>
+                     <label for="id_comfort_rating_4">
+                       <input type="radio" name="comfort_rating" value="4" id="id_comfort_rating_4">
+                       <i class="bi bi-star" style="color: rgba(13,13,13,0.15);"></i>
+                     </label>
+                     <label for="id_comfort_rating_3">
+                       <input type="radio" name="comfort_rating" value="3" id="id_comfort_rating_3">
+                       <i class="bi bi-star" style="color: rgba(13,13,13,0.15);"></i>
+                     </label>
+                     <label for="id_comfort_rating_2">
+                       <input type="radio" name="comfort_rating" value="2" id="id_comfort_rating_2">
+                       <i class="bi bi-star" style="color: rgba(13,13,13,0.15);"></i>
+                     </label>
+                     <label for="id_comfort_rating_1">
+                       <input type="radio" name="comfort_rating" value="1" id="id_comfort_rating_1">
+                       <i class="bi bi-star" style="color: rgba(13,13,13,0.15);"></i>
+                     </label>
+                   </div>
+                   <span class="current-rating" id="comfort_rating_text">Выберите оценку</span>
+                 </div>
+               </div>
+             </div>
 
-            <div class="col-md-6">
-              <div class="rating-field">
-                <label class="rating-label">
-                  <i class="bi bi-person-badge-fill" aria-hidden="true"></i>
-                  Персонал <span class="text-danger">*</span>
-                </label>
-                <div class="star-wrapper">
-                  <div class="star-rating" data-field="staff_rating">
-                    {{ form.staff_rating }}
-                  </div>
-                  <span class="current-rating" id="staff_rating_text">Выберите оценку</span>
-                </div>
-              </div>
-            </div>
+<div class="col-md-6">
+               <div class="rating-field">
+                 <label class="rating-label">
+                   <i class="bi bi-person-badge-fill" aria-hidden="true"></i>
+                   Персонал <span class="text-danger">*</span>
+                 </label>
+                 <div class="star-wrapper">
+                   <div class="star-rating" data-field="staff_rating">
+                     <label for="id_staff_rating_5">
+                       <input type="radio" name="staff_rating" value="5" id="id_staff_rating_5">
+                       <i class="bi bi-star-fill" style="color: var(--gold);"></i>
+                     </label>
+                     <label for="id_staff_rating_4">
+                       <input type="radio" name="staff_rating" value="4" id="id_staff_rating_4">
+                       <i class="bi bi-star" style="color: rgba(13,13,13,0.15);"></i>
+                     </label>
+                     <label for="id_staff_rating_3">
+                       <input type="radio" name="staff_rating" value="3" id="id_staff_rating_3">
+                       <i class="bi bi-star" style="color: rgba(13,13,13,0.15);"></i>
+                     </label>
+                     <label for="id_staff_rating_2">
+                       <input type="radio" name="staff_rating" value="2" id="id_staff_rating_2">
+                       <i class="bi bi-star" style="color: rgba(13,13,13,0.15);"></i>
+                     </label>
+                     <label for="id_staff_rating_1">
+                       <input type="radio" name="staff_rating" value="1" id="id_staff_rating_1">
+                       <i class="bi bi-star" style="color: rgba(13,13,13,0.15);"></i>
+                     </label>
+                   </div>
+                   <span class="current-rating" id="staff_rating_text">Выберите оценку</span>
+                 </div>
+               </div>
+             </div>
 
-            <div class="col-md-6">
-              <div class="rating-field">
-                <label class="rating-label">
-                  <i class="bi bi-cash-coin" aria-hidden="true"></i>
-                  Цена/качество <span class="text-danger">*</span>
-                </label>
-                <div class="star-wrapper">
-                  <div class="star-rating" data-field="value_rating">
-                    {{ form.value_rating }}
-                  </div>
-                  <span class="current-rating" id="value_rating_text">Выберите оценку</span>
-                </div>
-              </div>
-            </div>
+<div class="col-md-6">
+               <div class="rating-field">
+                 <label class="rating-label">
+                   <i class="bi bi-cash-coin" aria-hidden="true"></i>
+                   Цена/качество <span class="text-danger">*</span>
+                 </label>
+                 <div class="star-wrapper">
+                   <div class="star-rating" data-field="value_rating">
+                     <label for="id_value_rating_5">
+                       <input type="radio" name="value_rating" value="5" id="id_value_rating_5">
+                       <i class="bi bi-star-fill" style="color: var(--gold);"></i>
+                     </label>
+                     <label for="id_value_rating_4">
+                       <input type="radio" name="value_rating" value="4" id="id_value_rating_4">
+                       <i class="bi bi-star" style="color: rgba(13,13,13,0.15);"></i>
+                     </label>
+                     <label for="id_value_rating_3">
+                       <input type="radio" name="value_rating" value="3" id="id_value_rating_3">
+                       <i class="bi bi-star" style="color: rgba(13,13,13,0.15);"></i>
+                     </label>
+                     <label for="id_value_rating_2">
+                       <input type="radio" name="value_rating" value="2" id="id_value_rating_2">
+                       <i class="bi bi-star" style="color: rgba(13,13,13,0.15);"></i>
+                     </label>
+                     <label for="id_value_rating_1">
+                       <input type="radio" name="value_rating" value="1" id="id_value_rating_1">
+                       <i class="bi bi-star" style="color: rgba(13,13,13,0.15);"></i>
+                     </label>
+                   </div>
+                   <span class="current-rating" id="value_rating_text">Выберите оценку</span>
+                 </div>
+               </div>
+             </div>
 
-            <div class="col-md-6">
-              <div class="rating-field">
-                <label class="rating-label">
-                  <i class="bi bi-geo-alt-fill" aria-hidden="true"></i>
-                  Расположение <span class="text-danger">*</span>
-                </label>
-                <div class="star-wrapper">
-                  <div class="star-rating" data-field="location_rating">
-                    {{ form.location_rating }}
-                  </div>
-                  <span class="current-rating" id="location_rating_text">Выберите оценку</span>
-                </div>
-              </div>
-            </div>
+<div class="col-md-6">
+               <div class="rating-field">
+                 <label class="rating-label">
+                   <i class="bi bi-geo-alt-fill" aria-hidden="true"></i>
+                   Расположение <span class="text-danger">*</span>
+                 </label>
+                 <div class="star-wrapper">
+                   <div class="star-rating" data-field="location_rating">
+                     <label for="id_location_rating_5">
+                       <input type="radio" name="location_rating" value="5" id="id_location_rating_5">
+                       <i class="bi bi-star-fill" style="color: var(--gold);"></i>
+                     </label>
+                     <label for="id_location_rating_4">
+                       <input type="radio" name="location_rating" value="4" id="id_location_rating_4">
+                       <i class="bi bi-star" style="color: rgba(13,13,13,0.15);"></i>
+                     </label>
+                     <label for="id_location_rating_3">
+                       <input type="radio" name="location_rating" value="3" id="id_location_rating_3">
+                       <i class="bi bi-star" style="color: rgba(13,13,13,0.15);"></i>
+                     </label>
+                     <label for="id_location_rating_2">
+                       <input type="radio" name="location_rating" value="2" id="id_location_rating_2">
+                       <i class="bi bi-star" style="color: rgba(13,13,13,0.15);"></i>
+                     </label>
+                     <label for="id_location_rating_1">
+                       <input type="radio" name="location_rating" value="1" id="id_location_rating_1">
+                       <i class="bi bi-star" style="color: rgba(13,13,13,0.15);"></i>
+                     </label>
+                   </div>
+                   <span class="current-rating" id="location_rating_text">Выберите оценку</span>
+                 </div>
+               </div>
+             </div>
           </div>
 
           <!-- средняя оценка -->
@@ -273,20 +378,14 @@ document.addEventListener('DOMContentLoaded', function() {
       const checkedInput = wrapper.querySelector('input[type="radio"]:checked');
       const selectedValue = checkedInput ? parseInt(checkedInput.value, 10) : 0;
       const labels = wrapper.querySelectorAll('label');
-      labels.forEach(function(label) {
-        let input = label.querySelector('input[type="radio"]');
-        if (!input) {
-          const forAttr = label.getAttribute('for');
-          if (forAttr) {
-            input = document.getElementById(forAttr);
-          }
-        }
-        if (!input) return;
-        const value = parseInt(input.value, 10);
-        if (value <= selectedValue) {
+      labels.forEach(function(label, index) {
+        const starValue = 5 - index;
+        if (starValue <= selectedValue) {
           label.classList.add('checked');
+          label.querySelector('i').className = 'bi bi-star-fill';
         } else {
           label.classList.remove('checked');
+          label.querySelector('i').className = 'bi bi-star';
         }
       });
     });
@@ -297,7 +396,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let count = 0;
 
     ratingFields.forEach(function(fieldName) {
-      const field = document.querySelector(`input[name="${fieldName}"]:checked`);
+      const field = document.querySelector('input[name="' + fieldName + '"]:checked');
       if (field) {
         sum += parseInt(field.value, 10);
         count++;
