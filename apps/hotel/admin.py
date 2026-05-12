@@ -1,11 +1,14 @@
 from django.contrib import admin
-from django.utils.html import format_html
-from django.urls import path
-from django.http import HttpResponse
 from django.utils.translation import gettext_lazy as _
 
 from apps.core.admin_site import role_admin_site, RoleRestrictedMixin
 from .models import Amenity, RoomCategory, RoomImage, Room
+
+
+class RoomImageInline(admin.TabularInline):
+    model = RoomImage
+    extra = 1
+    fields = ["image", "caption", "is_primary", "sort_order"]
 
 
 class AmenityAdmin(RoleRestrictedMixin, admin.ModelAdmin):
