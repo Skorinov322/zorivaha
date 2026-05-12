@@ -125,9 +125,9 @@ a:hover { color: var(--primary-dark); }
   border: 1px solid rgba(220, 53, 69, .25) !important;
 }
 .alert-warning {
-  background: rgba(216, 216, 216, 0.416);
-  color: #e95f03;
-  border: 1px solid rgba(255, 106, 7, 0.657) !important;
+  background: rgba(255, 193, 7, .1);
+  color: #ffd55a;
+  border: 1px solid rgba(255, 193, 7, .2) !important;
 }
 .alert-info {
   background: rgba(13, 110, 253, .1);

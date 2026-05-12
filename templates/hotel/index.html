@@ -92,14 +92,94 @@
 .cta-title{font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,4vw,3.25rem);font-weight:700;color:var(--text-primary);margin-bottom:1rem}
 .cta-subtitle{font-size:1.05rem;color:var(--text-muted);max-width:520px;margin:0 auto 2.5rem;line-height:1.75}
 
-/* ── Mobile Responsive ── */
-@media (max-width: 768px) {
-  .hero{min-height:auto;padding:4rem 0 3rem}
-  .hero-eyebrow{margin-bottom:1rem}
-  .hero-title{margin-bottom:1rem}
-  .hero-subtitle{margin-bottom:1.5rem}
-  .hero-cta-group{margin-bottom:2.5rem}
-  .hero-stats{padding-top:1.5rem;gap:1.5rem}
+/* ── Rating inputs ── */
+.rating-input {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+.rating-input input[type="radio"] {
+    display: none;
+}
+.rating-input label {
+    cursor: pointer;
+    font-size: 20px;
+    color: #ddd;
+    transition: color 0.2s;
+}
+.rating-input input[type="radio"]:checked ~ label,
+.rating-input label:hover,
+.rating-input label:hover ~ label {
+    color: var(--gold);
+}
+.rating-input label:hover ~ label {
+    color: #ddd;
+}
+
+/* ── Form styling ── */
+.search-card .form-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.5rem;
+}
+.search-card .form-control,
+.search-card .form-select {
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 0.75rem 1rem;
+    background: var(--dark-600);
+    color: var(--text-primary);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.search-card .form-control:focus,
+.search-card .form-select:focus {
+    border-color: var(--gold-border);
+    box-shadow: 0 0 0 3px rgba(255, 142, 60, 0.1);
+    outline: none;
+}
+.search-card .form-control::placeholder {
+    color: var(--text-muted);
+}
+
+/* ── Crispy form overrides ── */
+.search-card .form-group {
+    margin-bottom: 1.5rem;
+}
+.search-card .form-group label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.5rem;
+}
+.search-card .form-group .form-control,
+.search-card .form-group .form-select {
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 0.75rem 1rem;
+    background: var(--dark-600);
+    color: var(--text-primary);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.search-card .form-group .form-control:focus,
+.search-card .form-group .form-select:focus {
+    border-color: var(--gold-border);
+    box-shadow: 0 0 0 3px rgba(255, 142, 60, 0.1);
+    outline: none;
+}
+.search-card .form-group .form-control::placeholder {
+    color: var(--text-muted);
+}
+.search-card .invalid-feedback {
+    display: block;
+    color: #dc3545;
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
 }
 
 </style>
@@ -297,36 +377,50 @@
       <div class="col-lg-10 reveal">
         {% if user.is_authenticated %}
           {% if review_categories.exists %}
-          <div class="card p-4">
+          <div class="search-card">
             <form method="post">
               {% csrf_token %}
-              <div class="row gy-3">
+              <div class="row gy-4">
                 <div class="col-12 col-md-6">
-                  <label class="form-label">Категория номера</label>
+                  <label class="form-label">
+                    <i class="bi bi-house-door me-1" aria-hidden="true"></i>Категория номера
+                  </label>
                   {{ review_form.room_category|as_crispy_field }}
                 </div>
                 <div class="col-12 col-md-6">
-                  <label class="form-label">Общая оценка</label>
+                  <label class="form-label">
+                    <i class="bi bi-star me-1" aria-hidden="true"></i>Общая оценка
+                  </label>
                   {{ review_form.overall_rating }}
                 </div>
                 <div class="col-12 col-md-6">
-                  <label class="form-label">Чистота</label>
+                  <label class="form-label">
+                    <i class="bi bi-droplet me-1" aria-hidden="true"></i>Чистота
+                  </label>
                   {{ review_form.cleanliness_rating }}
                 </div>
                 <div class="col-12 col-md-6">
-                  <label class="form-label">Комфорт</label>
+                  <label class="form-label">
+                    <i class="bi bi-house-heart me-1" aria-hidden="true"></i>Комфорт
+                  </label>
                   {{ review_form.comfort_rating }}
                 </div>
                 <div class="col-12 col-md-6">
-                  <label class="form-label">Персонал</label>
+                  <label class="form-label">
+                    <i class="bi bi-person-badge me-1" aria-hidden="true"></i>Персонал
+                  </label>
                   {{ review_form.staff_rating }}
                 </div>
                 <div class="col-12 col-md-6">
-                  <label class="form-label">Цена/качество</label>
+                  <label class="form-label">
+                    <i class="bi bi-cash-coin me-1" aria-hidden="true"></i>Цена/качество
+                  </label>
                   {{ review_form.value_rating }}
                 </div>
                 <div class="col-12 col-md-6">
-                  <label class="form-label">Расположение</label>
+                  <label class="form-label">
+                    <i class="bi bi-geo-alt me-1" aria-hidden="true"></i>Расположение
+                  </label>
                   {{ review_form.location_rating }}
                 </div>
                 <div class="col-12">
@@ -341,19 +435,31 @@
                 <div class="col-12 col-md-6">
                   {{ review_form.cons|as_crispy_field }}
                 </div>
-                <div class="col-12 text-end">
-                  <button type="submit" class="btn btn-primary">Отправить отзыв</button>
+                <div class="col-12 text-center">
+                  <button type="submit" class="btn-luxury">
+                    <i class="bi bi-send me-2" aria-hidden="true"></i>
+                    Отправить отзыв
+                  </button>
                 </div>
               </div>
             </form>
           </div>
           {% else %}
-          <div class="alert alert-warning">Чтобы оставить отзыв, нужно иметь завершённую бронь и историю проживания.</div>
+          <div class="feature-card text-center">
+            <div class="feature-icon-wrap mb-3" aria-hidden="true"><i class="bi bi-chat-square-text"></i></div>
+            <div class="feature-title">Чтобы оставить отзыв</div>
+            <p class="feature-desc mb-0">Нужно иметь завершённую бронь и историю проживания.</p>
+          </div>
           {% endif %}
         {% else %}
-          <div class="alert alert-secondary">
-            <p class="mb-2">Войдите, чтобы оставить отзыв.</p>
-            <a href="{% url 'login' %}?next={% url 'hotel:index' %}" class="btn btn-outline-primary">Войти</a>
+          <div class="feature-card text-center">
+            <div class="feature-icon-wrap mb-3" aria-hidden="true"><i class="bi bi-person-circle"></i></div>
+            <div class="feature-title">Войдите, чтобы оставить отзыв</div>
+            <p class="feature-desc mb-3">Ваш отзыв поможет другим гостям.</p>
+            <a href="{% url 'login' %}?next={% url 'hotel:index' %}" class="btn-luxury-outline">
+              <i class="bi bi-box-arrow-in-right me-2" aria-hidden="true"></i>
+              Войти
+            </a>
           </div>
         {% endif %}
       </div>
@@ -365,11 +471,16 @@
 <section class="features-section" aria-labelledby="features-heading">
   <div class="container">
     <div class="text-center mb-5 reveal">
-      <div class="eyebrow mb-3">Преимущества</div>
+      <div class="eyebrow mb-3">Почему выбирают нас</div>
       <h2 class="section-heading" id="features-heading">
-        Всё для вашего <em>комфорта</em>
+        Преимущества нашего отеля
       </h2>
+      <p class="section-lead mx-auto mt-3">
+        Мы заботимся о каждом госте, предоставляя высокий уровень сервиса
+        и комфорта в каждой детали.
+      </p>
     </div>
+
     <div class="row g-4">
       {% for icon, title, desc in features %}
       <div class="col-12 col-sm-6 col-lg-3 reveal">
