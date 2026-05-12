@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Ответить на отзыв — Зори Ваха{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <a href="{% url 'reviews:moderation_list' %}" class="btn btn-sm btn-outline-secondary mb-3">← К списку</a>
+            
+            <h1 class="mb-4">Ответ на отзыв</h1>
+            
+            <!-- Отзыв -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h4>{{ review.title }}</h4>
+                    <p class="text-muted">{{ review.guest_name }} • {{ review.created_at|date:"d F Y" }}</p>
+                    <div class="text-warning mb-3">
+                        Оценка: {{ review.overall_rating }}/5 ⭐
+                    </div>
+                    <p style="white-space: pre-line;">{{ review.text }}</p>
+                </div>
+            </div>
+            
+            <!-- Форма ответа -->
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Ваш ответ</h5>
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">Опубликовать ответ</button>
+                            <a href="{% url 'reviews:moderation_list' %}" class="btn btn-outline-secondary">Отмена</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

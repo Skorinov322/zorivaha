@@ -385,6 +385,19 @@ class SeasonalPrice(TimeStampedModel):
 
 class RoomReview(TimeStampedModel):
     """
+    ⚠️ DEPRECATED: This model will be removed in v2.0
+    
+    Use apps.reviews.Review instead - it has more features:
+    - Multiple rating categories (cleanliness, comfort, staff, etc.)
+    - Moderation workflow
+    - Response from management
+    - Better audit trail
+    
+    Migration guide: docs/DEPRECATION_PLAN.md
+    Migration script: python manage.py migrate_room_reviews
+    
+    ---
+    
     Guest review for a room category after checkout.
     One review per booking.
     """

@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Модерация отзыва — Зори Ваха{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <a href="{% url 'reviews:moderation_list' %}" class="btn btn-sm btn-outline-secondary mb-3">← К списку</a>
+            
+            <h1 class="mb-4">Модерация отзыва</h1>
+            
+            <!-- Информация об отзыве -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <div>
+                            <h4>{{ review.title }}</h4>
+                            <p class="text-muted mb-0">
+                                <strong>Автор:</strong> {{ review.guest_name }}<br>
+                                <strong>Дата:</strong> {{ review.created_at|date:"d F Y, H:i" }}<br>
+                                <strong>Бронирование:</strong> {{ review.booking.confirmation_number }}
+                            </p>
+                        </div>
+                        <div class="text-center">
+                            <h2 class="mb-0">{{ review.overall_rating }}.0</h2>
+                            <div class="text-warning">⭐</div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h5>Детальные оценки</h5>
+                    <div class="row mb-3">
+                        <div class="col-6">Чистота: {{ review.cleanliness_rating }}/5</div>
+                        <div class="col-6">Комфорт: {{ review.comfort_rating }}/5</div>
+                        <div class="col-6">Персонал: {{ review.staff_rating }}/5</div>
+                        <div class="col-6">Цена/качество: {{ review.value_rating }}/5</div>
+                        <div class="col-6">Расположение: {{ review.location_rating }}/5</div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h5>Текст отзыва</h5>
+                    <p style="white-space: pre-line;">{{ review.text }}</p>
+                    
+                    {% if review.pros %}
+                    <div class="alert alert-success">
+                        <h6>Достоинства</h6>
+                        <p class="mb-0" style="white-space: pre-line;">{{ review.pros }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if review.cons %}
+                    <div class="alert alert-warning">
+                        <h6>Недостатки</h6>
+                        <p class="mb-0" style="white-space: pre-line;">{{ review.cons }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Форма модерации -->
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Решение по модерации</h5>
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">Применить</button>
+                            <a href="{% url 'reviews:moderation_list' %}" class="btn btn-outline-secondary">Отмена</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
