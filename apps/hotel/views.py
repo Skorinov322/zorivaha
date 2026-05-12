@@ -23,11 +23,13 @@ Staff views (CRUD):
 
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.views import View
 from django.views.generic import TemplateView, ListView, DetailView, FormView
 
+from apps.bookings.models import BookingStatus
 from apps.core.permissions import AdminRequiredMixin, ManagerRequiredMixin, ReceptionistRequiredMixin
+from apps.reviews.forms import ReviewForm
 from .forms import (
     AvailabilitySearchForm,
     ContactForm,
@@ -78,7 +80,47 @@ class IndexView(TemplateView):
             ("bi-stars",         "Уборка номеров",      "Регулярная уборка и свежее бельё"),
             ("bi-geo-alt",       "Центр населённого пункта", "В шаговой доступности от магазинов и инфраструктуры"),
         ]
+
+        if self.request.user.is_authenticated:
+            completed_categories = RoomCategory.objects.filter(
+                bookings__guest=self.request.user,
+                bookings__status=BookingStatus.CHECKED_OUT,
+            ).distinct().order_by("name")
+            ctx["review_form"] = ReviewForm(available_categories=completed_categories)
+            ctx["review_categories"] = completed_categories
+        else:
+            ctx["review_form"] = None
+            ctx["review_categories"] = RoomCategory.objects.none()
+
         return ctx
+
+    def post(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect(f"{reverse('login')}?next={request.path}")
+
+        completed_categories = RoomCategory.objects.filter(
+            bookings__guest=request.user,
+            bookings__status=BookingStatus.CHECKED_OUT,
+        ).distinct().order_by("name")
+        form = ReviewForm(request.POST, available_categories=completed_categories)
+
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.author = request.user
+            review.guest_name = request.user.get_full_name() or request.user.email
+            review.ip_address = self.request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[0] if self.request.META.get("HTTP_X_FORWARDED_FOR") else self.request.META.get("REMOTE_ADDR")
+            review.user_agent = self.request.META.get("HTTP_USER_AGENT", "")[:500]
+            review.save()
+
+            messages.success(
+                request,
+                "Спасибо за отзыв! Он будет опубликован после модерации."
+            )
+            return redirect("hotel:index")
+
+        ctx = self.get_context_data(**kwargs)
+        ctx["review_form"] = form
+        return render(request, self.template_name, ctx)
 
 
 class RoomListView(ListView):

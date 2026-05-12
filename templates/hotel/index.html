@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static crispy_forms_tags %}
 
 {% block title %}Главная{% endblock %}
 {% block meta_description %}Зори Ваха — уютная гостиница в тихом посёлке. Спокойный отдых, домашняя атмосфера, персональный сервис. Адрес: Школьная улица, 12, пгт Излучинск, Нижневартовский район, Ханты-Мансийский автономный округ — Югра.{% endblock %}
@@ -277,6 +277,87 @@
     </div>
     {% endif %}
 
+  </div>
+</section>
+
+{# ══ REVIEW FORM ══ #}
+<section class="features-section" aria-labelledby="review-heading">
+  <div class="container">
+    <div class="text-center mb-5 reveal">
+      <div class="eyebrow mb-3">Ваш отзыв</div>
+      <h2 class="section-heading" id="review-heading">
+        Оставьте отзыв о гостинице или выбранной категории
+      </h2>
+      <p class="section-lead mx-auto mt-3">
+        Выберите категорию из завершённых бронирований или оставьте общий отзыв о гостинице.
+      </p>
+    </div>
+
+    <div class="row justify-content-center">
+      <div class="col-lg-10 reveal">
+        {% if user.is_authenticated %}
+          {% if review_categories.exists %}
+          <div class="card p-4">
+            <form method="post">
+              {% csrf_token %}
+              <div class="row gy-3">
+                <div class="col-12 col-md-6">
+                  <label class="form-label">Категория номера</label>
+                  {{ review_form.room_category|as_crispy_field }}
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label">Общая оценка</label>
+                  {{ review_form.overall_rating }}
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label">Чистота</label>
+                  {{ review_form.cleanliness_rating }}
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label">Комфорт</label>
+                  {{ review_form.comfort_rating }}
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label">Персонал</label>
+                  {{ review_form.staff_rating }}
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label">Цена/качество</label>
+                  {{ review_form.value_rating }}
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label">Расположение</label>
+                  {{ review_form.location_rating }}
+                </div>
+                <div class="col-12">
+                  {{ review_form.title|as_crispy_field }}
+                </div>
+                <div class="col-12">
+                  {{ review_form.text|as_crispy_field }}
+                </div>
+                <div class="col-12 col-md-6">
+                  {{ review_form.pros|as_crispy_field }}
+                </div>
+                <div class="col-12 col-md-6">
+                  {{ review_form.cons|as_crispy_field }}
+                </div>
+                <div class="col-12 text-end">
+                  <button type="submit" class="btn btn-primary">Отправить отзыв</button>
+                </div>
+              </div>
+            </form>
+          </div>
+          {% else %}
+          <div class="alert alert-warning">Чтобы оставить отзыв, нужно иметь завершённую бронь и историю проживания.</div>
+          {% endif %}
+        {% else %}
+          <div class="alert alert-secondary">
+            <p class="mb-2">Войдите, чтобы оставить отзыв.</p>
+            <a href="{% url 'login' %}?next={% url 'hotel:index' %}" class="btn btn-outline-primary">Войти</a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
   </div>
 </section>
 

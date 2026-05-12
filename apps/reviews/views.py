@@ -36,6 +36,7 @@ class ReviewListView(ListView):
             status=ReviewStatus.APPROVED
         ).select_related(
             "booking__room_category",
+            "room_category",
             "author"
         ).prefetch_related("response")
         
@@ -77,6 +78,7 @@ class ReviewDetailView(DetailView):
             status=ReviewStatus.APPROVED
         ).select_related(
             "booking__room_category",
+            "room_category",
             "author",
             "moderated_by"
         ).prefetch_related("response")
@@ -112,6 +114,7 @@ def create_review(request, booking_id):
         if form.is_valid():
             review = form.save(commit=False)
             review.booking = booking
+            review.room_category = booking.room_category
             review.author = request.user
             review.guest_name = request.user.get_full_name() or request.user.email
             

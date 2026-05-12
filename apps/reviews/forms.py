@@ -16,6 +16,7 @@ class ReviewForm(forms.ModelForm):
     class Meta:
         model = Review
         fields = [
+            "room_category",
             "overall_rating",
             "cleanliness_rating",
             "comfort_rating",
@@ -55,8 +56,13 @@ class ReviewForm(forms.ModelForm):
             }),
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, available_categories=None, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["room_category"].required = False
+        self.fields["room_category"].empty_label = _("Общий отзыв о гостинице")
+        if available_categories is not None:
+            self.fields["room_category"].queryset = available_categories
+
         # Добавляем классы для звездочек
         rating_fields = [
             "overall_rating",

@@ -66,6 +66,15 @@ class Review(UUIDModel, TimeStampedModel):
         verbose_name=_("бронирование"),
         help_text=_("Отзыв привязан к конкретному бронированию"),
     )
+    room_category = models.ForeignKey(
+        "hotel.RoomCategory",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="reviews_for_category",
+        verbose_name=_("категория номера"),
+        help_text=_("Категория номера, о которой вы оставляете отзыв"),
+    )
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,

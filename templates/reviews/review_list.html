@@ -73,7 +73,10 @@
                     <div class="d-flex justify-content-between align-items-start mb-2">
                         <div>
                             <h5 class="card-title mb-1">{{ review.title }}</h5>
-                            <small class="text-muted">{{ review.guest_name }} • {{ review.created_at|date:"d.m.Y" }}</small>
+                            <small class="text-muted">
+                                {{ review.guest_name }} • {{ review.created_at|date:"d.m.Y" }}
+                                {% if review.room_category %}• {{ review.room_category.name }}{% endif %}
+                            </small>
                         </div>
                         <div class="text-warning">
                             {% for i in "12345" %}
