@@ -103,7 +103,7 @@ class ContactForm(forms.Form):
 
 class RoomCategoryForm(forms.ModelForm):
     """Форма создания/редактирования категории номеров"""
-    
+
     class Meta:
         model = RoomCategory
         fields = [
@@ -127,6 +127,11 @@ class RoomCategoryForm(forms.ModelForm):
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'is_featured': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Slug is auto-generated via JS or in model.save(), so it's optional in the form
+        self.fields['slug'].required = False
 
 
 class RoomForm(forms.ModelForm):

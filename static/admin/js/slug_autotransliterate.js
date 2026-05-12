@@ -6,7 +6,6 @@
 (function() {
     'use strict';
 
-    // Russian to English transliteration mapping
     const translitMap = {
         'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd',
         'е': 'e', 'ё': 'yo', 'ж': 'zh', 'з': 'z', 'и': 'i',
@@ -24,17 +23,16 @@
         'Э': 'E', 'Ю': 'Yu', 'Я': 'Ya'
     };
 
-    // Slugify the result: lowercase, replace spaces with hyphens, remove non-alphanum
     function slugify(text) {
         let result = '';
         for (let char of text) {
             result += translitMap[char] || char;
         }
         result = result.toLowerCase();
-        result = result.replace(/\s+/g, '-');          // spaces → hyphens
-        result = result.replace(/[^a-z0-9-]/g, '');    // keep only alphanum + hyphens
-        result = result.replace(/-+/g, '-');           // collapse multiple hyphens
-        result = result.replace(/^-|-$/g, '');         // trim hyphens
+        result = result.replace(/\s+/g, '-');
+        result = result.replace(/[^a-z0-9-]/g, '');
+        result = result.replace(/-+/g, '-');
+        result = result.replace(/^-|-$/g, '');
         return result;
     }
 
@@ -44,37 +42,21 @@
 
         if (!nameInput || !slugInput) return;
 
-        // Only auto-generate if slug is empty or prepopulated_fields is active
-        const shouldAutoGenerate = function() {
-            return slugInput.value === '' || slugInput.hasAttribute('readonly');
-        };
+        // If slug already has a value, it's an edit — don't auto-update
+        const isEdit = slugInput.value !== '';
 
-        nameInput.addEventListener('input', function() {
-            if (shouldAutoGenerate()) {
-                const name = this.value.trim();
-                if (name) {
-                    slugInput.value = slugify(name);
-                } else {
-                    slugInput.value = '';
-                }
-            }
-        });
+        let manualEdit = false;
 
-        // Also replace slug if user manually edits and then focuses back on name
         slugInput.addEventListener('focus', function() {
-            // Mark that user is manually editing — stop auto-generation
-            this.dataset.manualEdit = 'true';
+            manualEdit = true;
         });
 
         nameInput.addEventListener('input', function() {
-            // If user started manual edit on slug, don't override it
-            if (slugInput.dataset.manualEdit === 'true') {
-                return;
-            }
-            if (shouldAutoGenerate()) {
-                const name = this.value.trim();
-                slugInput.value = name ? slugify(name) : '';
-            }
+            if (manualEdit) return;
+            if (isEdit) return; // preserve existing slug on edit
+
+            const name = this.value.trim();
+            slugInput.value = name ? slugify(name) : '';
         });
     });
 })();
