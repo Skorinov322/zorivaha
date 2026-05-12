@@ -1,17 +1,13 @@
 from django.contrib import admin
 from django.utils.html import format_html
+from django.urls import path
+from django.http import HttpResponse
+from django.utils.translation import gettext_lazy as _
 
 from apps.core.admin_site import role_admin_site, RoleRestrictedMixin
 from .models import Amenity, RoomCategory, RoomImage, Room
 
 
-class RoomImageInline(admin.TabularInline):
-    model = RoomImage
-    extra = 1
-    fields = ["image", "caption", "is_primary", "sort_order"]
-
-
-@admin.register(Amenity, site=role_admin_site)
 class AmenityAdmin(RoleRestrictedMixin, admin.ModelAdmin):
     min_view_role   = "admin"
     min_change_role = "admin"
@@ -54,7 +50,6 @@ class RoomCategoryAdmin(RoleRestrictedMixin, admin.ModelAdmin):
     list_filter     = ["is_active", "is_featured", "bed_type", "max_guests"]
     list_editable   = ["is_active", "is_featured", "sort_order"]
     search_fields   = ["name", "description", "short_description"]
-    prepopulated_fields = {"slug": ("name",)}
     filter_horizontal   = ["amenities"]
     inlines = [RoomImageInline]
     ordering = ["sort_order", "name"]
@@ -68,6 +63,9 @@ class RoomCategoryAdmin(RoleRestrictedMixin, admin.ModelAdmin):
         ("Медиа",     {"fields": ("thumbnail",)}),
         ("Удобства",  {"fields": ("amenities",)}),
     )
+    
+    class Media:
+        js = ('admin/js/slug_autotransliterate.js',)
     
     @admin.action(description="Активировать выбранные категории")
     def activate_categories(self, request, queryset):

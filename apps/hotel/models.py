@@ -20,6 +20,7 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import TimeStampedModel, OrderedModel
+from apps.core.utils import slugify_ru
 
 
 # ---------------------------------------------------------------------------
@@ -173,6 +174,23 @@ class RoomCategory(TimeStampedModel, OrderedModel):
     @property
     def review_count(self) -> int:
         return self.reviews.filter(is_approved=True).count()
+
+    def save(self, *args, **kwargs):
+        # Auto-generate transliterated slug from name if not provided
+        if not self.slug:
+            base = slugify_ru(self.name)
+            if not base:
+                # fallback to Django's slugify
+                from django.utils.text import slugify
+                base = slugify(self.name)
+            slug = base
+            counter = 2
+            # Ensure uniqueness
+            while RoomCategory.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f"{base}-{counter}"
+                counter += 1
+            self.slug = slug
+        super().save(*args, **kwargs)
 
 
 # ---------------------------------------------------------------------------
