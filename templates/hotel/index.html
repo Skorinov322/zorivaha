@@ -498,6 +498,91 @@
 {# ══ STATS ══ #}
 
 
+{# ══ FAQ PREVIEW ══ #}
+<section style="background:var(--dark-800);padding:6rem 0;border-top:1px solid var(--border-subtle)" aria-labelledby="faq-preview-heading">
+  <div class="container">
+    <div class="text-center mb-5 reveal">
+      <div class="eyebrow mb-3">Вопросы и ответы</div>
+      <h2 class="section-heading" id="faq-preview-heading">
+        Часто задаваемые <em>вопросы</em>
+      </h2>
+      <p class="section-lead mx-auto mt-3">
+        Собрали ответы на самые популярные вопросы о бронировании, заезде и услугах
+      </p>
+    </div>
+    <div class="row g-4 justify-content-center">
+      <div class="col-lg-8">
+        <div class="accordion" id="faqPreviewAccordion" style="display:flex;flex-direction:column;gap:.75rem">
+
+          <div class="reveal" style="background:#fff;border:1px solid rgba(13,13,13,.08);border-radius:16px;overflow:hidden;transition:border-color .25s,box-shadow .25s"
+               onmouseover="this.style.borderColor='rgba(255,142,60,.25)';this.style.boxShadow='0 4px 20px rgba(255,142,60,.08)'"
+               onmouseout="this.style.borderColor='rgba(13,13,13,.08)';this.style.boxShadow='none'">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqP1"
+                    style="background:#fff;color:#0d0d0d;font-size:.95rem;font-weight:500;padding:1.25rem 1.5rem;border:none;border-radius:16px;box-shadow:none">
+              Как забронировать номер?
+            </button>
+            <div id="faqP1" class="accordion-collapse collapse" data-bs-parent="#faqPreviewAccordion">
+              <div style="padding:0 1.5rem 1.25rem;font-size:.9rem;color:rgba(13,13,13,.65);line-height:1.8">
+                Выберите номер на странице «Номера», укажите даты заезда и выезда, количество гостей и нажмите «Забронировать». Подтверждение придёт на email.
+              </div>
+            </div>
+          </div>
+
+          <div class="reveal" style="transition-delay:.05s;background:#fff;border:1px solid rgba(13,13,13,.08);border-radius:16px;overflow:hidden;transition:border-color .25s,box-shadow .25s"
+               onmouseover="this.style.borderColor='rgba(255,142,60,.25)';this.style.boxShadow='0 4px 20px rgba(255,142,60,.08)'"
+               onmouseout="this.style.borderColor='rgba(13,13,13,.08)';this.style.boxShadow='none'">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqP2"
+                    style="background:#fff;color:#0d0d0d;font-size:.95rem;font-weight:500;padding:1.25rem 1.5rem;border:none;border-radius:16px;box-shadow:none">
+              Каковы условия заезда и выезда?
+            </button>
+            <div id="faqP2" class="accordion-collapse collapse" data-bs-parent="#faqPreviewAccordion">
+              <div style="padding:0 1.5rem 1.25rem;font-size:.9rem;color:rgba(13,13,13,.65);line-height:1.8">
+                Стандартное время заезда — с 12:00, выезда — до 12:00. Ранний заезд и поздний выезд возможны по запросу и при наличии свободных номеров, с доплатой.
+              </div>
+            </div>
+          </div>
+
+          <div class="reveal" style="transition-delay:.1s;background:#fff;border:1px solid rgba(13,13,13,.08);border-radius:16px;overflow:hidden;transition:border-color .25s,box-shadow .25s"
+               onmouseover="this.style.borderColor='rgba(255,142,60,.25)';this.style.boxShadow='0 4px 20px rgba(255,142,60,.08)'"
+               onmouseout="this.style.borderColor='rgba(13,13,13,.08)';this.style.boxShadow='none'">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqP3"
+                    style="background:#fff;color:#0d0d0d;font-size:.95rem;font-weight:500;padding:1.25rem 1.5rem;border:none;border-radius:16px;box-shadow:none">
+              Есть ли бесплатная парковка?
+            </button>
+            <div id="faqP3" class="accordion-collapse collapse" data-bs-parent="#faqPreviewAccordion">
+              <div style="padding:0 1.5rem 1.25rem;font-size:.9rem;color:rgba(13,13,13,.65);line-height:1.8">
+                Да, для гостей гостиницы предусмотрена бесплатная парковка на территории.
+              </div>
+            </div>
+          </div>
+
+          <div class="reveal" style="transition-delay:.15s;background:#fff;border:1px solid rgba(13,13,13,.08);border-radius:16px;overflow:hidden;transition:border-color .25s,box-shadow .25s"
+               onmouseover="this.style.borderColor='rgba(255,142,60,.25)';this.style.boxShadow='0 4px 20px rgba(255,142,60,.08)'"
+               onmouseout="this.style.borderColor='rgba(13,13,13,.08)';this.style.boxShadow='none'">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqP4"
+                    style="background:#fff;color:#0d0d0d;font-size:.95rem;font-weight:500;padding:1.25rem 1.5rem;border:none;border-radius:16px;box-shadow:none">
+              Какие способы оплаты принимаются?
+            </button>
+            <div id="faqP4" class="accordion-collapse collapse" data-bs-parent="#faqPreviewAccordion">
+              <div style="padding:0 1.5rem 1.25rem;font-size:.9rem;color:rgba(13,13,13,.65);line-height:1.8">
+                Принимаем наличные и банковские карты (Visa, Mastercard, МИР). Оплата производится при заезде или онлайн при бронировании.
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="text-center mt-4 reveal" style="transition-delay:.2s">
+          <a href="{% url 'content:faq' %}" class="btn-luxury-outline">
+            <i class="bi bi-question-circle" aria-hidden="true"></i>
+            Все вопросы и ответы
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 {# ══ CTA ══ #}
 <section class="cta-section" aria-labelledby="cta-heading">
   <div class="container">
