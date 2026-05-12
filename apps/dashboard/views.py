@@ -555,8 +555,9 @@ class SiteContentPolicyView(AdminRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        from apps.content.models import SiteContent
+        from apps.content.models import SiteContent, LegalPage
 
+        # Old SiteContent policies
         ctx["policy_items"] = [
             {
                 "key": key,
@@ -565,6 +566,9 @@ class SiteContentPolicyView(AdminRequiredMixin, TemplateView):
             }
             for key, label in self.policy_keys
         ]
+
+        # New LegalPage entries (for public docs)
+        ctx["legal_pages"] = LegalPage.objects.filter(is_active=True).order_by("page_type")
         return ctx
 
     def post(self, request, *args, **kwargs):

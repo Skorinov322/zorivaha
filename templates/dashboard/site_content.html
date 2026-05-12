@@ -5,9 +5,11 @@
 {% block dashboard_subtitle %}Редактирование текста политики конфиденциальности, условий и правил проживания{% endblock %}
 
 {% block dashboard_content %}
+
+{# --- Old SiteContent policies (text areas) --- #}
 <div class="dash-card">
   <div class="dash-card-header">
-    <div class="dash-card-title"><i class="bi bi-file-earmark-text"></i> Тексты политик</div>
+    <div class="dash-card-title"><i class="bi bi-file-earmark-text"></i> Тексты политик (старый формат)</div>
   </div>
   <form method="post">
     {% csrf_token %}
@@ -25,4 +27,49 @@
     </div>
   </form>
 </div>
+
+{# --- New LegalPage preview buttons --- #}
+<div class="dash-card mt-4" style="border-color: rgba(255,142,60,.25);">
+  <div class="dash-card-header" style="border-bottom-color: rgba(255,142,60,.2);">
+    <div class="dash-card-title"><i class="bi bi-eye me-2"></i>Просмотр публичных страниц</div>
+  </div>
+  <div class="card-body">
+    <p class="text-muted mb-3">Откройте каждую страницу в новой вкладке, чтобы проверить, как она выглядит для гостей.</p>
+    <div class="row g-3">
+      <div class="col-md-4">
+        <a href="{% url 'content:terms' %}" target="_blank" class="btn btn-outline-primary w-100" style="border-radius: 10px; padding: 0.75rem;">
+          <i class="bi bi-journal-text me-2"></i>Условия использования
+        </a>
+      </div>
+      <div class="col-md-4">
+        <a href="{% url 'content:privacy' %}" target="_blank" class="btn btn-outline-primary w-100" style="border-radius: 10px; padding: 0.75rem;">
+          <i class="bi bi-shield-lock me-2"></i>Политика конфиденциальности
+        </a>
+      </div>
+      <div class="col-md-4">
+        <a href="{% url 'content:accommodation_policy' %}" target="_blank" class="btn btn-outline-primary w-100" style="border-radius: 10px; padding: 0.75rem;">
+          <i class="bi bi-house-heart me-2"></i>Политика проживания
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# --- Quick edit links to LegalPage admin --- #}
+<div class="dash-card mt-4" style="border-color: rgba(32,201,151,.25);">
+  <div class="dash-card-header" style="border-bottom-color: rgba(32,201,151,.2);">
+    <div class="dash-card-title"><i class="bi bi-pencil-square me-2"></i>Быстрое редактирование (админка)</div>
+  </div>
+  <div class="card-body">
+    <p class="text-muted mb-3">Откроет редактор каждой страницы в админ-панели.</p>
+    <div class="row g-3">
+      <div class="col-md-4">
+        <a href="{% url 'role_admin:content_legalpage_changelist' %}" class="btn btn-outline-success w-100" style="border-radius: 10px; padding: 0.75rem;">
+          <i class="bi bi-gear me-2"></i>Редактировать страницы
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
