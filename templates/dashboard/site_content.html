@@ -67,13 +67,13 @@
 
 {% block extra_js %}
 {{ block.super }}
-<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>
+<script src="https://cdn.tiny.cloud/1/bp1s0kq2wyex652rhgtdnxobx596begb3dc2mdsmfbpibriu/tinymce/8/tinymce.min.js" referrerpolicy="origin" crossorigin="anonymous"></script>
 <script>
 tinymce.init({
     selector: '.tinymce-editor',
     height: 400,
-    plugins: 'lists link image table code',
-    toolbar: 'undo redo | bold italic underline | bullist numlist | link | removeformat',
+    plugins: 'anchor autolink charmap lists link media table codesample',
+    toolbar: 'undo redo | bold italic underline strikethrough | bullist numlist indent outdent | link | removeformat',
     menubar: false,
     branding: false,
     language: 'ru',
