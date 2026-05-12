@@ -15,9 +15,9 @@ urlpatterns = [
         "yandex_26cd3036c0f3861a.html",
         TemplateView.as_view(
             template_name="yandex_26cd3036c0f3861a.html",
-            content_type="text/html"
+            content_type="text/html",
         ),
-        name="yandex_verification"
+        name="yandex_verification",
     ),
 
     # Health check (no auth, used by Docker/Nginx/monitoring)
@@ -29,24 +29,17 @@ urlpatterns = [
     # Role-based admin — для персонала по ролям
     path("staff-admin/", role_admin_site.urls),
 
-    # ----------------------------------------------------------------
     # First-run setup wizard
-    # Accessible only when no superuser exists (enforced by middleware
-    # + Http404 guard inside the views themselves).
-    # ----------------------------------------------------------------
     path("setup/", include("apps.setup.urls", namespace="setup")),
 
-    # Public hotel site
-    path("", include("apps.hotel.urls", namespace="hotel")),
+    # Auth: register / login / logout
+    path("auth/", include("apps.accounts.auth_urls")),
+
+    # Personal cabinet
+    path("cabinet/", include("apps.accounts.urls", namespace="accounts")),
 
     # Booking flow
     path("bookings/", include("apps.bookings.urls", namespace="bookings")),
-
-    # Auth: register / login / logout  →  /auth/…
-    path("auth/", include("apps.accounts.auth_urls")),
-
-    # Personal cabinet  →  /cabinet/…
-    path("cabinet/", include("apps.accounts.urls", namespace="accounts")),
 
     # CRM (staff only)
     path("crm/", include("apps.crm.urls", namespace="crm")),
@@ -63,8 +56,11 @@ urlpatterns = [
     # Reviews
     path("reviews/", include("apps.reviews.urls", namespace="reviews")),
 
-    # Content pages (FAQ, etc.)
+    # Content pages (FAQ, legal docs) — before hotel catch-all
     path("", include("apps.content.urls", namespace="content")),
+
+    # Public hotel site (catch-all index last)
+    path("", include("apps.hotel.urls", namespace="hotel")),
 ]
 
 # Serve media files in development
@@ -74,13 +70,13 @@ if settings.DEBUG:
     # Temporarily disabled debug_toolbar
     # import debug_toolbar
     # urlpatterns = [path("__debug__/", include(debug_toolbar.urls))] + urlpatterns
-    
+
     # Test error pages in development
     urlpatterns += [
         path("test-errors/", include("apps.core.test_urls")),
     ]
 
 # Custom error handlers
-handler403 = 'apps.core.views.custom_403'
-handler404 = 'apps.core.views.custom_404'
-handler500 = 'apps.core.views.custom_500'
+handler403 = "apps.core.views.custom_403"
+handler404 = "apps.core.views.custom_404"
+handler500 = "apps.core.views.custom_500"
