@@ -200,10 +200,13 @@
         </div>
         <div class="col-sm-6">
           <label class="form-label">Телефон <span class="required-star">*</span></label>
-          <input type="tel" name="{{ form.guest_phone.html_name }}"
-                 class="form-control{% if form.guest_phone.errors %} is-invalid{% endif %}"
-                 value="{{ form.guest_phone.value|default:'' }}"
-                 placeholder="+7 (___) ___-__-__" required />
+<input type="tel" name="{{ form.guest_phone.html_name }}"
+                  class="form-control{% if form.guest_phone.errors %} is-invalid{% endif %}"
+                  value="{{ form.guest_phone.value|default:'' }}"
+                  placeholder="+7 (___) ___-__-__"
+                  data-mask="+7 (000) 000-00-00"
+                  data-mask-placeholder="_"
+                  required />
           {% for e in form.guest_phone.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
         </div>
         <div class="col-sm-6">

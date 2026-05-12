@@ -66,7 +66,7 @@ class ContactForm(forms.Form):
             'autocomplete': 'email'
         })
     )
-    
+
     phone = forms.CharField(
         label=_("Телефон"),
         max_length=20,
@@ -76,7 +76,9 @@ class ContactForm(forms.Form):
             'class': 'lux-input',
             'placeholder': '+7 (___) ___-__-__',
             'autocomplete': 'tel',
-            'type': 'tel'
+            'type': 'tel',
+            'data-mask': '+7 (000) 000-00-00',
+            'data-mask-placeholder': '_'
         })
     )
     

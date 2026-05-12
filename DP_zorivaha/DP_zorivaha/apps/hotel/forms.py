@@ -67,18 +67,20 @@ class ContactForm(forms.Form):
         })
     )
     
-    phone = forms.CharField(
-        label=_("Телефон"),
-        max_length=20,
-        required=False,
-        validators=[phone_validator],
-        widget=forms.TextInput(attrs={
-            'class': 'lux-input',
-            'placeholder': '+7 (___) ___-__-__',
-            'autocomplete': 'tel',
-            'type': 'tel'
-        })
-    )
+phone = forms.CharField(
+         label=_("Телефон"),
+         max_length=20,
+         required=False,
+         validators=[phone_validator],
+         widget=forms.TextInput(attrs={
+             'class': 'lux-input',
+             'placeholder': '+7 (___) ___-__-__',
+             'autocomplete': 'tel',
+             'type': 'tel',
+             'data-mask': '+7 (000) 000-00-00',
+             'data-mask-placeholder': '_'
+         })
+     )
     
     subject = forms.CharField(
         label=_("Тема"),

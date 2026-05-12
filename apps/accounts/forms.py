@@ -203,10 +203,13 @@ class ProfileUpdateForm(forms.ModelForm):
                 "class": "form-control",
                 "placeholder": _("Фамилия"),
             }),
-            "phone": forms.TextInput(attrs={
-                "class": "form-control",
-                "placeholder": "+7 (___) ___-__-__",
-            }),
+"phone": forms.TextInput(attrs={
+                    "class": "form-control",
+                    "placeholder": "+7 (___) ___-__-__",
+                    "type": "tel",
+                    "data-mask": "+7 (000) 000-00-00",
+                    "data-mask-placeholder": "_"
+                }),
             "date_of_birth": forms.DateInput(attrs={
                 "class": "form-control",
                 "type": "date",
