@@ -30,7 +30,6 @@ THIRD_PARTY_APPS = [
     "crispy_forms",
     "crispy_bootstrap5",
     "django_filters",
-    "tinymce",
     # Temporarily disabled Celery apps
     # "django_celery_beat",
     # "django_celery_results",
@@ -303,20 +302,3 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 SECURE_BROWSER_XSS_FILTER = True
 X_FRAME_OPTIONS = "DENY"
 SECURE_CONTENT_TYPE_NOSNIFF = True
-
-# ---------------------------------------------------------------------------
-# TinyMCE Rich Text Editor
-# ---------------------------------------------------------------------------
-
-TINYMCE_DEFAULT_CONFIG = {
-    "height": 500,
-    "width": "100%",
-    "plugins": "link lists image table code",
-    "toolbar": "undo redo | bold italic underline | bullist numlist | link | removeformat",
-    "menubar": False,
-    "statusbar": True,
-    "branding": False,
-    "resize": True,
-    "language": "ru",
-    "language_url": "/static/tinymce/langs/ru.js",
-}
