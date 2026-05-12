@@ -107,3 +107,34 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+
+/* =========================================================
+   Back to top button
+   ========================================================= */
+(function() {
+  const btn = document.createElement('button');
+  btn.className = 'back-to-top';
+  btn.innerHTML = '<i class="bi bi-arrow-up"></i>';
+  btn.setAttribute('aria-label', 'Наверх');
+  document.body.appendChild(btn);
+
+  const SCROLL_THRESHOLD = 300;
+
+  const toggleBtn = () => {
+    if (window.scrollY > SCROLL_THRESHOLD) {
+      btn.classList.add('show');
+    } else {
+      btn.classList.remove('show');
+    }
+  };
+
+  window.addEventListener('scroll', toggleBtn, { passive: true });
+  toggleBtn();
+
+  btn.addEventListener('click', () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  });
+})();
