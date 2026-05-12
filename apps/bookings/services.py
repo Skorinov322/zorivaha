@@ -66,6 +66,7 @@ def create_booking(
     discount_reason: str = "",
     discount_percent: int = None,
     created_by=None,
+    accommodation_policy_agreed: bool = False,
 ) -> Booking:
     """
     Create a new booking in PENDING state.
@@ -117,6 +118,8 @@ def create_booking(
         created_by=created_by,
         status=BookingStatus.PENDING,
         auto_cancel_at=timezone.now() + timedelta(hours=PENDING_BOOKING_TTL_HOURS),
+        accommodation_policy_agreed=accommodation_policy_agreed,
+        accommodation_policy_agreed_at=timezone.now() if accommodation_policy_agreed else None,
     )
 
     # Audit log
@@ -164,19 +167,11 @@ def create_booking_group(
     discount_amount: Decimal = Decimal("0"),
     discount_reason: str = "",
     created_by=None,
+    accommodation_policy_agreed: bool = False,
 ) -> list:
     """
     Создаёт N броней в одной транзакции, связанных общим group_id.
-
-    Алгоритм:
-    1. Рассчитать total_persons = adults + children
-    2. Получить список свободных номеров (SELECT FOR UPDATE)
-    3. Распределить персон по номерам (_distribute_persons)
-    4. Если номеров недостаточно — raise BookingUnavailableError с alternatives
-    5. Рассчитать цену для каждой брони
-    6. Создать N объектов Booking с одинаковым group_id
-    7. Запустить Celery-задачу send_group_booking_email
-    8. Вернуть список созданных броней
+    ...
     """
     from apps.hotel.selectors import get_available_rooms_for_group, get_alternative_categories
     from apps.bookings.price_calculator import PriceCalculator, calculate_paid_persons
@@ -262,7 +257,7 @@ def create_booking_group(
             guest_email=guest_email,
             check_in=check_in,
             check_out=check_out,
-            # Для доп. номеров группы ставим минимум 1 взрослого (constraint adults >= 1).
+            # Для доп. номеров группы ставим минимум 1 взрослый (constraint adults >= 1).
             # Реальное распределение персон отражается в цене (paid_in_room).
             adults=adults if i == 0 else max(persons_in_room, 1),
             children=children if i == 0 else 0,
@@ -279,6 +274,8 @@ def create_booking_group(
             created_by=created_by,
             status=BookingStatus.PENDING,
             auto_cancel_at=auto_cancel_time,
+            accommodation_policy_agreed=accommodation_policy_agreed,
+            accommodation_policy_agreed_at=timezone.now() if accommodation_policy_agreed else None,
         )
 
         BookingHistory.objects.create(

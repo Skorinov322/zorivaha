@@ -150,9 +150,9 @@
            required />
     <label class="form-check-label" for="{{ form.agree_terms.id_for_label }}">
       Я согласен с
-      <a href="#" style="color:var(--accent)">условиями использования</a>
+      <a href="{% url 'content:terms' %}" target="_blank" style="color:var(--accent)">условиями использования</a>
       и
-      <a href="#" style="color:var(--accent)">политикой конфиденциальности</a>
+      <a href="{% url 'content:privacy' %}" target="_blank" style="color:var(--accent)">политикой конфиденциальности</a>
     </label>
     {% for e in form.agree_terms.errors %}
       <div class="invalid-feedback d-block">{{ e }}</div>

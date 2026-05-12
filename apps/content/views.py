@@ -5,7 +5,9 @@ Public views for content pages.
 """
 
 from django.views.generic import ListView
-from .models import FAQ
+from django.shortcuts import render, get_object_or_404
+from django.http import Http404
+from .models import FAQ, LegalPage
 
 
 class FAQListView(ListView):
@@ -33,3 +35,16 @@ class FAQListView(ListView):
         
         context["faqs_by_category"] = faqs_by_category
         return context
+
+
+def legal_page(request, page_type):
+    """
+    Render a legal page by its page_type.
+    Allowed types: terms, privacy, accommodation.
+    """
+    valid_types = [choice[0] for choice in LegalPage.PageType.choices]
+    if page_type not in valid_types:
+        raise Http404("Страница не найдена")
+    
+    page = get_object_or_404(LegalPage, page_type=page_type, is_active=True)
+    return render(request, "content/legal_page.html", {"page": page})

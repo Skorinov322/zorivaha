@@ -226,3 +226,31 @@ class Testimonial(TimeStampedModel, OrderedModel):
 
     def __str__(self) -> str:
         return f"{self.author_name}: {self.text[:60]}…"
+
+
+# ---------------------------------------------------------------------------
+# LegalPage
+# ---------------------------------------------------------------------------
+
+class LegalPage(TimeStampedModel):
+    """Editable legal pages: terms of use, privacy policy, accommodation policy."""
+
+    class PageType(models.TextChoices):
+        TERMS = "terms", _("Условия использования")
+        PRIVACY = "privacy", _("Политика конфиденциальности")
+        ACCOMMODATION = "accommodation", _("Политика проживания")
+
+    page_type = models.CharField(
+        _("тип страницы"), max_length=20, choices=PageType.choices, unique=True
+    )
+    title = models.CharField(_("заголовок"), max_length=200)
+    content = models.TextField(_("содержание"), help_text=_("Поддерживается HTML"))
+    is_active = models.BooleanField(_("активна"), default=True)
+
+    class Meta:
+        verbose_name = _("правовая страница")
+        verbose_name_plural = _("правовые страницы")
+        ordering = ["page_type"]
+
+    def __str__(self) -> str:
+        return self.get_page_type_display()

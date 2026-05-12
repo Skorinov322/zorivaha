@@ -125,6 +125,7 @@ class BookingCreateView(LoginRequiredMixin, View):
                     special_requests=d.get("special_requests", ""),
                     arrival_time=d.get("arrival_time"),
                     source="website",
+                    accommodation_policy_agreed=d.get("accommodation_policy_agreed", False),
                 )
             else:
                 booking = create_booking(
@@ -146,6 +147,7 @@ class BookingCreateView(LoginRequiredMixin, View):
                     special_requests=d.get("special_requests", ""),
                     arrival_time=d.get("arrival_time"),
                     source="website",
+                    accommodation_policy_agreed=d.get("accommodation_policy_agreed", False),
                 )
         except BookingUnavailableError as e:
             messages.error(request, str(e))

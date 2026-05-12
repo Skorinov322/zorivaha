@@ -9,7 +9,22 @@ from django.contrib import admin
 from django.utils.html import format_html
 
 from apps.core.admin_site import role_admin_site, RoleRestrictedMixin
-from .models import HotelGallery, FAQ, SiteContent, Testimonial
+from .models import HotelGallery, FAQ, SiteContent, Testimonial, LegalPage, LegalPage
+
+
+@admin.register(LegalPage, site=role_admin_site)
+class LegalPageAdmin(RoleRestrictedMixin, admin.ModelAdmin):
+    min_view_role   = "admin"
+    min_change_role = "admin"
+    min_delete_role = "super_admin"
+    min_add_role    = "admin"
+
+    list_display  = ["page_type", "title", "is_active"]
+    list_filter   = ["page_type", "is_active"]
+    list_editable = ["is_active"]
+    search_fields = ["title", "content"]
+    ordering = ["page_type"]
+
 
 
 @admin.register(HotelGallery, site=role_admin_site)

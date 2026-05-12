@@ -453,9 +453,19 @@
       <div class="price-total">
         <span class="label">Итого</span>
         <span class="value" id="previewTotal">—</span>
+       </div>
+
+      <div class="form-check mb-3" style="text-align: left;">
+        {{ form.accommodation_policy_agreed }}
+        <label class="form-check-label" for="{{ form.accommodation_policy_agreed.id_for_label }}">
+          Я ознакомлен и согласен с <a href="{% url 'content:accommodation_policy' %}" target="_blank">политикой проживания</a>
+        </label>
+        {% for error in form.accommodation_policy_agreed.errors %}
+          <div class="invalid-feedback d-block">{{ error }}</div>
+        {% endfor %}
       </div>
 
-      <button type="submit" class="btn-submit" id="submitBtn">
+       <button type="submit" class="btn-submit" id="submitBtn">
         <span id="btnText"><i class="bi bi-calendar-check me-2"></i>Забронировать</span>
         <span id="btnLoading" style="display:none">
           <span class="spinner-border spinner-border-sm me-2"></span>Отправка…

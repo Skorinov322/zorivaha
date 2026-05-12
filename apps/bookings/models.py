@@ -209,6 +209,14 @@ class Booking(UUIDModel, TimeStampedModel):
         help_text=_("Если бронь создана сотрудником"),
     )
 
+    # ---- Policy Agreement ----
+    accommodation_policy_agreed = models.BooleanField(
+        _("согласие с политикой проживания"), default=False
+    )
+    accommodation_policy_agreed_at = models.DateTimeField(
+        _("дата и время согласия"), null=True, blank=True
+    )
+
     # ---- Cancellation ----
     cancelled_at        = models.DateTimeField(_("отменено в"),    null=True, blank=True)
     cancellation_reason = models.TextField(_("причина отмены"),    blank=True)

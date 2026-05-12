@@ -117,6 +117,14 @@ class BookingCreateForm(forms.Form):
         widget=forms.RadioSelect(attrs={"class": "form-check-input"}),
     )
 
+    # ---- Agreement ----
+    accommodation_policy_agreed = forms.BooleanField(
+        label="",  # custom label in template
+        required=True,
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        error_messages={"required": _("Необходимо согласиться с политикой проживания.")},
+    )
+
     # ---- Organization selection (existing) ----
     organization = forms.ModelChoiceField(
         label=_("Выберите организацию"),
