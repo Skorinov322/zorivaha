@@ -450,7 +450,58 @@ if (donutCtx) {
         }
       }
     }
-  });
-}
+   });
+ }
 </script>
-{% endblock %}
+
+ {# Administrative actions: migrations + policy preview #}
+ {% if request.user.is_admin or request.user.is_super_admin or request.user.is_superuser %}
+ <div class="row mb-4">
+   <div class="col-12">
+     <div class="dash-card" style="border-color: rgba(32,201,151,.25); background: linear-gradient(135deg, rgba(32,201,151,.08), rgba(32,201,151,.02)); border-radius: 12px;">
+       <div class="dash-card-header" style="border-bottom-color: rgba(32,201,151,.2);">
+         <div class="dash-card-title"><i class="bi bi-gears me-2"></i>Системные действия</div>
+       </div>
+       <div class="card-body">
+         <form method="post" action="{% url 'dashboard:run_migrations' %}" onsubmit="return confirm('Применить все ожидающие миграции к базе данных?');">
+           {% csrf_token %}
+           <button type="submit" class="btn btn-success btn-sm">
+             <i class="bi bi-arrow-repeat me-1"></i>Применить миграции
+           </button>
+         </form>
+       </div>
+     </div>
+   </div>
+ </div>
+
+ <div class="row mb-4">
+   <div class="col-12">
+     <div class="dash-card" style="border-color: rgba(255,142,60,.25); background: linear-gradient(135deg, rgba(255,142,60,.08), rgba(255,142,60,.02)); border-radius: 12px;">
+       <div class="dash-card-header" style="border-bottom-color: rgba(255,142,60,.2);">
+         <div class="dash-card-title"><i class="bi bi-file-earmark-text me-2"></i>Политики и условия</div>
+       </div>
+       <div class="card-body">
+         <div class="row g-3">
+           <div class="col-md-4">
+             <a href="{% url 'content:terms' %}" target="_blank" class="btn btn-outline-primary w-100" style="border-radius: 10px; padding: 0.75rem;">
+               <i class="bi bi-journal-text me-2"></i>Условия использования
+             </a>
+           </div>
+           <div class="col-md-4">
+             <a href="{% url 'content:privacy' %}" target="_blank" class="btn btn-outline-primary w-100" style="border-radius: 10px; padding: 0.75rem;">
+               <i class="bi bi-shield-lock me-2"></i>Политика конфиденциальности
+             </a>
+           </div>
+           <div class="col-md-4">
+             <a href="{% url 'content:accommodation_policy' %}" target="_blank" class="btn btn-outline-primary w-100" style="border-radius: 10px; padding: 0.75rem;">
+               <i class="bi bi-house-heart me-2"></i>Политика проживания
+             </a>
+           </div>
+         </div>
+       </div>
+     </div>
+   </div>
+ </div>
+ {% endif %}
+
+ {% endblock %}

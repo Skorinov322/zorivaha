@@ -14,6 +14,7 @@ urlpatterns = [
     path("metrics/",                            views.MetricsView.as_view(),           name="metrics"),
     path("gallery/",                            views.GalleryManagementView.as_view(), name="gallery"),
     path("reviews/",                            views.ReviewModerationView.as_view(), name="reviews"),
-    path("faq/",                                views.FAQManagementView.as_view(), name="faq"),
-    path("site-content/",                        views.SiteContentPolicyView.as_view(), name="site_content"),
+    path("faq/",                                views.FAQManagementView.as_view(),     name="faq"),
+    path("site-content/",                       views.SiteContentPolicyView.as_view(), name="site_content"),
+    path("run-migrations/",                     views.RunMigrationsView.as_view(),     name="run_migrations"),
 ]

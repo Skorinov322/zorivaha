@@ -585,3 +585,23 @@ class SiteContentPolicyView(AdminRequiredMixin, TemplateView):
 
         messages.success(request, "Политики сохранены.")
         return redirect("dashboard:site_content")
+
+
+# ---------------------------------------------------------------------------
+# System administration
+# ---------------------------------------------------------------------------
+
+class RunMigrationsView(AdminRequiredMixin, View):
+    """Apply all pending database migrations."""
+
+    def post(self, request, *args, **kwargs):
+        from django.core.management import call_command
+        from io import StringIO
+
+        output = StringIO()
+        try:
+            call_command("migrate", "--no-input", stdout=output)
+            messages.success(request, "Миграции успешно применены.")
+        except Exception as e:
+            messages.error(request, f"Ошибка при применении миграций: {e}")
+        return redirect("dashboard:index")
