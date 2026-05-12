@@ -29,6 +29,9 @@ urlpatterns = [
     # Role-based admin — для персонала по ролям
     path("staff-admin/", role_admin_site.urls),
 
+    # TinyMCE editor URLs
+    path("tinymce/", include("tinymce.urls")),
+
     # First-run setup wizard
     path("setup/", include("apps.setup.urls", namespace="setup")),
 

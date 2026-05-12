@@ -25,8 +25,8 @@
       </div>
       
       <div class="mb-3">
-        <label class="form-label" style="font-weight:500;">Содержание (HTML поддерживается)</label>
-        <textarea name="content_{{ page.page_type }}" class="form-control" rows="12">{{ page.content }}</textarea>
+        <label class="form-label" style="font-weight:500;">Содержание</label>
+        <textarea name="content_{{ page.page_type }}" id="editor_{{ page.page_type }}" class="form-control tinymce-editor" rows="12">{{ page.content }}</textarea>
       </div>
     </div>
     {% endfor %}
@@ -63,4 +63,21 @@
   </div>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+tinymce.init({
+    selector: '.tinymce-editor',
+    height: 400,
+    plugins: 'lists link image table code',
+    toolbar: 'undo redo | bold italic underline | bullist numlist | link | removeformat',
+    menubar: false,
+    branding: false,
+    language: 'ru',
+    resize: true,
+});
+</script>
 {% endblock %}
