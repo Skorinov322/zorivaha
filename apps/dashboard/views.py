@@ -547,47 +547,34 @@ class FAQManagementView(SuperAdminRequiredMixin, TemplateView):
 
 class SiteContentPolicyView(AdminRequiredMixin, TemplateView):
     template_name = "dashboard/site_content.html"
-    policy_keys = [
-        ("privacy_policy", "Политика конфиденциальности"),
-        ("terms_of_use", "Условия пользования"),
-        ("house_rules", "Политика проживания"),
-    ]
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        from apps.content.models import SiteContent, LegalPage
+        from apps.content.models import LegalPage
 
-        # Old SiteContent policies
-        ctx["policy_items"] = [
-            {
-                "key": key,
-                "label": label,
-                "value": SiteContent.get(key, ""),
-            }
-            for key, label in self.policy_keys
-        ]
-
-        # New LegalPage entries (for public docs)
-        ctx["legal_pages"] = LegalPage.objects.filter(is_active=True).order_by("page_type")
+        ctx["legal_pages"] = list(LegalPage.objects.filter(is_active=True).order_by("page_type"))
         return ctx
 
     def post(self, request, *args, **kwargs):
-        from apps.content.models import SiteContent
+        from apps.content.models import LegalPage
 
-        for key, label in self.policy_keys:
-            value = request.POST.get(key, "").strip()
-            SiteContent.objects.update_or_create(
-                key=key,
-                defaults={
-                    "label": label,
-                    "content_type": SiteContent.ContentType.TEXT,
-                    "value_text": value,
-                    "is_active": True,
-                    "updated_by": request.user,
-                },
-            )
+        action = request.POST.get("action", "")
 
-        messages.success(request, "Политики сохранены.")
+        if action == "save_legal_pages":
+            for page in LegalPage.objects.filter(is_active=True):
+                title_field = f"title_{page.page_type}"
+                content_field = f"content_{page.page_type}"
+                
+                if title_field in request.POST:
+                    page.title = request.POST[title_field]
+                if content_field in request.POST:
+                    page.content = request.POST[content_field]
+                page.save(update_fields=["title", "content", "updated_at"])
+
+            messages.success(request, "Изменения сохранены.")
+        else:
+            messages.error(request, "Неподдерживаемое действие.")
+
         return redirect("dashboard:site_content")
 
 
