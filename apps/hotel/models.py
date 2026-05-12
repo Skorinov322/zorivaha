@@ -408,11 +408,11 @@ class RoomReview(TimeStampedModel):
     )
     guest = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
-        null=True, related_name="reviews", verbose_name=_("гость"),
+        null=True, related_name="room_reviews", verbose_name=_("гость"),
     )
     booking = models.OneToOneField(
         "bookings.Booking", on_delete=models.SET_NULL,
-        null=True, blank=True, related_name="review",
+        null=True, blank=True, related_name="room_review_legacy",
         verbose_name=_("бронирование"),
     )
 
