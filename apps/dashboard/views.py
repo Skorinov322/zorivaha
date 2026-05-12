@@ -11,7 +11,12 @@ from django.utils import timezone
 from django.views import View
 from django.views.generic import TemplateView, ListView
 
-from apps.core.permissions import ManagerRequiredMixin, ReceptionistRequiredMixin
+from apps.core.permissions import (
+    ManagerRequiredMixin,
+    ReceptionistRequiredMixin,
+    AdminRequiredMixin,
+    SuperAdminRequiredMixin,
+)
 from apps.bookings.selectors import get_today_arrivals, get_today_departures
 from apps.bookings.services import (
     confirm_booking, perform_check_in, perform_check_out,
@@ -412,3 +417,171 @@ class GalleryManagementView(ReceptionistRequiredMixin, View):
             messages.success(request, "Фото обновлено.")
 
         return redirect(request.get_full_path())
+
+
+# ---------------------------------------------------------------------------
+# Review moderation
+# ---------------------------------------------------------------------------
+
+class ReviewModerationView(ReceptionistRequiredMixin, TemplateView):
+    template_name = "dashboard/reviews.html"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        from apps.hotel.models import RoomReview
+
+        status = self.request.GET.get("status", "pending")
+        reviews = RoomReview.objects.select_related("guest", "category", "approved_by")
+
+        if status == "approved":
+            reviews = reviews.filter(is_approved=True)
+        elif status == "all":
+            reviews = reviews.order_by("-created_at")
+        else:
+            reviews = reviews.filter(is_approved=False)
+
+        ctx.update({
+            "reviews": reviews.order_by("-created_at"),
+            "review_status": status,
+            "review_counts": {
+                "pending": RoomReview.objects.filter(is_approved=False).count(),
+                "approved": RoomReview.objects.filter(is_approved=True).count(),
+                "all": RoomReview.objects.count(),
+            },
+        })
+        return ctx
+
+    def post(self, request, *args, **kwargs):
+        from apps.hotel.models import RoomReview
+
+        pk = request.POST.get("pk")
+        action = request.POST.get("action")
+        review = get_object_or_404(RoomReview, pk=pk)
+
+        if action == "approve":
+            review.is_approved = True
+            review.approved_by = request.user
+            review.approved_at = timezone.now()
+            review.save(update_fields=["is_approved", "approved_by", "approved_at"])
+            messages.success(request, "Отзыв одобрен.")
+        elif action == "unapprove":
+            review.is_approved = False
+            review.approved_by = None
+            review.approved_at = None
+            review.save(update_fields=["is_approved", "approved_by", "approved_at"])
+            messages.success(request, "Отзыв снят с публикации.")
+        else:
+            messages.error(request, "Неподдерживаемое действие.")
+
+        return redirect("dashboard:reviews")
+
+
+# ---------------------------------------------------------------------------
+# FAQ management
+# ---------------------------------------------------------------------------
+
+class FAQManagementView(SuperAdminRequiredMixin, TemplateView):
+    template_name = "dashboard/faq.html"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        from apps.content.models import FAQ
+
+        ctx["faqs"] = FAQ.objects.order_by("category", "sort_order")
+        ctx["category_choices"] = FAQ.FAQCategory.choices
+        return ctx
+
+    def post(self, request, *args, **kwargs):
+        from apps.content.models import FAQ
+
+        action = request.POST.get("action")
+        if action == "create":
+            question = request.POST.get("question", "").strip()
+            answer = request.POST.get("answer", "").strip()
+            category = request.POST.get("category", FAQ.FAQCategory.GENERAL)
+            is_active = request.POST.get("is_active") == "on"
+            try:
+                sort_order = int(request.POST.get("sort_order") or 0)
+            except (TypeError, ValueError):
+                sort_order = 0
+
+            if not question or not answer:
+                messages.error(request, "Вопрос и ответ обязательны для создания FAQ.")
+            else:
+                FAQ.objects.create(
+                    question=question,
+                    answer=answer,
+                    category=category,
+                    is_active=is_active,
+                    sort_order=sort_order,
+                )
+                messages.success(request, "FAQ создан.")
+
+        elif action in {"save", "delete"}:
+            faq = get_object_or_404(FAQ, pk=request.POST.get("faq_pk"))
+
+            if action == "save":
+                faq.question = request.POST.get("question", faq.question).strip()
+                faq.answer = request.POST.get("answer", faq.answer).strip()
+                faq.category = request.POST.get("category", faq.category)
+                faq.is_active = request.POST.get("is_active") == "on"
+                try:
+                    faq.sort_order = int(request.POST.get("sort_order") or faq.sort_order)
+                except (TypeError, ValueError):
+                    pass
+                faq.save()
+                messages.success(request, "FAQ обновлён.")
+            else:
+                faq.delete()
+                messages.success(request, "FAQ удалён.")
+
+        else:
+            messages.error(request, "Неподдерживаемое действие.")
+
+        return redirect("dashboard:faq")
+
+
+# ---------------------------------------------------------------------------
+# Site content policies
+# ---------------------------------------------------------------------------
+
+class SiteContentPolicyView(AdminRequiredMixin, TemplateView):
+    template_name = "dashboard/site_content.html"
+    policy_keys = [
+        ("privacy_policy", "Политика конфиденциальности"),
+        ("terms_of_use", "Условия пользования"),
+        ("house_rules", "Политика проживания"),
+    ]
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        from apps.content.models import SiteContent
+
+        ctx["policy_items"] = [
+            {
+                "key": key,
+                "label": label,
+                "value": SiteContent.get(key, ""),
+            }
+            for key, label in self.policy_keys
+        ]
+        return ctx
+
+    def post(self, request, *args, **kwargs):
+        from apps.content.models import SiteContent
+
+        for key, label in self.policy_keys:
+            value = request.POST.get(key, "").strip()
+            SiteContent.objects.update_or_create(
+                key=key,
+                defaults={
+                    "label": label,
+                    "content_type": SiteContent.ContentType.TEXT,
+                    "value_text": value,
+                    "is_active": True,
+                    "updated_by": request.user,
+                },
+            )
+
+        messages.success(request, "Политики сохранены.")
+        return redirect("dashboard:site_content")

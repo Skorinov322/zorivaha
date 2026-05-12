@@ -730,6 +730,14 @@
           <i class="bi bi-building"></i> Номера
         </a>
       </li>
+      {% if request.user.is_receptionist %}
+      <li>
+        <a href="{% url 'dashboard:reviews' %}"
+           class="{% if request.resolver_match.url_name == 'reviews' %}active{% endif %}">
+          <i class="bi bi-chat-square-text"></i> Модерация отзывов
+        </a>
+      </li>
+      {% endif %}
       <li>
         <a href="{% url 'accounts:user_list' %}"
            class="{% if request.resolver_match.namespace == 'accounts' and 'user' in request.resolver_match.url_name %}active{% endif %}">
@@ -781,6 +789,22 @@
           <i class="bi bi-images"></i> Галерея сайта
         </a>
       </li>
+      {% if request.user.is_admin %}
+      <li>
+        <a href="{% url 'dashboard:site_content' %}"
+           class="{% if request.resolver_match.url_name == 'site_content' %}active{% endif %}">
+          <i class="bi bi-file-text"></i> Политики сайта
+        </a>
+      </li>
+      {% endif %}
+      {% if request.user.is_super_admin or request.user.is_superuser %}
+      <li>
+        <a href="{% url 'dashboard:faq' %}"
+           class="{% if request.resolver_match.url_name == 'faq' %}active{% endif %}">
+          <i class="bi bi-question-circle"></i> FAQ
+        </a>
+      </li>
+      {% endif %}
       <li>
         <a href="{% url 'notifications:contact_messages' %}"
            class="{% if request.resolver_match.url_name == 'contact_messages' or request.resolver_match.url_name == 'contact_message_detail' %}active{% endif %}">

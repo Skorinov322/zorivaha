@@ -1,0 +1,119 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block dashboard_title %}FAQ{% endblock %}
+{% block dashboard_subtitle %}Управление часто задаваемыми вопросами{% endblock %}
+
+{% block dashboard_content %}
+<div class="dash-card mb-4">
+  <div class="dash-card-header">
+    <div class="dash-card-title"><i class="bi bi-plus-circle"></i> Добавить новый FAQ</div>
+  </div>
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="create">
+    <div class="row gy-3">
+      <div class="col-12 col-lg-6">
+        <label class="form-label">Вопрос</label>
+        <input type="text" name="question" class="form-control" placeholder="Например: Как забронировать номер?">
+      </div>
+      <div class="col-12 col-lg-6">
+        <label class="form-label">Категория</label>
+        <select name="category" class="form-select">
+          {% for value,label in category_choices %}
+          <option value="{{ value }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12">
+        <label class="form-label">Ответ</label>
+        <textarea name="answer" class="form-control" rows="5" placeholder="Текст ответа"></textarea>
+      </div>
+      <div class="col-12 col-md-4">
+        <label class="form-label">Сортировка</label>
+        <input type="number" name="sort_order" class="form-control" min="0" value="0">
+      </div>
+      <div class="col-12 col-md-4 d-flex align-items-center">
+        <div class="form-check mt-2">
+          <input class="form-check-input" type="checkbox" name="is_active" id="faqActive" checked>
+          <label class="form-check-label" for="faqActive">Активен</label>
+        </div>
+      </div>
+      <div class="col-12 col-md-4 d-flex align-items-end justify-content-end">
+        <button type="submit" class="btn btn-primary">Создать FAQ</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div class="dash-card">
+  <div class="dash-card-header">
+    <div class="dash-card-title"><i class="bi bi-list-ul"></i> Список вопросов</div>
+  </div>
+
+  {% if faqs %}
+  <div class="table-responsive">
+    <table class="table table-borderless align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Вопрос</th>
+          <th>Ответ</th>
+          <th>Категория</th>
+          <th>Активен</th>
+          <th class="text-end">Действия</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for faq in faqs %}
+        <tr>
+          <td style="min-width:220px;">
+            <input type="text" name="question" form="faq-form-{{ faq.pk }}" class="form-control form-control-sm" value="{{ faq.question }}">
+          </td>
+          <td>
+            <textarea name="answer" form="faq-form-{{ faq.pk }}" class="form-control form-control-sm" rows="3">{{ faq.answer }}</textarea>
+          </td>
+          <td>
+            <select name="category" form="faq-form-{{ faq.pk }}" class="form-select form-select-sm">
+              {% for value,label in category_choices %}
+              <option value="{{ value }}" {% if faq.category == value %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </td>
+          <td>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="is_active" form="faq-form-{{ faq.pk }}" id="faqActive{{ faq.pk }}" {% if faq.is_active %}checked{% endif %}>
+              <label class="form-check-label" for="faqActive{{ faq.pk }}"></label>
+            </div>
+            <input type="number" name="sort_order" form="faq-form-{{ faq.pk }}" class="form-control form-control-sm mt-2" value="{{ faq.sort_order }}" min="0" style="width:100px;">
+          </td>
+          <td class="text-end">
+            <button type="submit" form="faq-form-{{ faq.pk }}" class="btn btn-sm btn-primary mb-2">Сохранить</button>
+            <button type="submit" form="faq-delete-{{ faq.pk }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Удалить FAQ?')">Удалить</button>
+          </td>
+        </tr>
+        <tr style="display:none;">
+          <td colspan="5">
+            <form method="post" id="faq-form-{{ faq.pk }}">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="save">
+              <input type="hidden" name="faq_pk" value="{{ faq.pk }}">
+            </form>
+            <form method="post" id="faq-delete-{{ faq.pk }}">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="delete">
+              <input type="hidden" name="faq_pk" value="{{ faq.pk }}">
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="dash-empty" style="padding:2rem;text-align:center">
+    <i class="bi bi-question-circle" style="font-size:2rem;margin-bottom:1rem;display:block;color:rgba(13,13,13,.35)"></i>
+    Нет FAQ. Добавьте первый вопрос.
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

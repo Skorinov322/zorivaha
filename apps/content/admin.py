@@ -74,10 +74,10 @@ class HotelGalleryAdmin(RoleRestrictedMixin, admin.ModelAdmin):
 
 @admin.register(FAQ, site=role_admin_site)
 class FAQAdmin(RoleRestrictedMixin, admin.ModelAdmin):
-    min_view_role   = "manager"
-    min_change_role = "manager"
-    min_delete_role = "admin"
-    min_add_role    = "manager"
+    min_view_role   = "super_admin"
+    min_change_role = "super_admin"
+    min_delete_role = "super_admin"
+    min_add_role    = "super_admin"
     
     list_display  = ["question", "category", "is_active", "sort_order"]
     list_filter   = ["category", "is_active"]
@@ -106,7 +106,7 @@ class FAQAdmin(RoleRestrictedMixin, admin.ModelAdmin):
 
 @admin.register(SiteContent, site=role_admin_site)
 class SiteContentAdmin(RoleRestrictedMixin, admin.ModelAdmin):
-    min_view_role   = "manager"
+    min_view_role   = "admin"
     min_change_role = "admin"
     min_delete_role = "super_admin"
     min_add_role    = "admin"
