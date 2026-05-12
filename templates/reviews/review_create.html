@@ -3,111 +3,361 @@
 
 {% block title %}Оставить отзыв — Зори Ваха{% endblock %}
 
-{% block content %}
-<div class="container my-5">
-    <div class="row">
-        <div class="col-lg-8 mx-auto">
-            <h1 class="mb-4">Оставить отзыв</h1>
-            
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h5 class="card-title">О вашем проживании</h5>
-                    <p class="card-text">
-                        <strong>Бронирование:</strong> {{ booking.confirmation_number }}<br>
-                        <strong>Категория номера:</strong> {{ booking.room_category.name }}<br>
-                        <strong>Даты:</strong> {{ booking.check_in|date:"d.m.Y" }} — {{ booking.check_out|date:"d.m.Y" }}
-                    </p>
-                </div>
-            </div>
-            
-            <form method="post" class="card">
-                {% csrf_token %}
-                <div class="card-body">
-                    <h5 class="mb-3">Оцените ваше проживание</h5>
-                    
-                    <!-- Оценки -->
-                    <div class="mb-4">
-                        <label class="form-label">Общая оценка *</label>
-                        {{ form.overall_rating }}
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Чистота *</label>
-                            {{ form.cleanliness_rating }}
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Комфорт *</label>
-                            {{ form.comfort_rating }}
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Персонал *</label>
-                            {{ form.staff_rating }}
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Цена/качество *</label>
-                            {{ form.value_rating }}
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Расположение *</label>
-                            {{ form.location_rating }}
-                        </div>
-                    </div>
-                    
-                    <hr class="my-4">
-                    
-                    <!-- Текстовые поля -->
-                    <div class="mb-3">
-                        {{ form.title|as_crispy_field }}
-                    </div>
-                    
-                    <div class="mb-3">
-                        {{ form.text|as_crispy_field }}
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            {{ form.pros|as_crispy_field }}
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            {{ form.cons|as_crispy_field }}
-                        </div>
-                    </div>
-                    
-                    <div class="alert alert-info">
-                        <small>
-                            <strong>Обратите внимание:</strong> Ваш отзыв будет опубликован после модерации администратором.
-                            Мы проверяем все отзывы, чтобы убедиться в их достоверности.
-                        </small>
-                    </div>
-                    
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary">Отправить отзыв</button>
-                        <a href="{% url 'bookings:detail' booking.pk %}" class="btn btn-outline-secondary">Отмена</a>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
+{% block extra_css %}
 <style>
-.rating-input {
-    display: flex;
-    gap: 10px;
+:root {
+  --star-inactive: rgba(13, 13, 13, 0.15);
+  --star-active: var(--gold, #ff8e3c);
+  --star-hover: var(--gold-light, #ffb380);
 }
-.rating-input input[type="radio"] {
-    display: none;
+
+/* Star rating */
+.star-rating {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  gap: 6px;
+  font-size: 1.6rem;
 }
-.rating-input label {
-    cursor: pointer;
-    font-size: 24px;
-    color: #ddd;
+.star-rating input[type="radio"] {
+  display: none;
 }
-.rating-input input[type="radio"]:checked ~ label,
-.rating-input label:hover,
-.rating-input label:hover ~ label {
-    color: #ffc107;
+.star-rating label {
+  cursor: pointer;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0; /* hide numeric text */
+  line-height: 1;
+  transition: transform 0.1s ease;
+}
+.star-rating label::before {
+  font-family: "bootstrap-icons";
+  font-style: normal;
+  font-weight: normal;
+  font-size: 1.6rem;
+  content: "\f466"; /* bi-star outline */
+  color: var(--star-inactive);
+  display: block;
+  line-height: 1;
+}
+.star-rating label:hover::before,
+.star-rating label:hover ~ label::before {
+  content: "\f467"; /* bi-star-fill on hover */
+  color: var(--star-hover);
+}
+.star-rating label.checked::before {
+  content: "\f467"; /* bi-star-fill when checked */
+  color: var(--star-active);
+}
+.star-rating label:active {
+  transform: scale(0.9);
+}
+
+.rating-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: rgba(13, 13, 13, 0.75);
+  margin-bottom: 0.35rem;
+}
+.rating-label i {
+  color: var(--gold);
+  font-size: 0.95rem;
+}
+
+.rating-field {
+  margin-bottom: 1.25rem;
+}
+.rating-field .star-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+.rating-field .star-rating {
+  flex: 0 0 auto;
+}
+.current-rating {
+  font-size: 0.85rem;
+  color: rgba(13, 13, 13, 0.6);
+  font-weight: 500;
 }
 </style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+  <div class="row">
+    <div class="col-lg-8 mx-auto">
+      <h1 class="mb-4">Оставить отзыв</h1>
+
+      <div class="card mb-4">
+        <div class="card-body">
+          <h5 class="card-title">О вашем проживании</h5>
+          <p class="card-text">
+            <strong>Бронирование:</strong> {{ booking.confirmation_number }}<br>
+            <strong>Категория номера:</strong> {{ booking.room_category.name }}<br>
+            <strong>Даты:</strong> {{ booking.check_in|date:"d.m.Y" }} — {{ booking.check_out|date:"d.m.Y" }}
+          </p>
+        </div>
+      </div>
+
+      <form method="post" class="card">
+        {% csrf_token %}
+        <div class="card-body">
+          <h5 class="mb-3">Оцените ваше проживание</h5>
+
+          <!-- Оценки -->
+          <div class="rating-field">
+            <label class="rating-label">
+              <i class="bi bi-star-fill" aria-hidden="true"></i>
+              Общая оценка <span class="text-danger">*</span>
+            </label>
+            <div class="star-wrapper">
+              <div class="star-rating" data-field="overall_rating">
+                {{ form.overall_rating }}
+              </div>
+              <span class="current-rating" id="overall_rating_text">Выберите оценку</span>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6">
+              <div class="rating-field">
+                <label class="rating-label">
+                  <i class="bi bi-droplet-fill" aria-hidden="true"></i>
+                  Чистота <span class="text-danger">*</span>
+                </label>
+                <div class="star-wrapper">
+                  <div class="star-rating" data-field="cleanliness_rating">
+                    {{ form.cleanliness_rating }}
+                  </div>
+                  <span class="current-rating" id="cleanliness_rating_text">Выберите оценку</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="rating-field">
+                <label class="rating-label">
+                  <i class="bi bi-house-heart-fill" aria-hidden="true"></i>
+                  Комфорт <span class="text-danger">*</span>
+                </label>
+                <div class="star-wrapper">
+                  <div class="star-rating" data-field="comfort_rating">
+                    {{ form.comfort_rating }}
+                  </div>
+                  <span class="current-rating" id="comfort_rating_text">Выберите оценку</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="rating-field">
+                <label class="rating-label">
+                  <i class="bi bi-person-badge-fill" aria-hidden="true"></i>
+                  Персонал <span class="text-danger">*</span>
+                </label>
+                <div class="star-wrapper">
+                  <div class="star-rating" data-field="staff_rating">
+                    {{ form.staff_rating }}
+                  </div>
+                  <span class="current-rating" id="staff_rating_text">Выберите оценку</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="rating-field">
+                <label class="rating-label">
+                  <i class="bi bi-cash-coin" aria-hidden="true"></i>
+                  Цена/качество <span class="text-danger">*</span>
+                </label>
+                <div class="star-wrapper">
+                  <div class="star-rating" data-field="value_rating">
+                    {{ form.value_rating }}
+                  </div>
+                  <span class="current-rating" id="value_rating_text">Выберите оценку</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="rating-field">
+                <label class="rating-label">
+                  <i class="bi bi-geo-alt-fill" aria-hidden="true"></i>
+                  Расположение <span class="text-danger">*</span>
+                </label>
+                <div class="star-wrapper">
+                  <div class="star-rating" data-field="location_rating">
+                    {{ form.location_rating }}
+                  </div>
+                  <span class="current-rating" id="location_rating_text">Выберите оценку</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- средняя оценка -->
+          <div class="mt-4 p-3" style="background: rgba(255, 142, 60, 0.08); border: 1px solid rgba(255, 142, 60, 0.2); border-radius: 10px;">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+              <div>
+                <span style="font-size: 0.85rem; color: rgba(13, 13, 13, 0.65);">Средняя оценка</span>
+                <div style="display: flex; align-items: baseline; gap: 0.35rem; margin-top: 0.2rem;">
+                  <span id="average_value" style="font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-weight: 700; color: var(--gold);">—</span>
+                  <span style="font-size: 0.85rem; color: rgba(13, 13, 13, 0.5);">из 5</span>
+                </div>
+              </div>
+              <div id="average_stars" style="display: flex; gap: 4px; font-size: 1.4rem;">
+                <i class="bi bi-star" style="color: rgba(13,13,13,0.15);"></i>
+                <i class="bi bi-star" style="color: rgba(13,13,13,0.15);"></i>
+                <i class="bi bi-star" style="color: rgba(13,13,13,0.15);"></i>
+                <i class="bi bi-star" style="color: rgba(13,13,13,0.15);"></i>
+                <i class="bi bi-star" style="color: rgba(13,13,13,0.15);"></i>
+              </div>
+            </div>
+          </div>
+
+          <hr class="my-4">
+
+          <!-- Текстовые поля -->
+          <div class="mb-3">
+            {{ form.title|as_crispy_field }}
+          </div>
+
+          <div class="mb-3">
+            {{ form.text|as_crispy_field }}
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              {{ form.pros|as_crispy_field }}
+            </div>
+            <div class="col-md-6 mb-3">
+              {{ form.cons|as_crispy_field }}
+            </div>
+          </div>
+
+          <div class="alert alert-info">
+            <small>
+              <strong>Обратите внимание:</strong> Ваш отзыв будет опубликован после модерации администратором.
+              Мы проверяем все отзывы, чтобы убедиться в их достоверности.
+            </small>
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Отправить отзыв</button>
+            <a href="{% url 'bookings:detail' booking.pk %}" class="btn btn-outline-secondary">Отмена</a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const starRatings = document.querySelectorAll('.star-rating');
+  if (starRatings.length === 0) return;
+  const ratingFields = ['overall_rating', 'cleanliness_rating', 'comfort_rating', 'staff_rating', 'value_rating', 'location_rating'];
+  const averageValueEl = document.getElementById('average_value');
+  const averageStarsEl = document.getElementById('average_stars');
+
+  function updateStarAppearance() {
+    starRatings.forEach(function(wrapper) {
+      const checkedInput = wrapper.querySelector('input[type="radio"]:checked');
+      const selectedValue = checkedInput ? parseInt(checkedInput.value, 10) : 0;
+      const labels = wrapper.querySelectorAll('label');
+      labels.forEach(function(label) {
+        let input = label.querySelector('input[type="radio"]');
+        if (!input) {
+          const forAttr = label.getAttribute('for');
+          if (forAttr) {
+            input = document.getElementById(forAttr);
+          }
+        }
+        if (!input) return;
+        const value = parseInt(input.value, 10);
+        if (value <= selectedValue) {
+          label.classList.add('checked');
+        } else {
+          label.classList.remove('checked');
+        }
+      });
+    });
+  }
+
+  function updateAverage() {
+    let sum = 0;
+    let count = 0;
+
+    ratingFields.forEach(function(fieldName) {
+      const field = document.querySelector(`input[name="${fieldName}"]:checked`);
+      if (field) {
+        sum += parseInt(field.value, 10);
+        count++;
+      }
+    });
+
+    if (count > 0) {
+      const avg = sum / count;
+      averageValueEl.textContent = avg.toFixed(1);
+      renderStars(avg, averageStarsEl);
+    } else {
+      averageValueEl.textContent = '—';
+      renderStars(0, averageStarsEl);
+    }
+  }
+
+  function renderStars(value, container) {
+    const fullStars = Math.floor(value);
+    const hasHalf = value % 1 >= 0.5;
+    let html = '';
+
+    for (let i = 1; i <= 5; i++) {
+      if (i <= fullStars) {
+        html += '<i class="bi bi-star-fill" style="color: var(--gold);"></i>';
+      } else if (i === fullStars + 1 && hasHalf) {
+        html += '<i class="bi bi-star-half" style="color: var(--gold);"></i>';
+      } else {
+        html += '<i class="bi bi-star" style="color: rgba(13,13,13,0.15);"></i>';
+      }
+    }
+
+    container.innerHTML = html;
+  }
+
+  starRatings.forEach(function(wrapper) {
+    const fieldName = wrapper.dataset.field;
+    const textEl = document.getElementById(fieldName + '_text');
+    const inputs = wrapper.querySelectorAll('input[type="radio"]');
+
+    inputs.forEach(function(input) {
+      input.addEventListener('change', function() {
+        updateStarAppearance();
+        if (textEl) {
+          const value = parseInt(this.value, 10);
+          const textMap = {
+            '1': 'Очень плохо',
+            '2': 'Плохо',
+            '3': 'Нормально',
+            '4': 'Хорошо',
+            '5': 'Отлично'
+          };
+          textEl.textContent = textMap[value] || 'Выберите оценку';
+        }
+        updateAverage();
+      });
+    });
+  });
+
+  updateStarAppearance();
+  updateAverage();
+});
+</script>
 {% endblock %}

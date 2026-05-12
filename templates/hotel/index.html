@@ -92,28 +92,44 @@
 .cta-title{font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,4vw,3.25rem);font-weight:700;color:var(--text-primary);margin-bottom:1rem}
 .cta-subtitle{font-size:1.05rem;color:var(--text-muted);max-width:520px;margin:0 auto 2.5rem;line-height:1.75}
 
-/* ── Rating inputs ── */
-.rating-input {
-    display: flex;
-    gap: 8px;
-    align-items: center;
+/* ── Star rating ── */
+.star-rating {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  gap: 6px;
+  font-size: 1.4rem;
 }
-.rating-input input[type="radio"] {
-    display: none;
+.star-rating input[type="radio"] { display: none; }
+.star-rating label {
+  cursor: pointer;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0;
+  line-height: 1;
+  transition: transform 0.1s ease;
 }
-.rating-input label {
-    cursor: pointer;
-    font-size: 20px;
-    color: #ddd;
-    transition: color 0.2s;
+.star-rating label::before {
+  font-family: "bootstrap-icons";
+  font-style: normal;
+  font-weight: normal;
+  font-size: 1.4rem;
+  content: "\f466"; /* bi-star outline */
+  color: rgba(13, 13, 13, 0.15);
+  display: block;
+  line-height: 1;
 }
-.rating-input input[type="radio"]:checked ~ label,
-.rating-input label:hover,
-.rating-input label:hover ~ label {
-    color: var(--gold);
+.star-rating label:hover::before,
+.star-rating label:hover ~ label::before {
+  content: "\f467"; /* bi-star-fill on hover */
+  color: var(--gold-light, #ffb380);
 }
-.rating-input label:hover ~ label {
-    color: #ddd;
+.star-rating label.checked::before {
+  content: "\f467"; /* bi-star-fill when checked */
+  color: var(--gold, #ff8e3c);
 }
 
 /* ── Form styling ── */
@@ -391,39 +407,71 @@
                   <label class="form-label">
                     <i class="bi bi-star me-1" aria-hidden="true"></i>Общая оценка
                   </label>
-                  {{ review_form.overall_rating }}
+                  <div class="star-rating" data-field="overall_rating">
+                    {{ review_form.overall_rating }}
+                  </div>
                 </div>
                 <div class="col-12 col-md-6">
                   <label class="form-label">
                     <i class="bi bi-droplet me-1" aria-hidden="true"></i>Чистота
                   </label>
-                  {{ review_form.cleanliness_rating }}
+                  <div class="star-rating" data-field="cleanliness_rating">
+                    {{ review_form.cleanliness_rating }}
+                  </div>
                 </div>
                 <div class="col-12 col-md-6">
                   <label class="form-label">
                     <i class="bi bi-house-heart me-1" aria-hidden="true"></i>Комфорт
                   </label>
-                  {{ review_form.comfort_rating }}
+                  <div class="star-rating" data-field="comfort_rating">
+                    {{ review_form.comfort_rating }}
+                  </div>
                 </div>
                 <div class="col-12 col-md-6">
                   <label class="form-label">
                     <i class="bi bi-person-badge me-1" aria-hidden="true"></i>Персонал
                   </label>
-                  {{ review_form.staff_rating }}
+                  <div class="star-rating" data-field="staff_rating">
+                    {{ review_form.staff_rating }}
+                  </div>
                 </div>
                 <div class="col-12 col-md-6">
                   <label class="form-label">
                     <i class="bi bi-cash-coin me-1" aria-hidden="true"></i>Цена/качество
                   </label>
-                  {{ review_form.value_rating }}
+                  <div class="star-rating" data-field="value_rating">
+                    {{ review_form.value_rating }}
+                  </div>
                 </div>
                 <div class="col-12 col-md-6">
                   <label class="form-label">
                     <i class="bi bi-geo-alt me-1" aria-hidden="true"></i>Расположение
                   </label>
-                  {{ review_form.location_rating }}
-                </div>
-                <div class="col-12">
+                  <div class="star-rating" data-field="location_rating">
+                    {{ review_form.location_rating }}
+                   </div>
+                 </div>
+                 <div class="col-12">
+                   <div class="mt-3 p-3" style="background: rgba(255, 142, 60, 0.08); border: 1px solid rgba(255, 142, 60, 0.2); border-radius: 10px;">
+                     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                       <div>
+                         <span style="font-size: 0.85rem; color: rgba(13, 13, 13, 0.65);">Средняя оценка</span>
+                         <div style="display: flex; align-items: baseline; gap: 0.35rem; margin-top: 0.2rem;">
+                           <span id="average_value" style="font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-weight: 700; color: var(--gold);">—</span>
+                           <span style="font-size: 0.85rem; color: rgba(13, 13, 13, 0.5);">из 5</span>
+                         </div>
+                       </div>
+                       <div id="average_stars" style="display: flex; gap: 4px; font-size: 1.4rem;">
+                         <i class="bi bi-star" style="color: rgba(13,13,13,0.15);"></i>
+                         <i class="bi bi-star" style="color: rgba(13,13,13,0.15);"></i>
+                         <i class="bi bi-star" style="color: rgba(13,13,13,0.15);"></i>
+                         <i class="bi bi-star" style="color: rgba(13,13,13,0.15);"></i>
+                         <i class="bi bi-star" style="color: rgba(13,13,13,0.15);"></i>
+                       </div>
+                     </div>
+                   </div>
+                 </div>
+                 <div class="col-12">
                   {{ review_form.title|as_crispy_field }}
                 </div>
                 <div class="col-12">
@@ -614,5 +662,88 @@
     { threshold: 0.1 }
   );
   document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+  // Star rating functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    const starRatings = document.querySelectorAll('.star-rating');
+    if (starRatings.length === 0) return;
+    const ratingFields = ['overall_rating', 'cleanliness_rating', 'comfort_rating', 'staff_rating', 'value_rating', 'location_rating'];
+    const averageValueEl = document.getElementById('average_value');
+    const averageStarsEl = document.getElementById('average_stars');
+
+    function updateStarAppearance() {
+      starRatings.forEach(function(wrapper) {
+        const checkedInput = wrapper.querySelector('input[type="radio"]:checked');
+        const selectedValue = checkedInput ? parseInt(checkedInput.value, 10) : 0;
+        const labels = wrapper.querySelectorAll('label');
+        labels.forEach(function(label) {
+          let input = label.querySelector('input[type="radio"]');
+          if (!input) {
+            const forAttr = label.getAttribute('for');
+            if (forAttr) {
+              input = document.getElementById(forAttr);
+            }
+          }
+          if (!input) return;
+          const value = parseInt(input.value, 10);
+          if (value <= selectedValue) {
+            label.classList.add('checked');
+          } else {
+            label.classList.remove('checked');
+          }
+        });
+      });
+    }
+
+    function updateAverage() {
+      let sum = 0;
+      let count = 0;
+
+      ratingFields.forEach(function(fieldName) {
+        const field = document.querySelector(`input[name="${fieldName}"]:checked`);
+        if (field) {
+          sum += parseInt(field.value, 10);
+          count++;
+        }
+      });
+
+      if (count > 0) {
+        const avg = sum / count;
+        averageValueEl.textContent = avg.toFixed(1);
+        renderStars(avg, averageStarsEl);
+      } else {
+        averageValueEl.textContent = '—';
+        renderStars(0, averageStarsEl);
+      }
+    }
+
+    function renderStars(value, container) {
+      const fullStars = Math.floor(value);
+      let html = '';
+
+      for (let i = 1; i <= 5; i++) {
+        if (i <= fullStars) {
+          html += '<i class="bi bi-star-fill" style="color: var(--gold);"></i>';
+        } else {
+          html += '<i class="bi bi-star" style="color: rgba(13,13,13,0.15);"></i>';
+        }
+      }
+
+      container.innerHTML = html;
+    }
+
+    starRatings.forEach(function(wrapper) {
+      const inputs = wrapper.querySelectorAll('input[type="radio"]');
+      inputs.forEach(function(input) {
+        input.addEventListener('change', function() {
+          updateStarAppearance();
+          updateAverage();
+        });
+      });
+    });
+
+    updateStarAppearance();
+    updateAverage();
+  });
 </script>
 {% endblock %}
