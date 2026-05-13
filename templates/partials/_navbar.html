@@ -32,6 +32,7 @@
      <ul id="navLinks" style="
        display: flex; gap: 36px; list-style: none;
        margin: 0; padding: 0;
+       position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
      " class="nav-links-desktop">
        <li>
          <a href="{% url 'hotel:index' %}" style="
@@ -106,10 +107,10 @@
          " class="nav-link-item">Контакты</a>
        </li>
        {% if not request.user.is_authenticated %}
-       <li>
+       <li class="mobile-only">
          <a href="/auth/login/" class="nav-link-auth">Войти</a>
        </li>
-       <li>
+       <li class="mobile-only">
          <a href="/auth/register/" class="nav-link-auth">Регистрация</a>
        </li>
         {% else %}
@@ -138,6 +139,13 @@
         </li>
         {% endif %}
       </ul>
+
+      {% if not request.user.is_authenticated %}
+      <div class="nav-auth-desktop">
+        <a href="/auth/login/" class="nav-link-auth login-link">Войти</a>
+        <a href="/auth/register/" class="nav-link-auth register-link">Регистрация</a>
+      </div>
+      {% endif %}
 
       {% if request.user.is_authenticated %}
       {# Right side: user dropdown (desktop only) #}
@@ -252,6 +260,14 @@
    .nav-link-item:hover { color: #E8700A !important; }
    .nav-link-item:hover::after { transform: scaleX(1); }
 
+   .nav-auth-desktop {
+     display: flex;
+     align-items: center;
+     gap: 14px;
+     margin-left: auto;
+     z-index: 1;
+   }
+
    /* Auth links in nav - match nav-link-item style */
    .nav-link-auth {
      font-size: 13.5px;
@@ -260,8 +276,11 @@
      text-transform: uppercase;
      color: #8B7355;
      text-decoration: none;
-     transition: color 0.35s;
+     transition: color 0.35s, background-color 0.35s, box-shadow 0.35s;
      position: relative;
+     display: inline-flex;
+     align-items: center;
+     padding: 0.65rem 0.75rem;
    }
    .nav-link-auth:hover {
      color: #E8700A;
@@ -276,6 +295,27 @@
    }
    .nav-link-auth:hover::after {
      transform: scaleX(1);
+   }
+   .nav-link-auth.login-link {
+     background: transparent;
+     color: #8B7355;
+     box-shadow: none;
+   }
+   .nav-link-auth.register-link {
+     background: #E8700A;
+     color: #ffffff;
+     border-radius: 999px;
+     box-shadow: 0 12px 28px rgba(232, 112, 10, 0.18);
+   }
+   .nav-link-auth.register-link:hover {
+     background: #d86d09;
+     color: #ffffff;
+   }
+   .nav-link-auth.register-link::after {
+     display: none;
+   }
+   .nav-link-auth.login-link:hover {
+     color: #E8700A;
    }
    .nav-link-logout {
      color: #d9376e;
@@ -285,20 +325,6 @@
    }
    .nav-link-logout::after {
      display: none;
-   }
-   .nav-link-auth:hover {
-     color: #E8700A !important;
-   }
-   .nav-link-auth::after {
-     content: '';
-     position: absolute; bottom: -4px; left: 0; right: 0; height: 2px;
-     background: #E8700A;
-     transform: scaleX(0);
-     transition: transform 0.35s;
-     border-radius: 1px;
-   }
-   .nav-link-auth:hover::after {
-     transform: scaleX(1);
    }
 
    /* Force logo font update */
@@ -327,41 +353,6 @@
      transform: rotate(-45deg) translate(7px, -6px);
    }
 
-   /* Auth links in nav - match nav-link-item style */
-   .nav-link-auth {
-     font-size: 13.5px;
-     font-weight: 500;
-     letter-spacing: 0.06em;
-     text-transform: uppercase;
-     color: #8B7355;
-     text-decoration: none;
-     transition: color 0.35s;
-     position: relative;
-   }
-   .nav-link-auth:hover {
-     color: #E8700A !important;
-   }
-   .nav-link-auth::after {
-     content: '';
-     position: absolute; bottom: -4px; left: 0; right: 0; height: 2px;
-     background: #E8700A;
-     transform: scaleX(0);
-     transition: transform 0.35s;
-     border-radius: 1px;
-   }
-   .nav-link-auth:hover::after {
-     transform: scaleX(1);
-   }
-   .nav-link-logout {
-     color: #d9376e !important;
-   }
-   .nav-link-logout:hover {
-     color: #E8700A !important;
-   }
-   .nav-link-logout::after {
-     display: none !important;
-   }
-
    @media (max-width: 900px) {
      #navbar {
        padding: 0 16px;
@@ -371,10 +362,12 @@
        justify-content: space-between !important;
      }
      .nav-links-desktop { display: none !important; }
+     .nav-auth-desktop { display: none !important; }
      .burger { display: flex !important; }
      .nav-links-desktop.open {
        display: flex !important; flex-direction: column; gap: 0;
        position: absolute; top: 64px; left: 0; right: 0;
+       transform: none !important;
        max-height: 50vh;
        overflow-y: auto;
        overflow-x: hidden;
