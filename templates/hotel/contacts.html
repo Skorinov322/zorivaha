@@ -104,7 +104,16 @@
             <div class="contact-icon" aria-hidden="true"><i class="bi bi-telephone"></i></div>
             <div>
               <div class="contact-label">Телефон</div>
-              <div class="contact-value"><a href="tel:+79280000000">{{ CONTACT_PHONE }}</a></div>
+              <div class="contact-value"><a href="tel:{{ CONTACT_PHONE }}">{{ CONTACT_PHONE }}</a></div>
+              <div class="contact-value-sub">Звонки принимаются 24/7</div>
+            </div>
+          </div>
+
+          <div class="contact-item">
+            <div class="contact-icon" aria-hidden="true"><i class="bi bi-telephone"></i></div>
+            <div>
+              <div class="contact-label">Телефон 2</div>
+              <div class="contact-value"><a href="tel:{{ CONTACT_PHONE_SECOND }}">{{ CONTACT_PHONE_SECOND }}</a></div>
               <div class="contact-value-sub">Звонки принимаются 24/7</div>
             </div>
           </div>
@@ -293,12 +302,21 @@
     {# Quick contact links #}
     <div class="row g-3 justify-content-center mt-1 reveal" style="transition-delay:.15s">
       <div class="col-12 col-sm-auto">
-        <a href="tel:+79280000000"
+        <a href="tel:{{ CONTACT_PHONE }}"
            style="display:inline-flex;align-items:center;gap:.6rem;padding:.75rem 1.5rem;background:var(--dark-600);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);color:rgba(13,13,13,.65);text-decoration:none;font-size:.875rem;transition:border-color .2s,color .2s"
            onmouseover="this.style.borderColor='var(--gold-border)';this.style.color='#fff'"
            onmouseout="this.style.borderColor='var(--border-subtle)';this.style.color='rgba(13,13,13,.65)'">
           <i class="bi bi-telephone" style="color:var(--gold)" aria-hidden="true"></i>
           {{ CONTACT_PHONE }}
+        </a>
+      </div>
+      <div class="col-12 col-sm-auto">
+        <a href="tel:{{ CONTACT_PHONE_SECOND }}"
+           style="display:inline-flex;align-items:center;gap:.6rem;padding:.75rem 1.5rem;background:var(--dark-600);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);color:rgba(13,13,13,.65);text-decoration:none;font-size:.875rem;transition:border-color .2s,color .2s"
+           onmouseover="this.style.borderColor='var(--gold-border)';this.style.color='#fff'"
+           onmouseout="this.style.borderColor='var(--border-subtle)';this.style.color='rgba(13,13,13,.65)'">
+          <i class="bi bi-telephone" style="color:var(--gold)" aria-hidden="true"></i>
+          {{ CONTACT_PHONE_SECOND }}
         </a>
       </div>
       <div class="col-12 col-sm-auto">
