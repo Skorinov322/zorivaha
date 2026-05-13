@@ -375,11 +375,15 @@
      .nav-links-desktop.open {
        display: flex !important; flex-direction: column; gap: 0;
        position: absolute; top: 64px; left: 0; right: 0;
+       max-height: calc(100vh - 64px);
+       overflow-y: auto;
+       overflow-x: hidden;
        background: rgba(253,250,246,0.98);
        backdrop-filter: blur(20px);
        padding: 8px 0;
        border-bottom: 1px solid rgba(200,185,154,0.35);
        box-shadow: 0 8px 40px rgba(44,31,16,0.1);
+       -webkit-overflow-scrolling: touch;
      }
      .nav-links-desktop.open li a {
        display: block;
