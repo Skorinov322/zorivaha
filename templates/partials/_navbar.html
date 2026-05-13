@@ -189,6 +189,7 @@
         </div>
 
       {% else %}
+        {# Auth buttons for desktop only - hidden on mobile #}
         <a href="/auth/login/" style="
           color: #8B7355;
           font-size: 13.5px;
@@ -199,7 +200,8 @@
           border: 1.5px solid rgba(200, 185, 154, 0.35);
           transition: all 0.35s;
         " onmouseover="this.style.borderColor='#E8700A';this.style.color='#E8700A'"
-           onmouseout="this.style.borderColor='rgba(200,185,154,0.35)';this.style.color='#8B7355'">
+           onmouseout="this.style.borderColor='rgba(200,185,154,0.35)';this.style.color='#8B7355'"
+           class="nav-auth-desktop">
           Войти
         </a>
         <a href="/auth/register/" style="
@@ -213,11 +215,113 @@
           letter-spacing: 0.04em;
           transition: background 0.35s, transform 0.35s;
         " onmouseover="this.style.background='#7A5C3A';this.style.transform='translateY(-1px)'"
-           onmouseout="this.style.background='#E8700A';this.style.transform='translateY(0)'">
+           onmouseout="this.style.background='#E8700A';this.style.transform='translateY(0)'"
+           class="nav-auth-desktop">
           Регистрация
         </a>
       {% endif %}
     </div>
+
+    {# Mobile burger #}
+    <button id="burger" class="burger" style="
+      display: none; flex-direction: column; gap: 4px; cursor: pointer;
+      background: none; border: none; padding: 8px;
+      border-radius: 6px;
+      transition: background-color 0.2s;
+      flex-shrink: 0;
+      z-index: 1001;
+    " onclick="toggleMobileMenu()" 
+       onmouseover="this.style.backgroundColor='rgba(232,112,10,0.1)'"
+       onmouseout="this.style.backgroundColor='transparent'">
+      <span style="display: block; width: 22px; height: 2px; background: #2C1F10; border-radius: 1px; transition: 0.3s;"></span>
+      <span style="display: block; width: 22px; height: 2px; background: #2C1F10; border-radius: 1px; transition: 0.3s;"></span>
+      <span style="display: block; width: 22px; height: 2px; background: #2C1F10; border-radius: 1px; transition: 0.3s;"></span>
+    </button>
+  </div>
+
+  {# Mobile Auth Menu (hidden on desktop) #}
+  <div id="mobileAuthMenu" style="
+    display: none; flex-direction: column; gap: 12px;
+    padding: 16px 24px; background: rgba(253,250,246,0.98);
+    border-bottom: 1px solid rgba(200,185,154,0.35);
+    box-shadow: 0 8px 40px rgba(44,31,16,0.1);
+  ">
+    {% if request.user.is_authenticated %}
+      <a href="{% url 'accounts:cabinet' %}" style="
+        display: flex; align-items: center; gap: 10px;
+        padding: 12px 16px; border-radius: 10px;
+        background: rgba(232,112,10,0.08);
+        color: #3D2E1E; text-decoration: none;
+        font-size: 14px; font-weight: 500;
+        transition: background 0.2s;
+      " onmouseover="this.style.background='rgba(232,112,10,0.12)'"
+         onmouseout="this.style.background='rgba(232,112,10,0.08)'">
+        <i class="bi bi-person-circle" style="color:#E8700A"></i>
+        Личный кабинет
+      </a>
+      <a href="{% url 'accounts:profile' %}" style="
+        display: flex; align-items: center; gap: 10px;
+        padding: 12px 16px; border-radius: 10px;
+        color: #3D2E1E; text-decoration: none;
+        font-size: 14px; font-weight: 500;
+        transition: background 0.2s;
+      " onmouseover="this.style.background='rgba(200,185,154,0.1)'"
+         onmouseout="this.style.background='transparent'">
+        <i class="bi bi-person" style="color:#8B7355"></i>
+        Профиль
+      </a>
+      <a href="{% url 'accounts:my_bookings' %}" style="
+        display: flex; align-items: center; gap: 10px;
+        padding: 12px 16px; border-radius: 10px;
+        color: #3D2E1E; text-decoration: none;
+        font-size: 14px; font-weight: 500;
+        transition: background 0.2s;
+      " onmouseover="this.style.background='rgba(200,185,154,0.1)'"
+         onmouseout="this.style.background='transparent'">
+        <i class="bi bi-calendar-check" style="color:#8B7355"></i>
+        Мои заявки
+      </a>
+      <hr style="border:0;border-top:1px solid rgba(200,185,154,0.25);margin:4px 0">
+      <form method="post" action="/auth/logout/" style="margin:0">
+        {% csrf_token %}
+        <button type="submit" style="
+          display: flex; align-items: center; gap: 10px;
+          padding: 12px 16px; border-radius: 10px;
+          background:none;border:none;width:100%;text-align:left;
+          color:#d9376e;font-size:14px;font-weight:500;
+          cursor:pointer;transition:background 0.2s;
+        " onmouseover="this.style.background='rgba(217,55,110,0.08)'"
+           onmouseout="this.style.background='transparent'">
+          <i class="bi bi-box-arrow-right"></i>
+          Выйти
+        </button>
+      </form>
+    {% else %}
+      <a href="/auth/login/" style="
+        display: flex; align-items: center; justify-content: center; gap: 10px;
+        padding: 14px 20px; border-radius: 10px;
+        border: 1.5px solid rgba(200,185,154,0.35);
+        color: #8B7355; text-decoration: none;
+        font-size: 14px; font-weight: 500;
+        transition: all 0.25s;
+      " onmouseover="this.style.borderColor='#E8700A';this.style.color='#E8700A'"
+         onmouseout="this.style.borderColor='rgba(200,185,154,0.35)';this.style.color='#8B7355'">
+        <i class="bi bi-box-arrow-in-right"></i>
+        Войти
+      </a>
+      <a href="/auth/register/" style="
+        display: flex; align-items: center; justify-content: center; gap: 10px;
+        padding: 14px 20px; border-radius: 10px;
+        background: #E8700A; color: #fff;
+        text-decoration: none; font-size: 14px; font-weight: 500;
+        transition: background 0.25s, transform 0.25s;
+      " onmouseover="this.style.background='#7A5C3A';this.style.transform='translateY(-1px)'"
+         onmouseout="this.style.background='#E8700A';this.style.transform='translateY(0)'">
+        <i class="bi bi-person-plus"></i>
+        Регистрация
+      </a>
+    {% endif %}
+  </div>
 
     {# Mobile burger #}
     <button id="burger" class="burger" style="
@@ -307,6 +411,16 @@
     .navbar-logo-v2 img {
       height: 28px !important;
     }
+    
+    /* Show mobile auth menu when burger is open */
+    #mobileAuthMenu {
+      display: flex !important;
+    }
+    
+    /* Hide desktop auth buttons on mobile */
+    .nav-auth-desktop {
+      display: none !important;
+    }
   }
 
   @media (max-width: 600px) {
@@ -339,9 +453,11 @@
 <script>
   function toggleMobileMenu() {
     const navLinks = document.getElementById('navLinks');
+    const mobileAuthMenu = document.getElementById('mobileAuthMenu');
     const burger = document.getElementById('burger');
     
     navLinks.classList.toggle('open');
+    mobileAuthMenu.classList.toggle('open');
     burger.classList.toggle('open');
   }
   
@@ -351,6 +467,7 @@
     navLinks.forEach(link => {
       link.addEventListener('click', () => {
         document.getElementById('navLinks').classList.remove('open');
+        document.getElementById('mobileAuthMenu').classList.remove('open');
         document.getElementById('burger').classList.remove('open');
       });
     });
