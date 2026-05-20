@@ -12,7 +12,7 @@ import math
 from datetime import date, timedelta
 from decimal import Decimal
 
-from django.db import transaction
+from django.db import connection, transaction
 from django.utils import timezone
 
 from apps.hotel.models import RoomCategory
@@ -35,6 +35,14 @@ class BookingUnavailableError(Exception):
 
 class BookingStateError(Exception):
     """State transition not allowed."""
+
+
+def _get_booking_for_update(booking_id):
+    """Use row locking only when supported by the database backend."""
+    qs = Booking.objects
+    if connection.vendor == "sqlite":
+        return qs.get(pk=booking_id)
+    return qs.select_for_update().get(pk=booking_id)
 
 
 # ---------------------------------------------------------------------------
@@ -304,7 +312,7 @@ def create_booking_group(
 
 @transaction.atomic
 def confirm_booking(booking_id, actor=None) -> Booking:
-    booking = Booking.objects.select_for_update().get(pk=booking_id)
+    booking = _get_booking_for_update(booking_id)
     booking.confirm(actor=actor)
     # Email — "бронь подтверждена менеджером"
     try:
@@ -317,7 +325,7 @@ def confirm_booking(booking_id, actor=None) -> Booking:
 
 @transaction.atomic
 def cancel_booking(booking_id, reason: str = "", actor=None) -> Booking:
-    booking = Booking.objects.select_for_update().get(pk=booking_id)
+    booking = _get_booking_for_update(booking_id)
     if not booking.can_be_cancelled:
         raise BookingStateError("Эту бронь нельзя отменить.")
     booking.cancel(reason=reason, actor=actor)
@@ -332,11 +340,14 @@ def cancel_booking(booking_id, reason: str = "", actor=None) -> Booking:
 
 @transaction.atomic
 def perform_check_in(booking_id, room_id=None, actor=None) -> Booking:
-    booking = (
-        Booking.objects.select_for_update()
-        .select_related("room_category")
-        .get(pk=booking_id)
-    )
+    if connection.vendor == "sqlite":
+        booking = Booking.objects.select_related("room_category").get(pk=booking_id)
+    else:
+        booking = (
+            Booking.objects.select_for_update()
+            .select_related("room_category")
+            .get(pk=booking_id)
+        )
     
     # Use specified room or pre-assigned room or find one automatically
     if room_id:
@@ -362,11 +373,14 @@ def perform_check_in(booking_id, room_id=None, actor=None) -> Booking:
 
 @transaction.atomic
 def perform_check_out(booking_id, actor=None) -> Booking:
-    booking = (
-        Booking.objects.select_for_update()
-        .select_related("guest")
-        .get(pk=booking_id)
-    )
+    if connection.vendor == "sqlite":
+        booking = Booking.objects.select_related("guest").get(pk=booking_id)
+    else:
+        booking = (
+            Booking.objects.select_for_update()
+            .select_related("guest")
+            .get(pk=booking_id)
+        )
     booking.check_out_guest(actor=actor)
     _update_guest_crm_on_checkout(booking)
     return booking
@@ -374,7 +388,7 @@ def perform_check_out(booking_id, actor=None) -> Booking:
 
 @transaction.atomic
 def perform_no_show(booking_id, actor=None) -> Booking:
-    booking = Booking.objects.select_for_update().get(pk=booking_id)
+    booking = _get_booking_for_update(booking_id)
     booking.mark_no_show(actor=actor)
     return booking
 
