@@ -358,3 +358,19 @@ button, .btn, .nav-link, .dropdown-item,
     height: 10px;
   }
 }
+
+/* Mobile tweaks: improve spacing and accordion readability */
+@media (max-width: 600px) {
+  .accordion { gap: 12px !important; }
+  .accordion .accordion-button {
+    padding: 12px 14px !important;
+    font-size: .98rem !important;
+  }
+  .accordion .accordion-collapse > div {
+    padding: 0 14px 12px !important;
+    font-size: .92rem !important;
+    line-height: 1.6 !important;
+  }
+  /* Make sure accordion cards have consistent margin and look neat */
+  .reveal { margin-bottom: 10px !important; }
+}

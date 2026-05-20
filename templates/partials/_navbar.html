@@ -378,6 +378,18 @@
        box-shadow: 0 8px 40px rgba(44,31,16,0.1);
        -webkit-overflow-scrolling: touch;
      }
+    /* Mobile: make menu panel wider and text wrap nicely */
+    .nav-links-desktop.open {
+      left: 8px; right: 8px; top: 64px; max-width: calc(100vw - 16px);
+      margin: 0 auto; border-radius: 12px; padding: 6px 0;
+    }
+    .nav-links-desktop.open li a,
+    .nav-links-desktop.open li button.nav-link-auth {
+      white-space: normal; word-break: break-word; font-size: 1rem;
+      padding: 12px 18px; text-align: left; color: #6b5842;
+      display: block;
+    }
+    .nav-links-desktop.open li { padding: 0 6px; }
      .nav-links-desktop.open li a {
        display: block;
        padding: 12px 20px;
