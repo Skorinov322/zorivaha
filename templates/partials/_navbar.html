@@ -27,7 +27,6 @@
      <ul id="navLinks" style="
        display: flex; gap: 36px; list-style: none;
        margin: 0; padding: 0;
-       position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
      " class="nav-links-desktop">
        <li>
          <a href="{% url 'hotel:index' %}" style="
@@ -255,6 +254,13 @@
    .nav-link-item:hover { color: #E8700A !important; }
    .nav-link-item:hover::after { transform: scaleX(1); }
 
+   .nav-links-desktop {
+     position: absolute;
+     left: 50%;
+     top: 50%;
+     transform: translate(-50%, -50%);
+   }
+
    .nav-auth-desktop {
      display: flex;
      align-items: center;
@@ -370,19 +376,23 @@
      #navbar > div {
        justify-content: space-between !important;
      }
-     .nav-links-desktop { display: none !important; }
+     .nav-links-desktop { display: none !important; position: static; left: auto; top: auto; transform: none; }
      .nav-auth-desktop { display: none !important; }
      .burger { display: flex !important; }
      .nav-links-desktop.open {
        display: flex !important; flex-direction: column; gap: 0;
-       position: absolute; top: 64px; left: 0; right: 0;
+       position: fixed;
+       top: 64px;
+       left: 0 !important;
+       right: 0 !important;
+       width: 100%;
        transform: none !important;
-       max-height: 50vh;
+       max-height: calc(100dvh - 64px);
        overflow-y: auto;
        overflow-x: hidden;
        background: rgba(253,250,246,0.98);
        backdrop-filter: blur(20px);
-       padding: 8px 0;
+       padding: 8px 0 16px;
        border-bottom: 1px solid rgba(200,185,154,0.35);
        box-shadow: 0 8px 40px rgba(44,31,16,0.1);
        -webkit-overflow-scrolling: touch;
@@ -418,10 +428,16 @@
        display: none !important;
      }
      .nav-links-desktop.open .mobile-only .nav-link-auth.register-link {
-       margin: 10px 16px;
-       width: calc(100% - 32px);
-       justify-content: center;
-       border-radius: 999px;
+       background: transparent !important;
+       color: #8B7355 !important;
+       box-shadow: none !important;
+       border-radius: 0 !important;
+       margin: 0 !important;
+       width: 100% !important;
+       justify-content: flex-start !important;
+     }
+     .nav-links-desktop.open .mobile-only .nav-link-auth.register-link::after {
+       display: block !important;
      }
      .nav-links-desktop.open li {
        width: 100%;
@@ -472,6 +488,7 @@
     }
     .nav-links-desktop.open {
       top: 60px;
+      max-height: calc(100dvh - 60px);
     }
     .navbar-logo-v2 {
       font-size: 16px !important;
