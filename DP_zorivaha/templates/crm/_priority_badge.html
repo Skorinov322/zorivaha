@@ -1,9 +1,0 @@
-{% if priority == "urgent" %}
-  <span style="background:rgba(220,53,69,.15);color:#ff6b6b;border:1px solid rgba(220,53,69,.3);border-radius:6px;padding:.15rem .5rem;font-size:.7rem;white-space:nowrap">{{ label }}</span>
-{% elif priority == "high" %}
-  <span style="background:rgba(255,193,7,.12);color:#ffc107;border:1px solid rgba(255,193,7,.25);border-radius:6px;padding:.15rem .5rem;font-size:.7rem;white-space:nowrap">{{ label }}</span>
-{% elif priority == "medium" %}
-  <span style="background:rgba(13,110,253,.12);color:#6ea8fe;border:1px solid rgba(13,110,253,.25);border-radius:6px;padding:.15rem .5rem;font-size:.7rem;white-space:nowrap">{{ label }}</span>
-{% else %}
-  <span style="background:rgba(13,13,13,.06);color:rgba(13,13,13,.45);border:1px solid rgba(13,13,13,.1);border-radius:6px;padding:.15rem .5rem;font-size:.7rem;white-space:nowrap">{{ label }}</span>
-{% endif %}

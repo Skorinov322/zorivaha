@@ -1,6 +1,0 @@
-# Crontab for backup container
-# Daily backup at 03:00
-0 3 * * * /backup.sh >> /backups/backup.log 2>&1
-
-# Weekly full backup on Sunday at 02:00
-0 2 * * 0 /backup.sh >> /backups/backup.log 2>&1
