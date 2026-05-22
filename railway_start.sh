@@ -2,6 +2,11 @@
 # Railway startup script - runs migrations before starting the server
 set -o errexit
 
+export DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-config.settings.prod}
+
+echo "Collecting static files..."
+python manage.py collectstatic --no-input --clear
+
 echo "Running database migrations..."
 python manage.py migrate --no-input
 

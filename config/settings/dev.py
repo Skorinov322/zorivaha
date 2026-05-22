@@ -23,7 +23,7 @@ INTERNAL_IPS = ["127.0.0.1"]
 # Static files — disable WhiteNoise storage in development
 # ---------------------------------------------------------------------------
 
-STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
+STORAGES["staticfiles"]["BACKEND"] = "django.contrib.staticfiles.storage.StaticFilesStorage"  # noqa
 
 # Add middleware to disable caching
 MIDDLEWARE.insert(0, "apps.core.middleware.DisableCacheMiddleware")  # noqa
