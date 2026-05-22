@@ -1,4 +1,4 @@
-"""
+﻿"""
 Management command to create sample room categories for testing.
 Usage: python manage.py create_sample_categories
 """
@@ -99,7 +99,7 @@ class Command(BaseCommand):
             {
                 'name': 'Семейный',
                 'slug': 'semejnyj',
-                'description': 'Просторный семейный номер с дополнительными спальными местами, идеально подходящий для отдыха с детьми.',
+                'description': 'Просторный семейный номер с дополниостиницаными спальными местами, идеально подходящий для отдыха с детьми.',
                 'short_description': 'Просторный номер для семейного отдыха',
                 'max_guests': 6,
                 'base_price_per_night': 5500,

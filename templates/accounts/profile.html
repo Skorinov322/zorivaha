@@ -65,6 +65,13 @@
         <input type="hidden" name="action" value="profile" />
 
         <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label" for="{{ form.email.id_for_label }}">Email</label>
+            {{ form.email }}
+            {% for e in form.email.errors %}
+              <div style="color:#ff6b6b;font-size:.8rem">{{ e }}</div>
+            {% endfor %}
+          </div>
           <div class="col-sm-6">
             <label class="form-label" for="{{ form.last_name.id_for_label }}">Фамилия</label>
             {{ form.last_name }}
@@ -76,6 +83,13 @@
             <label class="form-label" for="{{ form.first_name.id_for_label }}">Имя</label>
             {{ form.first_name }}
             {% for e in form.first_name.errors %}
+              <div style="color:#ff6b6b;font-size:.8rem">{{ e }}</div>
+            {% endfor %}
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label" for="{{ form.patronymic.id_for_label }}">Отчество</label>
+            {{ form.patronymic }}
+            {% for e in form.patronymic.errors %}
               <div style="color:#ff6b6b;font-size:.8rem">{{ e }}</div>
             {% endfor %}
           </div>
@@ -93,20 +107,6 @@
         </div>
 
         <div style="height:1px;background:rgba(13,13,13,.08);margin:1.5rem 0"></div>
-        <div class="cabinet-card-title">Документы</div>
-
-        <div class="row g-3">
-          <div class="col-sm-4">
-            <label class="form-label" for="{{ form.passport_series.id_for_label }}">Серия паспорта</label>
-            {{ form.passport_series }}
-          </div>
-          <div class="col-sm-8">
-            <label class="form-label" for="{{ form.passport_number.id_for_label }}">Номер паспорта</label>
-            {{ form.passport_number }}
-          </div>
-        </div>
-
-        <div style="height:1px;background:rgba(13,13,13,.08);margin:1.5rem 0"></div>
         <div class="cabinet-card-title">Настройки</div>
 
         <div class="row g-3 mb-3">
@@ -114,19 +114,6 @@
             <label class="form-label" for="{{ form.preferred_language.id_for_label }}">Язык</label>
             {{ form.preferred_language }}
           </div>
-        </div>
-
-        <div class="form-check mb-2">
-          {{ form.email_notifications }}
-          <label class="form-check-label" for="{{ form.email_notifications.id_for_label }}">
-            Получать email-уведомления о бронированиях
-          </label>
-        </div>
-        <div class="form-check mb-3">
-          {{ form.marketing_consent }}
-          <label class="form-check-label" for="{{ form.marketing_consent.id_for_label }}">
-            Получать новости и специальные предложения
-          </label>
         </div>
 
         <button type="submit"

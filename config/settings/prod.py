@@ -19,7 +19,7 @@ ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="", cast=lambda v: [s.strip() fo
 # Security — HTTPS hardening
 # ---------------------------------------------------------------------------
 
-SECURE_SSL_REDIRECT             = False  # Railway handles HTTPS at proxy level
+SECURE_SSL_REDIRECT             = config("SECURE_SSL_REDIRECT", default=False, cast=bool)
 SECURE_PROXY_SSL_HEADER         = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # HSTS: 1 year, include subdomains, preload
@@ -28,12 +28,12 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS  = True
 SECURE_HSTS_PRELOAD             = True
 
 # Cookies
-SESSION_COOKIE_SECURE           = True
+SESSION_COOKIE_SECURE           = config("SESSION_COOKIE_SECURE", default=True, cast=bool)
 SESSION_COOKIE_HTTPONLY         = True
 SESSION_COOKIE_SAMESITE         = "Lax"
 SESSION_COOKIE_AGE              = 60 * 60 * 24 * 14   # 14 days
 
-CSRF_COOKIE_SECURE              = True
+CSRF_COOKIE_SECURE              = config("CSRF_COOKIE_SECURE", default=True, cast=bool)
 CSRF_COOKIE_HTTPONLY            = True
 CSRF_COOKIE_SAMESITE            = "Lax"
 CSRF_TRUSTED_ORIGINS            = config(

@@ -77,6 +77,30 @@ def create_booking(
             "К сожалению, на выбранные даты нет свободных номеров этой категории."
         )
 
+    total_persons = adults + children
+    if room is not None:
+        if not room.has_capacity_for(check_in, check_out, total_persons):
+            raise BookingUnavailableError(
+                f"В номере {room.full_number} недостаточно свободных мест на выбранные даты."
+            )
+    else:
+        from apps.hotel.models import Room
+        room = next(
+            (
+                candidate
+                for candidate in Room.objects.select_for_update().filter(
+                    category=room_category,
+                    status=Room.RoomStatus.AVAILABLE,
+                ).order_by("-max_guests_per_room", "floor", "number", "subdivision")
+                if candidate.has_capacity_for(check_in, check_out, total_persons)
+            ),
+            None,
+        )
+        if room is None:
+            raise BookingUnavailableError(
+                "К сожалению, на выбранные даты нет номера с достаточным количеством свободных мест."
+            )
+
     calculator = PriceCalculator(room_category)
     price_info = calculator.calculate_total_price(
         check_in, check_out, adults, children, occupancy_type, early_check_in, organization
@@ -184,13 +208,21 @@ def create_booking_group(
     all_available = RoomModel.objects.select_for_update().filter(
         category=room_category,
         status=RoomModel.RoomStatus.AVAILABLE,
-    ).order_by("floor", "number", "subdivision")
+    ).order_by("-max_guests_per_room", "floor", "number", "subdivision")
 
     # Фильтруем по доступности дат
     date_available = []
     for room in all_available:
-        if room.has_availability(check_in, check_out):
+        room._booking_available_capacity = room.available_capacity(check_in, check_out)
+        if room._booking_available_capacity > 0:
             date_available.append(room)
+    date_available.sort(
+        key=lambda room: (
+            room._booking_available_capacity,
+            room.max_guests_per_room,
+        ),
+        reverse=True,
+    )
 
     # Считаем сколько номеров нужно жадным алгоритмом
     remaining = total_persons
@@ -199,7 +231,7 @@ def create_booking_group(
         if remaining <= 0:
             break
         rooms_to_use.append(room)
-        remaining -= room.max_guests_per_room
+        remaining -= room._booking_available_capacity
 
     if remaining > 0:
         # Недостаточно номеров — собираем альтернативы
@@ -217,8 +249,8 @@ def create_booking_group(
             contact_phone=contact_phone,
         )
 
-    # Распределяем персон по номерам
-    distribution = _distribute_persons(total_persons, rooms_to_use)
+    # Распределяем взрослых и детей по номерам так, как они должны отображаться в бронях.
+    distribution = _distribute_guests(adults, children, rooms_to_use)
 
     # Общий group_id для всех броней
     group_uuid = uuid.uuid4()
@@ -231,9 +263,11 @@ def create_booking_group(
     auto_cancel_time = timezone.now() + timedelta(hours=PENDING_BOOKING_TTL_HOURS)
 
     for i, room in enumerate(rooms_to_use):
-        persons_in_room = distribution[i]
+        room_adults = distribution[i]["adults"]
+        room_children = distribution[i]["children"]
+        persons_in_room = room_adults + room_children
 
-        # Распределяем платных персон пропорционально
+        # Все дети с предоставлением спального места оплачиваются как отдельные персоны.
         paid_in_room = min(persons_in_room, paid_persons_total)
         paid_persons_total -= paid_in_room
 
@@ -247,7 +281,7 @@ def create_booking_group(
         booking = Booking.objects.create(
             guest=guest,
             room_category=room_category,
-            room=None,  # назначается администратором при заселении
+            room=room,
             group_id=group_uuid,
             organization=organization,
             guest_first_name=guest_first_name,
@@ -257,10 +291,8 @@ def create_booking_group(
             guest_email=guest_email,
             check_in=check_in,
             check_out=check_out,
-            # Для доп. номеров группы ставим минимум 1 взрослый (constraint adults >= 1).
-            # Реальное распределение персон отражается в цене (paid_in_room).
-            adults=adults if i == 0 else max(persons_in_room, 1),
-            children=children if i == 0 else 0,
+            adults=room_adults,
+            children=room_children,
             occupancy_type="solo",
             early_check_in=early_check_in,
             price_per_night=price_info["price_per_night"],
@@ -343,13 +375,17 @@ def perform_check_in(booking_id, room_id=None, actor=None) -> Booking:
         from apps.hotel.models import Room
         try:
             room = Room.objects.get(id=room_id)
-            if not room.has_availability(booking.check_in, booking.check_out):
+            if room.pk != booking.room_id and not room.has_capacity_for(
+                booking.check_in,
+                booking.check_out,
+                booking.total_guests,
+            ):
                 raise BookingUnavailableError(f"Номер {room.full_number} недоступен на выбранные даты.")
         except Room.DoesNotExist:
             raise BookingUnavailableError("Указанный номер не найден.")
     else:
         room = booking.room or get_available_room_for_category(
-            booking.room_category_id, booking.check_in, booking.check_out
+            booking.room_category_id, booking.check_in, booking.check_out, booking.total_guests
         )
     
     if room is None:
@@ -444,4 +480,32 @@ def _distribute_persons(total_persons: int, rooms: list) -> list:
         in_this_room = min(remaining, room.max_guests_per_room)
         distribution.append(in_this_room)
         remaining -= in_this_room
+    return distribution
+
+
+def _distribute_guests(adults: int, children: int, rooms: list) -> list[dict]:
+    """
+    Распределяет взрослых и детей по выбранным номерам без искажения итогов.
+
+    Взрослые распределяются первыми, затем дети со спальным местом. Это сохраняет
+    сумму взрослых/детей по группе ровно такой, какая была указана в форме.
+    """
+    distribution = []
+    adults_left = adults
+    children_left = children
+
+    for room in rooms:
+        capacity = getattr(room, "_booking_available_capacity", room.max_guests_per_room)
+        room_adults = min(adults_left, capacity)
+        adults_left -= room_adults
+        capacity -= room_adults
+
+        room_children = min(children_left, capacity)
+        children_left -= room_children
+
+        distribution.append({
+            "adults": room_adults,
+            "children": room_children,
+        })
+
     return distribution

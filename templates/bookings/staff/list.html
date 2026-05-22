@@ -60,6 +60,7 @@
           <th>№ брони</th>
           <th>Гость</th>
           <th>Категория</th>
+          <th>Гостей</th>
           <th>Заезд</th>
           <th>Выезд</th>
           <th>Статус</th>
@@ -81,10 +82,22 @@
             <div style="color:rgba(255,255,255,.35);font-size:.75rem">{{ b.guest_phone }}</div>
           </td>
           <td style="color:rgba(255,255,255,.7)">{{ b.room_category.name }}</td>
+          <td style="color:rgba(255,255,255,.7)">
+            {{ b.total_guests }}
+            {% if b.children %}<span style="color:rgba(255,255,255,.4);font-size:.75rem">({{ b.adults }}+{{ b.children }})</span>{% endif %}
+            {% if b.is_group_booking %}
+              <div style="color:rgba(255,255,255,.35);font-size:.72rem">группа: {{ b.group_total_guests }} гостей / {{ b.group_rooms_count }} ном.</div>
+            {% endif %}
+          </td>
           <td style="color:rgba(255,255,255,.6)">{{ b.check_in|date:"d.m.Y" }}</td>
           <td style="color:rgba(255,255,255,.6)">{{ b.check_out|date:"d.m.Y" }}</td>
           <td>{% include "bookings/_status_badge.html" with status=b.status label=b.get_status_display %}</td>
-          <td style="color:#fff;font-weight:500">{{ b.final_price|floatformat:0 }} ₽</td>
+          <td style="color:#fff;font-weight:500">
+            {{ b.final_price|floatformat:0 }} ₽
+            {% if b.is_group_booking %}
+              <div style="color:rgba(255,255,255,.35);font-size:.72rem">вся группа: {{ b.group_final_price|floatformat:0 }} ₽</div>
+            {% endif %}
+          </td>
           <td>
             <a href="{% url 'bookings:staff_detail' b.pk %}"
                style="color:rgba(255,255,255,.35);font-size:.85rem;text-decoration:none">
@@ -94,7 +107,7 @@
         </tr>
         {% empty %}
         <tr>
-          <td colspan="8" style="text-align:center;padding:2.5rem;color:rgba(255,255,255,.3)">
+          <td colspan="9" style="text-align:center;padding:2.5rem;color:rgba(255,255,255,.3)">
             <i class="bi bi-calendar-x" style="font-size:2rem;display:block;margin-bottom:.5rem"></i>
             Бронирования не найдены
           </td>

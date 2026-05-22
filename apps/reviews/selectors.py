@@ -1,4 +1,4 @@
-"""
+﻿"""
 reviews/selectors.py
 
 Селекторы для получения данных отзывов.
@@ -66,7 +66,7 @@ def get_review_statistics():
 
 
 def get_user_reviews(user):
-    """Получить все отзывы пользователя"""
+    """Получить все отзывы пользоваостиницы"""
     return Review.objects.filter(
         author=user
     ).select_related(
@@ -76,14 +76,14 @@ def get_user_reviews(user):
 
 
 def can_user_review_booking(user, booking):
-    """Проверить, может ли пользователь оставить отзыв на бронирование"""
+    """Проверить, может ли пользоваостиница оставить отзыв на бронирование"""
     from apps.bookings.models import BookingStatus
     
     # Бронирование должно быть завершено
     if booking.status != BookingStatus.CHECKED_OUT:
         return False, "Отзыв можно оставить только на завершенное бронирование"
     
-    # Пользователь должен быть гостем этого бронирования
+    # Пользоваостиница должен быть гостем этого бронирования
     if booking.guest != user:
         return False, "Вы не можете оставить отзыв на чужое бронирование"
     

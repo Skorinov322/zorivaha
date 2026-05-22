@@ -1,4 +1,4 @@
-"""
+﻿"""
 crm/models.py
 
 Models:
@@ -127,7 +127,7 @@ class ClientProfile(TimeStampedModel):
     # ---- Core ----
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
-        related_name="crm_profile", verbose_name=_("пользователь"),
+        related_name="crm_profile", verbose_name=_("пользоваостиница"),
     )
     organization = models.ForeignKey(
         Organization, on_delete=models.SET_NULL,
@@ -376,7 +376,7 @@ class Task(TimeStampedModel):
     )
     assigned_to = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
-        null=True, related_name="assigned_tasks", verbose_name=_("исполнитель"),
+        null=True, related_name="assigned_tasks", verbose_name=_("исполниостиница"),
     )
     client = models.ForeignKey(
         ClientProfile, on_delete=models.SET_NULL,
@@ -455,12 +455,12 @@ class Message(TimeStampedModel):
 
     sender    = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
-        null=True, related_name="sent_messages", verbose_name=_("отправитель"),
+        null=True, related_name="sent_messages", verbose_name=_("отправиостиница"),
     )
     recipient = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
         null=True, blank=True, related_name="received_messages",
-        verbose_name=_("получатель"),
+        verbose_name=_("получаостиница"),
     )
     booking = models.ForeignKey(
         "bookings.Booking", on_delete=models.SET_NULL,

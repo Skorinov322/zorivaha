@@ -19,9 +19,9 @@ from .models import User, UserRole, ROLE_HIERARCHY
 def update_profile(user: User, cleaned_data: dict) -> User:
     """Update user profile fields from validated form data."""
     allowed_fields = [
-        "first_name", "last_name", "phone",
-        "date_of_birth", "passport_series", "passport_number",
-        "preferred_language", "marketing_consent", "email_notifications",
+        "email", "first_name", "last_name", "patronymic", "phone",
+        "date_of_birth",
+        "preferred_language",
     ]
     for field in allowed_fields:
         if field in cleaned_data:
@@ -31,6 +31,37 @@ def update_profile(user: User, cleaned_data: dict) -> User:
         user.avatar = cleaned_data["avatar"]
 
     user.save()
+    return user
+
+
+@transaction.atomic
+def update_user_profile_snapshot(user: User, data: dict, overwrite: bool = True) -> User:
+    """
+    Store contact data entered in public forms back to the user's profile.
+
+    Only known profile fields are accepted. Empty values are ignored so an
+    incomplete form submission does not erase previously saved data.
+    """
+    if not user or not user.is_authenticated:
+        return user
+
+    allowed_fields = [
+        "first_name", "last_name", "patronymic", "phone",
+    ]
+    update_fields = []
+
+    for field in allowed_fields:
+        value = data.get(field)
+        if value in (None, ""):
+            continue
+        if overwrite or not getattr(user, field):
+            setattr(user, field, value)
+            update_fields.append(field)
+
+    if update_fields:
+        update_fields.append("updated_at")
+        user.save(update_fields=update_fields)
+
     return user
 
 

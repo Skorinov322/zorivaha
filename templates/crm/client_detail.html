@@ -1,4 +1,4 @@
-{% extends "dashboard/base_dashboard.html" %}
+﻿{% extends "dashboard/base_dashboard.html" %}
 
 {% block title %}{{ profile.user.get_full_name|default:profile.user.email }}{% endblock %}
 {% block dashboard_title %}Профиль клиента{% endblock %}
@@ -302,7 +302,7 @@
               {{ task_form.priority }}
             </div>
             <div class="col-sm-3">
-              <label style="color:rgba(255,255,255,.55);font-size:.8rem">Срок</label>
+              <label style="color:rgba(255,255,255,.55);font-size:.8rem">Крайний срок</label>
               {{ task_form.due_date }}
             </div>
           </div>

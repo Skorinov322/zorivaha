@@ -1,4 +1,4 @@
-"""
+﻿"""
 notifications/models.py
 
 Models:
@@ -48,13 +48,13 @@ class EmailLog(TimeStampedModel):
         CUSTOM = "custom", _("Произвольное")
 
     # ---- Routing ----
-    recipient_email = models.EmailField(_("получатель"), db_index=True)
-    recipient_name = models.CharField(_("имя получателя"), max_length=200, blank=True)
+    recipient_email = models.EmailField(_("получаостиница"), db_index=True)
+    recipient_name = models.CharField(_("имя получаостиницы"), max_length=200, blank=True)
     recipient_user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL, null=True, blank=True,
         related_name="email_logs",
-        verbose_name=_("пользователь"),
+        verbose_name=_("пользоваостиница"),
     )
 
     # ---- Content ----
@@ -188,7 +188,7 @@ class PushNotification(TimeStampedModel):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="push_notifications",
-        verbose_name=_("получатель"),
+        verbose_name=_("получаостиница"),
     )
     notification_type = models.CharField(
         _("тип"), max_length=30,
@@ -245,12 +245,12 @@ class ContactMessage(TimeStampedModel):
         ANSWERED = "answered", _("Отвечено")
         CLOSED   = "closed",   _("Закрыто")
 
-    # ---- Отправитель (может быть анонимным) ----
+    # ---- Отправиостиница (может быть анонимным) ----
     sender_user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL, null=True, blank=True,
         related_name="contact_messages_sent",
-        verbose_name=_("пользователь"),
+        verbose_name=_("пользоваостиница"),
         help_text=_("Заполняется если гость авторизован"),
     )
     sender_name  = models.CharField(_("имя"),    max_length=150)

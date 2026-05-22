@@ -49,13 +49,13 @@ for i, header in enumerate(headers):
 # Данные User
 user_fields = [
     ['id', 'Уникальный идентификатор', 'UUID', 'Да', '-', 'PRIMARY KEY'],
-    ['email', 'Email пользователя', 'VARCHAR(254)', 'Нет', '-', 'UNIQUE, NOT NULL'],
+    ['email', 'Email пользоваостиницы', 'VARCHAR(254)', 'Нет', '-', 'UNIQUE, NOT NULL'],
     ['password', 'Хеш пароля', 'VARCHAR(128)', 'Нет', '-', 'NOT NULL'],
     ['first_name', 'Имя', 'VARCHAR(150)', 'Нет', '-', ''],
     ['last_name', 'Фамилия', 'VARCHAR(150)', 'Нет', '-', ''],
     ['role', 'Роль (user, receptionist, manager, admin, super_admin)', 'VARCHAR(20)', 'Нет', '-', 'DEFAULT user, INDEX'],
     ['phone', 'Телефон', 'VARCHAR(20)', 'Нет', '-', ''],
-    ['is_active', 'Активен ли пользователь', 'BOOLEAN', 'Нет', '-', 'DEFAULT TRUE'],
+    ['is_active', 'Активен ли пользоваостиница', 'BOOLEAN', 'Нет', '-', 'DEFAULT TRUE'],
     ['created_at', 'Дата создания', 'TIMESTAMP', 'Нет', '-', 'AUTO'],
     ['updated_at', 'Дата обновления', 'TIMESTAMP', 'Нет', '-', 'AUTO'],
 ]

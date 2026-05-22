@@ -1,4 +1,4 @@
-"""
+﻿"""
 notifications/views.py
 
 Staff views for email log monitoring, in-app notifications, and contact messages.
@@ -210,7 +210,7 @@ class EmailLogDetailView(ManagerRequiredMixin, View):
         )
         meta_rows = [
             ("ID", log.pk), ("Тип", log.get_email_type_display()),
-            ("Получатель", log.recipient_email), ("Имя", log.recipient_name or "—"),
+            ("Получаостиница", log.recipient_email), ("Имя", log.recipient_name or "—"),
             ("Тема", log.subject), ("Статус", log.get_status_display()),
             ("Создано", log.created_at.strftime("%d.%m.%Y %H:%M:%S")),
             ("Отправлено", log.sent_at.strftime("%d.%m.%Y %H:%M:%S") if log.sent_at else "—"),

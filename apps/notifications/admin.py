@@ -1,4 +1,4 @@
-from django.contrib import admin
+﻿from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils import timezone
@@ -32,7 +32,7 @@ class EmailLogAdmin(RoleRestrictedMixin, admin.ModelAdmin):
     actions = ["resend_emails", "mark_as_sent", "delete_selected"]
 
     fieldsets = (
-        ("Получатель", {"fields": ("recipient_email", "recipient_name", "recipient_user", "booking")}),
+        ("Получаостиница", {"fields": ("recipient_email", "recipient_name", "recipient_user", "booking")}),
         ("Письмо",     {"fields": ("email_type", "subject", "body_html_preview", "body_text")}),
         ("Доставка",   {"fields": ("status", "sent_at", "error_message", "retry_count", "task_id")}),
         ("Мета",       {"fields": ("created_at", "updated_at"), "classes": ("collapse",)}),
@@ -188,7 +188,7 @@ class ContactMessageAdmin(RoleRestrictedMixin, admin.ModelAdmin):
     actions = ["mark_closed", "mark_new", "assign_to_me", "delete_selected"]
 
     fieldsets = (
-        ("Отправитель", {"fields": ("sender_user", "sender_name", "sender_email", "sender_phone")}),
+        ("Отправиостиница", {"fields": ("sender_user", "sender_name", "sender_email", "sender_phone")}),
         ("Сообщение",   {"fields": ("subject", "message")}),
         ("Статус",      {"fields": ("status", "assigned_to")}),
         ("Мета",        {"fields": ("created_at", "updated_at"), "classes": ("collapse",)}),

@@ -208,6 +208,162 @@
   .edit-modal select:focus {
     border-color: var(--gold);
   }
+
+  /* About page block assignment */
+  .about-blocks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+  }
+  .about-block-card {
+    background: rgba(255,142,60,.04);
+    border: 1px solid rgba(255,142,60,.2);
+    border-radius: 12px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
+  }
+  .about-block-label {
+    font-size: .8rem;
+    font-weight: 700;
+    color: #0d0d0d;
+    line-height: 1.35;
+  }
+  .about-block-preview {
+    aspect-ratio: 1/1;
+    border-radius: 10px;
+    overflow: hidden;
+    background: rgba(13,13,13,.04);
+    border: 1px dashed rgba(13,13,13,.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .about-block-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .about-block-preview-empty {
+    text-align: center;
+    font-size: .72rem;
+    color: rgba(13,13,13,.4);
+    padding: .5rem;
+  }
+  .about-block-form {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: auto;
+  }
+  .about-block-form select {
+    width: 100%;
+    padding: .45rem .6rem;
+    border: 1px solid rgba(13,13,13,.15);
+    border-radius: 8px;
+    font-size: .75rem;
+    color: #0d0d0d;
+    background: #fff;
+  }
+  .about-block-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .about-block-btn {
+    flex: 1;
+    min-width: 90px;
+    padding: .4rem .55rem;
+    border: none;
+    border-radius: 8px;
+    font-size: .72rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: filter .15s;
+  }
+  .about-block-btn-primary {
+    background: linear-gradient(135deg, var(--gold), #e67a2a);
+    color: #0d0d0d;
+  }
+  .about-block-btn-muted {
+    background: rgba(13,13,13,.06);
+    color: rgba(13,13,13,.55);
+  }
+  .about-block-btn:hover { filter: brightness(.95); }
+
+  .about-empty-hint {
+    background: rgba(255,193,7,.12);
+    border: 1px solid rgba(255,193,7,.35);
+    border-radius: 10px;
+    padding: .75rem 1rem;
+    font-size: .8rem;
+    color: rgba(13,13,13,.65);
+    margin-bottom: 1rem;
+  }
+
+  .picker-modal-backdrop {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(13,13,13,.55);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .picker-modal-backdrop.open { display: flex; }
+  .picker-modal {
+    background: #fff;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 720px;
+    max-height: 85vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 24px 64px rgba(13,13,13,.2);
+  }
+  .picker-modal-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .picker-modal-title {
+    font-size: .95rem;
+    font-weight: 700;
+    color: #0d0d0d;
+  }
+  .picker-modal-body {
+    padding: 1rem 1.25rem;
+    overflow-y: auto;
+  }
+  .picker-photo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 10px;
+  }
+  .picker-photo-item {
+    border: 2px solid transparent;
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    background: none;
+    padding: 0;
+    transition: border-color .15s, transform .15s;
+  }
+  .picker-photo-item:hover {
+    border-color: var(--gold);
+    transform: scale(1.02);
+  }
+  .picker-photo-item img {
+    width: 100%;
+    aspect-ratio: 1/1;
+    object-fit: cover;
+    display: block;
+  }
 </style>
 {% endblock %}
 
@@ -285,14 +441,14 @@
           Раздел
         </label>
         <select name="section" class="form-select form-select-sm">
-          <option value="exterior">Экстерьер</option>
-          <option value="lobby">Лобби</option>
-          <option value="other">Другое</option>
+          {% for value, label in section_choices %}
+          <option value="{{ value }}">{{ label }}</option>
+          {% endfor %}
         </select>
       </div>
       <div class="col-md-5">
         <label style="font-size:.78rem;font-weight:600;color:rgba(13,13,13,.6);display:block;margin-bottom:.3rem">
-          Заголовок <span style="font-weight:400;opacity:.6">(необязательно)</span>
+          Заголовок <span style="font-weight:400;opacity:.6">(необязаостиницано)</span>
         </label>
         <input type="text" name="title" class="form-control form-control-sm"
                placeholder="Например: Вид из лобби" />
@@ -318,6 +474,79 @@
       </button>
     </div>
   </form>
+</div>
+
+<!-- About page photos -->
+<div class="dash-card mb-4">
+  <div class="dash-card-header" style="flex-wrap:wrap;gap:.5rem">
+    <div class="dash-card-title">
+      <i class="bi bi-info-circle"></i> Фото для страницы «О нас»
+    </div>
+    <a href="{% url 'hotel:about' %}" target="_blank"
+       style="font-size:.78rem;color:#6ea8fe;text-decoration:none;font-weight:600">
+      Открыть страницу <i class="bi bi-arrow-up-right-square"></i>
+    </a>
+  </div>
+
+  {% if not picker_photos %}
+  <div class="about-empty-hint">
+    <i class="bi bi-exclamation-circle me-1"></i>
+    Сначала загрузите хотя бы одно фото в блоке «Загрузить фото» выше, затем выберите его в списке для каждого блока.
+  </div>
+  {% else %}
+  <p style="font-size:.8rem;color:rgba(13,13,13,.55);margin:0 0 1rem">
+    Выберите фото в списке и нажмите «Сохранить» для каждого блока.
+  </p>
+  {% endif %}
+
+  <div class="about-blocks-grid">
+    {% for block in about_blocks %}
+    <div class="about-block-card">
+      <div class="about-block-label">{{ block.label }}</div>
+      <div class="about-block-preview">
+        {% if block.photo_url %}
+          <img src="{{ block.photo_url }}" alt="{{ block.label }}" />
+        {% else %}
+          <div class="about-block-preview-empty">
+            <i class="bi bi-image" style="font-size:1.5rem;display:block;margin-bottom:.35rem;opacity:.4"></i>
+            Фото не выбрано
+          </div>
+        {% endif %}
+      </div>
+      <form method="post" class="about-block-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="assign_about_photo" />
+        <input type="hidden" name="block" value="{{ block.key }}" />
+        <select name="photo_pk"{% if not picker_photos %} disabled{% endif %}>
+          <option value="">— Выберите фото —</option>
+          {% for photo in picker_photos %}
+          <option value="{{ photo.pk }}"
+            {% if block.photo and block.photo.pk == photo.pk %}selected{% endif %}>
+            {{ photo.get_section_display }} — {{ photo.title|default:"Без названия" }}
+          </option>
+          {% endfor %}
+        </select>
+        <div class="about-block-actions">
+          <button type="submit" class="about-block-btn about-block-btn-primary"
+                  {% if not picker_photos %}disabled{% endif %}>
+            <i class="bi bi-check2 me-1"></i> Сохранить
+          </button>
+        </div>
+      </form>
+      {% if block.photo_url %}
+      <form method="post" style="margin-top:6px">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="clear_about_photo" />
+        <input type="hidden" name="block" value="{{ block.key }}" />
+        <button type="submit" class="about-block-btn about-block-btn-muted w-100"
+                title="Убрать фото с блока">
+          <i class="bi bi-x-lg"></i> Снять
+        </button>
+      </form>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
 </div>
 
 <!-- Filter tabs + grid -->
@@ -433,9 +662,9 @@
 
       <label>Раздел</label>
       <select name="section" id="editSection">
-        <option value="exterior">Экстерьер</option>
-        <option value="lobby">Лобби</option>
-        <option value="other">Другое</option>
+        {% for value, label in section_choices %}
+        <option value="{{ value }}">{{ label }}</option>
+        {% endfor %}
       </select>
 
       <label>Порядок сортировки</label>

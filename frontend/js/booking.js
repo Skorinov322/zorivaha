@@ -232,7 +232,7 @@ class BookingPriceCalculator {
             const adults   = parseInt(this.adultsInput?.value || 1);
             const children = parseInt(this.childrenInput?.value || 0);
             let txt = `${adults} взр.`;
-            if (children > 0) txt += `, ${children} дет.`;
+            if (children > 0) txt += `, ${children} дет. со спальным местом`;
             guestsEl.textContent = txt;
         }
 
@@ -262,13 +262,17 @@ class BookingPriceCalculator {
 
         if (this.previewElements.total)
             this.previewElements.total.textContent =
-                `${this.formatPrice(priceData.total_price)} ₽`;
+                `${this.formatPrice(priceData.final_total || priceData.total_price)} ₽`;
     }
 
     resetPreview() {
-        Object.values(this.previewElements).forEach(el => {
+        ['categoryName', 'dates', 'nights', 'pricePerNight', 'earlyVal', 'total'].forEach(key => {
+            const el = this.previewElements[key];
             if (el) el.textContent = '—';
         });
+        if (this.previewElements.earlyRow) {
+            this.previewElements.earlyRow.style.display = 'none';
+        }
         const guestsEl = document.getElementById('previewGuestsValue');
         if (guestsEl) guestsEl.textContent = '—';
     }

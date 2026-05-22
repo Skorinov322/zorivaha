@@ -1,4 +1,4 @@
-"""Account forms."""
+﻿"""Account forms."""
 
 from django import forms
 from django.contrib.auth import authenticate, password_validation
@@ -41,7 +41,7 @@ class RegisterForm(forms.Form):
         required=False,
         widget=forms.TextInput(attrs={
             "class": "form-control",
-            "placeholder": _("Иванович (необязательно)"),
+            "placeholder": _("Иванович (необязаостиницано)"),
             "autocomplete": "additional-name",
         }),
     )
@@ -83,7 +83,7 @@ class RegisterForm(forms.Form):
         email = self.cleaned_data["email"].lower().strip()
         if User.objects.filter(email=email).exists():
             raise forms.ValidationError(
-                _("Пользователь с таким email уже зарегистрирован.")
+                _("Пользоваостиница с таким email уже зарегистрирован.")
             )
         return email
 
@@ -110,6 +110,7 @@ class RegisterForm(forms.Form):
             password=data["password1"],
             first_name=data["first_name"],
             last_name=data["last_name"],
+            patronymic=data.get("patronymic", ""),
             role=UserRole.USER,
             is_active=True,
         )
@@ -189,12 +190,16 @@ class ProfileUpdateForm(forms.ModelForm):
     class Meta:
         model = User
         fields = [
-            "first_name", "last_name", "phone",
+            "email", "first_name", "last_name", "patronymic", "phone",
             "date_of_birth",
-            "passport_series", "passport_number",
-            "preferred_language", "marketing_consent", "email_notifications",
+            "preferred_language",
         ]
         widgets = {
+            "email": forms.EmailInput(attrs={
+                "class": "form-control",
+                "placeholder": "example@mail.ru",
+                "autocomplete": "email",
+            }),
             "first_name": forms.TextInput(attrs={
                 "class": "form-control",
                 "placeholder": _("Имя"),
@@ -203,29 +208,32 @@ class ProfileUpdateForm(forms.ModelForm):
                 "class": "form-control",
                 "placeholder": _("Фамилия"),
             }),
-"phone": forms.TextInput(attrs={
-                    "class": "form-control",
-                    "placeholder": "+7 (___) ___-__-__",
-                    "type": "tel",
-                    "data-mask": "+7 (000) 000-00-00",
-                    "data-mask-placeholder": "_"
-                }),
+            "patronymic": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": _("Отчество (необязательно)"),
+            }),
+            "phone": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "+7 (___) ___-__-__",
+                "type": "tel",
+                "data-mask": "+7 (000) 000-00-00",
+                "data-mask-placeholder": "_"
+            }),
             "date_of_birth": forms.DateInput(attrs={
                 "class": "form-control",
                 "type": "date",
-            }),
-            "passport_series": forms.TextInput(attrs={
-                "class": "form-control",
-                "placeholder": "1234",
-            }),
-            "passport_number": forms.TextInput(attrs={
-                "class": "form-control",
-                "placeholder": "567890",
-            }),
+            }, format="%Y-%m-%d"),
             "preferred_language": forms.Select(attrs={"class": "form-select"}),
-            "marketing_consent": forms.CheckboxInput(attrs={"class": "form-check-input"}),
-            "email_notifications": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
+
+    def clean_email(self):
+        email = self.cleaned_data["email"].lower().strip()
+        qs = User.objects.filter(email=email)
+        if self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise forms.ValidationError(_("Пользователь с таким email уже зарегистрирован."))
+        return email
 
 
 # ---------------------------------------------------------------------------
@@ -304,6 +312,51 @@ class CabinetPasswordChangeForm(forms.Form):
         p2 = self.cleaned_data.get("new_password2", "")
         if p1 and p2 and p1 != p2:
             raise forms.ValidationError(_("Новые пароли не совпадают."))
+        return p2
+
+    def clean(self):
+        cleaned = super().clean()
+        new_pwd = cleaned.get("new_password1")
+        if new_pwd:
+            password_validation.validate_password(new_pwd, self.user)
+        return cleaned
+
+    def save(self):
+        self.user.set_password(self.cleaned_data["new_password1"])
+        self.user.save(update_fields=["password"])
+        return self.user
+
+
+class AdminSetUserPasswordForm(forms.Form):
+    """Set a new password for a user from the management dashboard."""
+
+    new_password1 = forms.CharField(
+        label=_("Новый пароль"),
+        strip=False,
+        widget=forms.PasswordInput(attrs={
+            "class": "form-control",
+            "autocomplete": "new-password",
+        }),
+        help_text=password_validation.password_validators_help_text_html(),
+    )
+    new_password2 = forms.CharField(
+        label=_("Подтверждение нового пароля"),
+        strip=False,
+        widget=forms.PasswordInput(attrs={
+            "class": "form-control",
+            "autocomplete": "new-password",
+        }),
+    )
+
+    def __init__(self, user: User, *args, **kwargs):
+        self.user = user
+        super().__init__(*args, **kwargs)
+
+    def clean_new_password2(self):
+        p1 = self.cleaned_data.get("new_password1", "")
+        p2 = self.cleaned_data.get("new_password2", "")
+        if p1 and p2 and p1 != p2:
+            raise forms.ValidationError(_("Пароли не совпадают."))
         return p2
 
     def clean(self):

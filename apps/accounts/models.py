@@ -1,4 +1,4 @@
-"""
+﻿"""
 accounts/models.py
 
 Role hierarchy (ascending privilege):
@@ -11,7 +11,7 @@ Full set stored in UserRole:
   ADMIN        — администратор гостиницы, всё кроме смены ролей
   SUPER_ADMIN  — полный доступ, может менять роли любых пользователей
 
-is_superuser (Django built-in) = технический суперпользователь БД,
+is_superuser (Django built-in) = технический суперпользоваостиница БД,
 всегда имеет все права независимо от role.
 """
 
@@ -97,7 +97,7 @@ class User(AbstractUser, TimeStampedModel):
 
     Auth:     email + password (no username)
     Access:   role field + is_superuser flag
-    Profile:  phone, date_of_birth, avatar, passport_*
+    Profile:  phone, date_of_birth, avatar
     Prefs:    preferred_language, marketing_consent, email_notifications
     """
 
@@ -118,16 +118,11 @@ class User(AbstractUser, TimeStampedModel):
     phone = models.CharField(
         _("телефон"), max_length=20, blank=True, validators=[phone_validator]
     )
+    patronymic = models.CharField(_("отчество"), max_length=150, blank=True)
     date_of_birth = models.DateField(_("дата рождения"), null=True, blank=True)
     avatar = models.ImageField(
         _("аватар"), upload_to="avatars/%Y/%m/", null=True, blank=True
     )
-
-    # ---- Document info ----
-    passport_series      = models.CharField(_("серия паспорта"), max_length=10,  blank=True)
-    passport_number      = models.CharField(_("номер паспорта"), max_length=20,  blank=True)
-    passport_issued_by   = models.CharField(_("кем выдан"),      max_length=255, blank=True)
-    passport_issued_date = models.DateField(_("дата выдачи"),     null=True, blank=True)
 
     # ---- Preferences ----
     preferred_language = models.CharField(
@@ -143,7 +138,7 @@ class User(AbstractUser, TimeStampedModel):
     objects = UserManager()
 
     class Meta:
-        verbose_name         = _("пользователь")
+        verbose_name         = _("пользоваостиница")
         verbose_name_plural  = _("пользователи")
         ordering             = ["-created_at"]
         indexes = [
@@ -213,7 +208,9 @@ class User(AbstractUser, TimeStampedModel):
     # ------------------------------------------------------------------
 
     def get_full_name(self) -> str:
-        return f"{self.first_name} {self.last_name}".strip()
+        return " ".join(
+            part for part in [self.last_name, self.first_name, self.patronymic] if part
+        )
 
     def get_short_name(self) -> str:
         return self.first_name or self.email.split("@")[0]

@@ -1,4 +1,4 @@
-"""
+﻿"""
 apps/bookings/price_calculator.py — Advanced pricing logic.
 
 Правила ценообразования:
@@ -11,7 +11,7 @@ apps/bookings/price_calculator.py — Advanced pricing logic.
     - Друзья (две кровати)      → базовая цена × 2
 
   Грудничок (до 1 года) → бесплатно (не влияет на цену)
-  Ранний заезд (до 12:00) → +1 сутки к стоимости
+  Ранний заезд (до 12:00) → +50% стоимости суток
 """
 
 from datetime import date, timedelta
@@ -98,31 +98,31 @@ class PriceCalculator:
         # Occupancy type multiplier
         occ_multiplier = OCCUPANCY_MULTIPLIERS.get(occupancy_type, Decimal("1.0"))
 
-        # Если детей больше нуля — они тоже платные, пересчитываем множитель
-        # solo + children → как two_guests (×2), solo без детей → ×1
+        # Дети со спальным местом считаются отдельными оплачиваемыми персонами.
+        # Исключение: спец-тариф "молодожёны" для двух гостей на одной кровати.
         paid_persons = calculate_paid_persons(adults, children)
-        if occupancy_type == "solo" and paid_persons > 1:
+        if paid_persons > 1 and occupancy_type != "newlyweds":
             occ_multiplier = Decimal(str(paid_persons))
 
         total_amount = total_amount * occ_multiplier
+        base_total = total_amount
 
-        # Early check-in: +1 day price (с учётом множителя гостей)
+        # Early check-in: +50% of one room night, not multiplied by guests.
         early_checkin_surcharge = Decimal("0")
         if early_check_in:
-            early_checkin_surcharge = self._get_daily_price(check_in) * occ_multiplier
+            early_checkin_surcharge = self._get_daily_price(check_in) * Decimal("0.5")
             total_amount += early_checkin_surcharge
 
-        # Dynamic pricing by occupancy
-        dyn_multiplier = self._calculate_occupancy_multiplier(check_in, check_out)
-        if dyn_multiplier != 1.0:
-            total_amount = total_amount * Decimal(str(dyn_multiplier))
+        # Keep booking totals aligned with the prices configured by the admin.
+        # Discounts/surcharges should be explicit, not inferred from occupancy.
+        dyn_multiplier = 1.0
 
-        avg_price_per_night = total_amount / nights if nights > 0 else Decimal("0")
+        avg_price_per_night = base_total / nights if nights > 0 else Decimal("0")
 
         return {
             "nights": nights,
             "price_per_night": avg_price_per_night,
-            "base_total": total_amount,
+            "base_total": base_total,
             "weekend_surcharge": weekend_surcharge,
             "seasonal_adjustments": seasonal_adjustments,
             "occupancy_multiplier": float(occ_multiplier),
@@ -184,7 +184,7 @@ class PriceCalculator:
         """
         Новая формула ценообразования для групповых броней:
           total = base_price_per_night × paid_persons × nights
-          early_check_in surcharge = base_price × paid_persons × 0.5
+          early_check_in surcharge = base_price × 0.5
 
         paid_persons = adults + children (инфанты не учитываются).
         """
@@ -200,7 +200,7 @@ class PriceCalculator:
 
         early_surcharge = Decimal("0")
         if early_check_in:
-            early_surcharge = base_price * Decimal(paid_persons) * Decimal("0.5")
+            early_surcharge = base_price * Decimal("0.5")
             total += early_surcharge
 
         return {

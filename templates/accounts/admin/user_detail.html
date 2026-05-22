@@ -1,8 +1,8 @@
-{% extends "dashboard/base_dashboard.html" %}
+﻿{% extends "dashboard/base_dashboard.html" %}
 
 {% block title %}{{ target.get_full_name|default:target.email }}{% endblock %}
 {% block dashboard_title %}{{ target.get_full_name|default:target.email }}{% endblock %}
-{% block dashboard_subtitle %}Профиль пользователя{% endblock %}
+{% block dashboard_subtitle %}Профиль пользоваостиницы{% endblock %}
 
 {% block dashboard_content %}
 
@@ -118,6 +118,35 @@
             </button>
           </div>
         </div>
+      </form>
+    </div>
+    {% endif %}
+
+    {% if can_set_password %}
+    <div class="dash-card mb-4">
+      <div class="dash-card-title"><i class="bi bi-key me-1"></i>Сменить пароль</div>
+      <form method="post" action="{% url 'accounts:set_user_password' target.pk %}">
+        {% csrf_token %}
+        <div class="row g-3">
+          <div class="col-sm-6">
+            <label class="form-label" for="{{ password_form.new_password1.id_for_label }}">Новый пароль</label>
+            {{ password_form.new_password1 }}
+            {% if password_form.new_password1.help_text %}
+              <div class="text-muted-sm mt-1">{{ password_form.new_password1.help_text|safe }}</div>
+            {% endif %}
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label" for="{{ password_form.new_password2.id_for_label }}">Повторите пароль</label>
+            {{ password_form.new_password2 }}
+          </div>
+        </div>
+        <button type="submit"
+                class="mt-3"
+                style="padding:.65rem 1rem;background:linear-gradient(135deg,#ff8e3c,#d9376e);
+                       border:none;border-radius:10px;color:#0d0d0d;font-weight:700;cursor:pointer"
+                onclick="return confirm('Изменить пароль этому пользователю?')">
+          <i class="bi bi-check2 me-1"></i>Сохранить новый пароль
+        </button>
       </form>
     </div>
     {% endif %}

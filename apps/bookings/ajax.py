@@ -14,11 +14,18 @@ def rooms_for_category(request):
     """Return available rooms for a given category (used by booking form JS)."""
     category_id = request.GET.get("category")
     if not category_id:
-        return JsonResponse({"rooms": [], "max_guests": 10})
+        return JsonResponse({"rooms": [], "max_guests": 0})
 
     try:
         from apps.hotel.models import RoomCategory
         category = RoomCategory.objects.get(pk=category_id)
+        check_in = None
+        check_out = None
+        check_in_str = request.GET.get("check_in")
+        check_out_str = request.GET.get("check_out")
+        if check_in_str and check_out_str:
+            check_in = datetime.strptime(check_in_str, "%Y-%m-%d").date()
+            check_out = datetime.strptime(check_out_str, "%Y-%m-%d").date()
 
         rooms = Room.objects.filter(
             category_id=category_id,
@@ -27,9 +34,15 @@ def rooms_for_category(request):
 
         room_list = []
         for room in rooms:
+            available_capacity = room.max_guests_per_room
+            if check_in and check_out:
+                available_capacity = room.available_capacity(check_in, check_out)
+            if available_capacity <= 0:
+                continue
+
             occupancy_info = ""
             if room.max_guests_per_room > 1:
-                current = room.get_current_occupancy_count()
+                current = room.max_guests_per_room - available_capacity
                 occupancy_info = f" ({current}/{room.max_guests_per_room})"
 
             room_list.append({
@@ -39,9 +52,20 @@ def rooms_for_category(request):
                 "full_number": room.full_number,
                 "floor": room.floor,
                 "display_name": f"{room.full_number}{(' / ' + room.subdivision) if room.subdivision else ''}{occupancy_info}",
+                "max_guests": available_capacity,
             })
 
-        return JsonResponse({"rooms": room_list, "max_guests": category.max_guests})
+        max_guests = sum(room["max_guests"] for room in room_list)
+        return JsonResponse({
+            "rooms": room_list,
+            "max_guests": max_guests,
+            "category_max_guests": category.max_guests,
+            "availability_message": (
+                "В данной категории свободных номеров нет."
+                if check_in and check_out and max_guests <= 0
+                else ""
+            ),
+        })
 
     except Exception:
         return JsonResponse({"error": "Ошибка загрузки номеров"}, status=500)

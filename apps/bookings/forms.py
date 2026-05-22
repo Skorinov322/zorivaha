@@ -1,4 +1,4 @@
-"""
+﻿"""
 bookings/forms.py
 
 Forms:
@@ -49,7 +49,7 @@ class BookingCreateForm(forms.Form):
     )
     guest_patronymic = forms.CharField(
         label=_("Отчество"), max_length=150, required=False,
-        widget=forms.TextInput(attrs={"class": _INPUT, "placeholder": "Иванович (необязательно)"}),
+        widget=forms.TextInput(attrs={"class": _INPUT, "placeholder": "Иванович (необязаостиницано)"}),
     )
     guest_phone = forms.CharField(
         label=_("Телефон"), max_length=20,
@@ -102,7 +102,7 @@ class BookingCreateForm(forms.Form):
         widget=forms.NumberInput(attrs={"class": _INPUT, "min": 1, "id": "id_adults"}),
     )
     children = forms.IntegerField(
-        label=_("Дети (от 1 года)"), min_value=0, initial=0,
+        label=_("Дети с предоставлением спального места"), min_value=0, initial=0,
         widget=forms.NumberInput(attrs={"class": _INPUT, "min": 0}),
     )
 
@@ -211,7 +211,7 @@ class BookingCreateForm(forms.Form):
         label=_("Ранний заезд (до 12:00)"),
         required=False,
         widget=forms.CheckboxInput(attrs={"class": "form-check-input", "id": "id_early_check_in"}),
-        help_text=_("Заезд до 12:00 — добавляется стоимость одних суток"),
+        help_text=_("Заезд до 12:00 считается ранним и будет взиматься доплата 50% от стоимости одних суток"),
     )
     special_requests = forms.CharField(
         label=_("Комментарий"), required=False,
@@ -226,8 +226,9 @@ class BookingCreateForm(forms.Form):
         if user and not self.data:
             self.fields["guest_first_name"].initial = user.first_name
             self.fields["guest_last_name"].initial  = user.last_name
+            self.fields["guest_patronymic"].initial = user.patronymic if hasattr(user, 'patronymic') else ""
             self.fields["guest_email"].initial      = user.email
-            self.fields["guest_phone"].initial      = getattr(user, "phone", "")
+            self.fields["guest_phone"].initial      = user.phone if user.phone else ""
 
         # Hide room selection for regular users (only staff can select specific rooms)
         if user and not (user.is_staff or user.is_admin):
@@ -292,6 +293,26 @@ class BookingCreateForm(forms.Form):
             elif (check_out - check_in).days > 60:
                 self.add_error("check_out", _("Максимальный срок бронирования — 60 ночей."))
 
+        if check_in and check_out and category:
+            total_persons = (cleaned.get("adults") or 0) + (cleaned.get("children") or 0)
+            available_capacity = sum(
+                room.available_capacity(check_in, check_out)
+                for room in Room.objects.filter(category=category, status=Room.RoomStatus.AVAILABLE)
+            )
+            if available_capacity <= 0:
+                self.add_error(
+                    "room_category",
+                    _("В данной категории свободных номеров нет. Выберите другую категорию или даты."),
+                )
+            elif total_persons > available_capacity:
+                self.add_error(
+                    "children",
+                    _(
+                        "В выбранной категории на эти даты доступно мест: %(capacity)s. "
+                        "Уменьшите количество гостей или выберите другую категорию."
+                    ) % {"capacity": available_capacity},
+                )
+
         # Room belongs to selected category
         room = cleaned.get("room")
         if room and category and room.category != category:
@@ -310,7 +331,7 @@ class BookingCreateForm(forms.Form):
                 for field in required_fields:
                     if not cleaned.get(field):
                         field_label = self.fields[field].label
-                        self.add_error(field, _("Это поле обязательно для новой организации."))
+                        self.add_error(field, _("Это поле обязаостиницано для новой организации."))
                 
                 # Check if organization with this name or INN already exists
                 new_org_name = cleaned.get("new_org_name")
@@ -417,7 +438,7 @@ class BookingStaffForm(forms.Form):
     # ---- Guests ----
     adults   = forms.IntegerField(label=_("Взрослые"), min_value=1, initial=1,
                                   widget=forms.NumberInput(attrs={"class": _INPUT}))
-    children = forms.IntegerField(label=_("Дети (от 1 года)"), min_value=0, initial=0,
+    children = forms.IntegerField(label=_("Дети с предоставлением спального места"), min_value=0, initial=0,
                                   widget=forms.NumberInput(attrs={"class": _INPUT}))
 
     # ---- Optional ----

@@ -17,8 +17,10 @@ HTML views:
   /reports/occupancy/       — загрузка по категориям
 """
 
+import json
 from datetime import date
 
+from django.core.serializers.json import DjangoJSONEncoder
 from django.views.generic import TemplateView
 from django.views import View
 
@@ -68,8 +70,11 @@ class RevenueReportView(ReceptionistRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         year = int(self.request.GET.get("year", date.today().year))
+        monthly_data = get_revenue_by_month(year)
         ctx["year"]         = year
-        ctx["monthly_data"] = get_revenue_by_month(year)
+        ctx["monthly_data"] = monthly_data
+        ctx["chart_labels"] = json.dumps([row["month"].strftime("%b") for row in monthly_data], cls=DjangoJSONEncoder)
+        ctx["chart_revenues"] = json.dumps([float(row["revenue"]) for row in monthly_data], cls=DjangoJSONEncoder)
         ctx["year_range"]   = range(date.today().year, date.today().year - 5, -1)
         return ctx
 

@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% block body_class %}dash-app{% endblock %}
+{% block site_navbar %}{% endblock %}
+{% block reveal_script %}{% endblock %}
+
 {% block extra_css %}
 <style>
 /* ═══════════════════════════════════════════════════════════════
@@ -16,6 +20,13 @@
   --topbar-h:   64px;
   --border:     rgba(13,13,13,.08);
   --text-muted: rgba(13,13,13,.45);
+}
+
+html.dash-app,
+body.dash-app {
+  min-height: 100vh;
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
 }
 
 /* ── Layout ─────────────────────────────────────────────────── */
@@ -50,23 +61,27 @@
   gap: .75rem;
   padding: 1.25rem 1.25rem 1rem;
   border-bottom: 1px solid var(--border);
+  width: 100%;
+}
+.sidebar-brand-home {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  flex: 1;
+  min-width: 0;
   text-decoration: none;
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #ff8e3c;
+  line-height: 1.3;
+  transition: color .15s;
 }
-.sidebar-brand-icon {
-  width: 36px; height: 36px;
-  background: linear-gradient(135deg, var(--gold), #d9376e);
-  border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: .9rem; color: #0d0d0d; flex-shrink: 0;
-}
-.sidebar-brand-name {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1rem; font-weight: 700; color: #0d0d0d;
-  line-height: 1.2;
-}
-.sidebar-brand-sub {
-  font-size: .65rem; color: var(--text-muted);
-  letter-spacing: .06em; text-transform: uppercase;
+.sidebar-brand-home:hover { color: #e67a28; }
+.sidebar-brand-home i {
+  font-size: 1rem;
+  flex-shrink: 0;
 }
 
 /* User block */
@@ -362,6 +377,34 @@
 
 /* ── Messages alerts ─────────────────────────────────────────── */
 .dash-alerts { display: none; }
+body.dash-app .site-flash-messages {
+  position: fixed !important;
+  top: calc(var(--topbar-h) + .75rem) !important;
+  right: 1.75rem !important;
+  left: auto !important;
+  width: 380px !important;
+  max-width: calc(100vw - 2rem) !important;
+  z-index: 2000 !important;
+  pointer-events: none;
+}
+body.dash-app .site-flash-messages .alert {
+  width: 100% !important;
+  margin-left: 0 !important;
+  margin-bottom: .75rem !important;
+  padding: .85rem 2.75rem .85rem 1rem !important;
+  border-radius: 14px !important;
+  background: #fff !important;
+  color: #0d0d0d !important;
+  box-shadow: 0 12px 36px rgba(13,13,13,.14) !important;
+  pointer-events: auto;
+}
+body.dash-app .site-flash-messages .btn-close {
+  position: absolute !important;
+  top: 50% !important;
+  right: .9rem !important;
+  transform: translateY(-50%) !important;
+  padding: .5rem !important;
+}
 
 /* ══════════════════════════════════════════════════════════════
    LEGACY DARK-THEME COMPAT
@@ -612,25 +655,221 @@
   background: rgba(13,13,13,.08) !important;
 }
 
+/* ── Notifications dropdown ──────────────────────────────────── */
+.notif-wrap { position: relative; }
+.notif-panel {
+  display: none;
+  flex-direction: column;
+  position: fixed;
+  top: calc(var(--topbar-h) + .75rem);
+  right: 1.75rem;
+  left: auto;
+  width: 360px;
+  max-width: calc(100vw - 2rem);
+  max-height: min(420px, calc(100vh - var(--topbar-h) - 1.5rem));
+  background: #fff;
+  border: 1px solid rgba(13,13,13,.1);
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(13,13,13,.15);
+  z-index: 1100;
+  overflow: hidden;
+}
+.notif-panel.open { display: flex; }
+.notif-panel-header {
+  padding: .85rem 1.1rem;
+  border-bottom: 1px solid rgba(13,13,13,.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  flex-shrink: 0;
+}
+.notif-panel-header-actions {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  flex-shrink: 0;
+}
+.notif-panel-title {
+  font-size: .8rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: #ff8e3c;
+}
+.notif-panel-close {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 8px;
+  background: rgba(13,13,13,.05);
+  color: rgba(13,13,13,.45);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .85rem;
+  padding: 0;
+  flex-shrink: 0;
+  transition: background .15s, color .15s;
+}
+.notif-panel-close:hover {
+  background: rgba(13,13,13,.1);
+  color: #0d0d0d;
+}
+.notif-panel-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.notif-item {
+  display: flex;
+  gap: .75rem;
+  padding: .85rem 1.1rem;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(13,13,13,.05);
+  transition: background .15s;
+}
+.notif-item:hover { background: rgba(13,13,13,.03); }
+.notif-item.unread { background: rgba(255,142,60,.05); }
+.notif-empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: rgba(13,13,13,.35);
+  font-size: .85rem;
+}
+
+.topbar-new-booking {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  background: linear-gradient(135deg, var(--gold), #d9376e);
+  color: #0d0d0d;
+  text-decoration: none;
+  font-size: .8rem;
+  font-weight: 700;
+  padding: .45rem .9rem;
+  border-radius: 9px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.dash-topbar-info { min-width: 0; flex: 1; }
+
+.sidebar-close-btn {
+  display: none;
+  margin-left: auto;
+  background: rgba(13,13,13,.06);
+  border: none;
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  color: rgba(13,13,13,.55);
+}
+
 /* ── Mobile ──────────────────────────────────────────────────── */
-@media (max-width: 768px) {
+@media (max-width: 991px) {
+  .dash-content .row > .col-xl-3,
+  .dash-content .row > .col-xl-4,
+  .dash-content .row > .col-lg-3,
+  .dash-content .row > .col-lg-4,
+  .dash-content .row > .col-md-4,
+  .dash-content .row > .col-md-5,
+  .dash-content .row > .col-md-6,
+  .dash-content .row > .col-sm-6,
+  .dash-content .row > .col-6 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 991px) {
   .dash-sidebar {
     transform: translateX(-100%);
+    width: min(280px, 88vw);
+    z-index: 1050;
   }
   .dash-sidebar.open {
     transform: translateX(0);
-    box-shadow: 4px 0 24px rgba(0,0,0,.5);
+    box-shadow: 4px 0 32px rgba(0,0,0,.25);
   }
-  .dash-main { margin-left: 0; }
+  .sidebar-close-btn { display: flex; align-items: center; justify-content: center; }
+  .sidebar-brand { padding-right: .75rem; }
+  .dash-main { margin-left: 0; width: 100%; }
   .dash-content { padding: 1rem; }
-  .dash-topbar { padding: 0 1rem; }
+  .dash-topbar {
+    height: auto;
+    min-height: var(--topbar-h);
+    padding: .65rem 1rem;
+    flex-wrap: nowrap;
+    gap: .5rem;
+  }
+  .dash-topbar-title {
+    font-size: .95rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .dash-topbar-subtitle {
+    font-size: .68rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .dash-topbar-actions {
+    margin-left: auto;
+    flex-shrink: 0;
+    gap: .4rem;
+  }
+  .topbar-icon-btn { width: 34px; height: 34px; flex-shrink: 0; }
+  .topbar-new-booking { padding: .4rem .65rem; font-size: .72rem; }
+  body.dash-app .site-flash-messages {
+    top: calc(var(--topbar-h, 56px) + .5rem) !important;
+    right: 1rem !important;
+    width: min(340px, calc(100vw - 2rem)) !important;
+  }
   .sidebar-overlay {
     display: none;
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,.6);
-    z-index: 199;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 1040;
   }
   .sidebar-overlay.open { display: block; }
+  .notif-panel {
+    position: fixed;
+    top: calc(var(--topbar-h, 56px) + .5rem);
+    right: 1rem;
+    left: auto;
+    bottom: auto;
+    width: 340px;
+    max-width: calc(100vw - 2rem);
+    max-height: min(420px, calc(100dvh - var(--topbar-h, 56px) - 1.5rem));
+    border-radius: 14px;
+    box-shadow: 0 12px 40px rgba(13,13,13,.2);
+  }
+  .kpi-card { padding: .9rem 1rem; }
+  .kpi-value { font-size: 1.4rem; }
+  .photo-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+  .dash-card { padding: 1rem; }
+  .section-tabs { gap: 6px; }
+  .section-tab { padding: 4px 10px; font-size: .7rem; }
+}
+
+@media (max-width: 480px) {
+  .notif-panel {
+    left: 1rem;
+    right: 1rem;
+    width: auto;
+  }
+}
+
+@media (max-width: 380px) {
+  .topbar-new-booking span { display: none; }
+  .topbar-new-booking { padding: .4rem .55rem; }
 }
 
 /* ── Hide duplicate headers ──────────────────────────────────── */
@@ -655,13 +894,15 @@
   <aside class="dash-sidebar" id="dashSidebar">
 
     <!-- Brand -->
-    <a href="{% url 'dashboard:index' %}" class="sidebar-brand">
-      <div class="sidebar-brand-icon"><i class="bi bi-building"></i></div>
-      <div>
-        <div class="sidebar-brand-name">Зори Ваха</div>
-        <div class="sidebar-brand-sub">Admin Panel</div>
-      </div>
-    </a>
+    <div class="sidebar-brand">
+      <a href="{% url 'hotel:index' %}" class="sidebar-brand-home" aria-label="Вернуться на главную">
+        <i class="bi bi-arrow-left" aria-hidden="true"></i>
+        <span>Вернуться на главную</span>
+      </a>
+      <button type="button" class="sidebar-close-btn d-lg-none" onclick="closeDashSidebar()" aria-label="Закрыть меню">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
 
     <!-- User -->
     <div class="sidebar-user">
@@ -791,6 +1032,14 @@
       </li>
       {% if request.user.is_admin %}
       <li>
+        <a href="{% url 'dashboard:about_content' %}"
+           class="{% if request.resolver_match.url_name == 'about_content' %}active{% endif %}">
+          <i class="bi bi-pencil-square"></i> Редактирование «О нас»
+        </a>
+      </li>
+      {% endif %}
+      {% if request.user.is_admin %}
+      <li>
         <a href="{% url 'dashboard:site_content' %}"
            class="{% if request.resolver_match.url_name == 'site_content' %}active{% endif %}">
           <i class="bi bi-file-text"></i> Политики сайта
@@ -840,11 +1089,6 @@
       <div class="sidebar-divider"></div>
 
       <li>
-        <a href="/staff-admin/" style="color:rgba(13,13,13,.4)">
-          <i class="bi bi-gear"></i> Панель управления
-        </a>
-      </li>
-      <li>
         <form method="post" action="/auth/logout/" style="margin:0">
           {% csrf_token %}
           <button type="submit"
@@ -865,50 +1109,46 @@
 
     <!-- Top bar -->
     <div class="dash-topbar">
-      <button class="topbar-icon-btn d-md-none" onclick="openDashSidebar()"
-              style="border:none;cursor:pointer">
+      <button type="button" class="topbar-icon-btn d-lg-none" onclick="openDashSidebar()" aria-label="Открыть меню">
         <i class="bi bi-list"></i>
       </button>
-      <div>
+      <div class="dash-topbar-info">
         <div class="dash-topbar-title">{% block dashboard_title %}Панель управления{% endblock %}</div>
         <div class="dash-topbar-subtitle">{% block dashboard_subtitle %}{% endblock %}</div>
       </div>
       <div class="dash-topbar-actions">
-        <!-- Notifications bell -->
         {% with unread_count=request.user.push_notifications_unread_count %}
-        <div style="position:relative">
-          <button onclick="toggleNotifPanel()" class="topbar-icon-btn" title="Уведомления"
-                  style="border:none;cursor:pointer;background:rgba(13,13,13,.03)">
+        <div class="notif-wrap">
+          <button type="button" class="topbar-icon-btn notif-toggle-btn" id="notifToggleBtn"
+                  onclick="toggleNotifPanel(event)" aria-label="Уведомления" aria-expanded="false">
             <i class="bi bi-bell"></i>
             {% if unread_count %}
-            <span style="position:absolute;top:4px;right:4px;width:8px;height:8px;
-                         border-radius:50%;background:#dc3545;border:1.5px solid #fff"></span>
+            <span class="topbar-notif-dot"></span>
             {% endif %}
           </button>
-          <!-- Dropdown panel -->
-          <div id="notifPanel" style="display:none;position:absolute;top:calc(100% + 8px);right:0;
-               width:340px;background:#fff;border:1px solid rgba(13,13,13,.1);border-radius:14px;
-               box-shadow:0 12px 40px rgba(13,13,13,.15);z-index:500;overflow:hidden">
-            <div style="padding:.85rem 1.1rem;border-bottom:1px solid rgba(13,13,13,.08);
-                        display:flex;align-items:center;justify-content:space-between">
-              <span style="font-size:.8rem;font-weight:700;letter-spacing:.06em;
-                           text-transform:uppercase;color:#ff8e3c">Уведомления</span>
-              {% if unread_count %}
-              <form method="post" action="{% url 'notifications:mark_all_read' %}" style="margin:0">
-                {% csrf_token %}
-                <button type="submit" style="font-size:.72rem;color:rgba(13,13,13,.45);
-                        background:none;border:none;cursor:pointer;padding:0">
-                  Прочитать все
+          <div class="notif-panel" id="notifPanel" role="dialog" aria-label="Уведомления" aria-modal="true">
+            <div class="notif-panel-header">
+              <span class="notif-panel-title">Уведомления</span>
+              <div class="notif-panel-header-actions">
+                {% if unread_count %}
+                <form method="post" action="{% url 'notifications:mark_all_read' %}" style="margin:0">
+                  {% csrf_token %}
+                  <button type="submit" style="font-size:.72rem;color:rgba(13,13,13,.45);
+                          background:none;border:none;cursor:pointer;padding:0;white-space:nowrap">
+                    Прочитать все
+                  </button>
+                </form>
+                {% endif %}
+                <button type="button" class="notif-panel-close" onclick="closeNotifPanel()"
+                        aria-label="Закрыть уведомления">
+                  <i class="bi bi-x-lg"></i>
                 </button>
-              </form>
-              {% endif %}
+              </div>
             </div>
-            <div style="max-height:360px;overflow-y:auto" id="notifList">
+            <div class="notif-panel-body">
               {% for notif in request.user.push_notifications.all|slice:":15" %}
               <a href="{% url 'notifications:mark_read' notif.pk %}"
-                 style="display:flex;gap:.75rem;padding:.85rem 1.1rem;text-decoration:none;
-                        border-bottom:1px solid rgba(13,13,13,.05);transition:background .15s;
-                        background:{% if not notif.is_read %}rgba(255,142,60,.05){% else %}#fff{% endif %}">
+                 class="notif-item{% if not notif.is_read %} unread{% endif %}">
                 <div style="width:34px;height:34px;border-radius:9px;flex-shrink:0;
                             display:flex;align-items:center;justify-content:center;font-size:.9rem;
                             {% if notif.notification_type == 'contact_form' %}
@@ -928,7 +1168,7 @@
                 </div>
                 <div style="flex:1;min-width:0">
                   <div style="font-size:.82rem;font-weight:{% if not notif.is_read %}600{% else %}400{% endif %};
-                              color:#0d0d0d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                              color:#0d0d0d;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
                     {{ notif.title }}
                   </div>
                   <div style="font-size:.75rem;color:rgba(13,13,13,.5);margin-top:.15rem;
@@ -940,12 +1180,11 @@
                   </div>
                 </div>
                 {% if not notif.is_read %}
-                <div style="width:7px;height:7px;border-radius:50%;background:#ff8e3c;
-                            flex-shrink:0;margin-top:.35rem"></div>
+                <div style="width:7px;height:7px;border-radius:50%;background:#ff8e3c;flex-shrink:0;margin-top:.35rem"></div>
                 {% endif %}
               </a>
               {% empty %}
-              <div style="padding:2rem;text-align:center;color:rgba(13,13,13,.35);font-size:.85rem">
+              <div class="notif-empty">
                 <i class="bi bi-bell-slash" style="font-size:1.5rem;display:block;margin-bottom:.5rem"></i>
                 Нет уведомлений
               </div>
@@ -954,20 +1193,12 @@
           </div>
         </div>
         {% endwith %}
-        <!-- CRM tasks -->
         <a href="{% url 'crm:task_list' %}" class="topbar-icon-btn" title="Задачи">
           <i class="bi bi-list-task"></i>
         </a>
-        <!-- New booking -->
-        <a href="{% url 'bookings:staff_create' %}"
-           style="display:inline-flex;align-items:center;gap:.4rem;
-                  background:linear-gradient(135deg,var(--gold),#d9376e);
-                  color:#0d0d0d;text-decoration:none;font-size:.8rem;font-weight:700;
-                  padding:.45rem .9rem;border-radius:9px;transition:opacity .15s"
-           onmouseover="this.style.opacity='.85'"
-           onmouseout="this.style.opacity='1'">
+        <a href="{% url 'bookings:staff_create' %}" class="topbar-new-booking" title="Новая бронь">
           <i class="bi bi-plus-lg"></i>
-          <span class="d-none d-sm-inline">Новая бронь</span>
+          <span>Новая бронь</span>
         </a>
       </div>
     </div>
@@ -1004,24 +1235,61 @@
   function openDashSidebar() {
     document.getElementById('dashSidebar').classList.add('open');
     document.getElementById('dashOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    closeNotifPanel();
   }
   function closeDashSidebar() {
     document.getElementById('dashSidebar').classList.remove('open');
     document.getElementById('dashOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+    document.documentElement.style.overflow = '';
   }
 
-  // Notification panel toggle
-  function toggleNotifPanel() {
+  function setNotifPanelOpen(open) {
     const panel = document.getElementById('notifPanel');
-    if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    const btn = document.getElementById('notifToggleBtn');
+    if (panel) panel.classList.toggle('open', open);
+    if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
   }
-  // Close panel on outside click
-  document.addEventListener('click', function(e) {
+
+  function closeNotifPanel() {
+    setNotifPanelOpen(false);
+  }
+
+  function toggleNotifPanel(e) {
+    if (e) e.stopPropagation();
     const panel = document.getElementById('notifPanel');
     if (!panel) return;
-    if (!panel.contains(e.target) && !e.target.closest('[onclick="toggleNotifPanel()"]')) {
-      panel.style.display = 'none';
+    const open = !panel.classList.contains('open');
+    setNotifPanelOpen(open);
+    if (open) closeDashSidebar();
+  }
+
+  document.addEventListener('click', function(e) {
+    const panel = document.getElementById('notifPanel');
+    const btn = document.getElementById('notifToggleBtn');
+    if (!panel || !panel.classList.contains('open')) return;
+    if (!panel.contains(e.target) && !(btn && btn.contains(e.target))) {
+      closeNotifPanel();
     }
+  });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeNotifPanel();
+      closeDashSidebar();
+    }
+  });
+
+  window.addEventListener('resize', function() {
+    if (window.innerWidth >= 768) closeDashSidebar();
+  });
+
+  document.querySelectorAll('.dash-sidebar .sidebar-nav a').forEach(function(link) {
+    link.addEventListener('click', function() {
+      if (window.innerWidth < 768) closeDashSidebar();
+    });
   });
 </script>
 {% block dashboard_js %}{% endblock %}

@@ -81,23 +81,20 @@ def get_available_categories(check_in: date, check_out: date, guests: int = 1) -
     available_category_ids = []
     
     # Check each category for availability
-    for category in RoomCategory.objects.filter(is_active=True, max_guests__gte=guests):
+    for category in RoomCategory.objects.filter(is_active=True):
         rooms = Room.objects.filter(
             category=category,
             status=Room.RoomStatus.AVAILABLE,
         )
         
-        # Check if any room has availability
-        for room in rooms:
-            if room.has_availability(check_in, check_out):
-                available_category_ids.append(category.id)
-                break
+        available_capacity = sum(room.available_capacity(check_in, check_out) for room in rooms)
+        if available_capacity >= guests:
+            available_category_ids.append(category.id)
 
     return (
         RoomCategory.objects.filter(
             id__in=available_category_ids,
             is_active=True,
-            max_guests__gte=guests,
         )
         .prefetch_related(
             "amenities",
@@ -180,7 +177,7 @@ def get_rooms_by_category(category_id: int, status: Optional[str] = None) -> Que
 
 
 def get_available_room_for_category(
-    category_id: int, check_in: date, check_out: date
+    category_id: int, check_in: date, check_out: date, guests: int = 1
 ) -> Optional[Room]:
     """Find one free physical room for check-in assignment."""
     from apps.bookings.models import Booking, BookingStatus
@@ -189,10 +186,10 @@ def get_available_room_for_category(
     rooms = Room.objects.filter(
         category_id=category_id,
         status=Room.RoomStatus.AVAILABLE,
-    ).order_by("number", "subdivision")
+    ).order_by("-max_guests_per_room", "number", "subdivision")
 
     for room in rooms:
-        if room.has_availability(check_in, check_out):
+        if room.has_capacity_for(check_in, check_out, guests):
             return room
     
     return None

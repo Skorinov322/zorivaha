@@ -30,7 +30,6 @@ class UserAdmin(RoleRestrictedMixin, BaseUserAdmin):
         base = (
             (None, {"fields": ("email", "password")}),
             (_("Личные данные"), {"fields": ("first_name", "last_name", "phone", "date_of_birth", "avatar")}),
-            (_("Документы"), {"fields": ("passport_series", "passport_number")}),
             (_("Настройки"), {"fields": ("preferred_language", "marketing_consent")}),
             (_("Даты"), {"fields": ("last_login", "created_at", "updated_at")}),
         )

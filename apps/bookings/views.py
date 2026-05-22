@@ -78,6 +78,17 @@ class BookingCreateView(LoginRequiredMixin, View):
             return render(request, self.template_name, {"form": form}, status=400)
 
         d = form.cleaned_data
+        from apps.accounts.services import update_user_profile_snapshot
+        update_user_profile_snapshot(
+            request.user,
+            {
+                "first_name": d["guest_first_name"],
+                "last_name": d["guest_last_name"],
+                "patronymic": d.get("guest_patronymic", ""),
+                "phone": d["guest_phone"],
+            },
+            overwrite=True,
+        )
         
         # Handle organization creation
         organization = None
@@ -142,7 +153,7 @@ class BookingCreateView(LoginRequiredMixin, View):
                     children=d.get("children", 0),
                     occupancy_type=d.get("occupancy_type", "solo"),
                     early_check_in=d.get("early_check_in", False),
-                    room=d.get("room"),
+                    room=None,
                     organization=organization,
                     special_requests=d.get("special_requests", ""),
                     arrival_time=d.get("arrival_time"),

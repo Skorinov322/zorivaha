@@ -6,6 +6,7 @@ Models:
   FAQ           — часто задаваемые вопросы
   HotelGallery  — общая галерея гостиницы (не номеров)
   Testimonial   — отзывы на главной странице (ручная модерация)
+  AboutPage     — контент страницы "О нас" (singleton)
 
 Управляется через Django Admin без кода.
 """
@@ -142,6 +143,7 @@ class HotelGallery(TimeStampedModel, OrderedModel):
         POOL = "pool", _("Бассейн")
         CONFERENCE = "conference", _("Конференц-зал")
         TERRITORY = "territory", _("Территория")
+        ABOUT = "about", _("О нас")
         OTHER = "other", _("Другое")
 
     image = models.ImageField(
@@ -186,7 +188,7 @@ class Testimonial(TimeStampedModel, OrderedModel):
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL, null=True, blank=True,
         related_name="testimonials",
-        verbose_name=_("пользователь"),
+        verbose_name=_("пользоваостиница"),
         help_text=_("Если оставлен реальным гостем системы"),
     )
     author_name = models.CharField(
@@ -254,3 +256,12 @@ class LegalPage(TimeStampedModel):
 
     def __str__(self) -> str:
         return self.get_page_type_display()
+
+
+# ---------------------------------------------------------------------------
+# AboutPage - импорт из отдельного файла
+# ---------------------------------------------------------------------------
+
+from .models_about import AboutPage
+
+__all__ = ['SiteContent', 'FAQ', 'HotelGallery', 'Testimonial', 'LegalPage', 'AboutPage']

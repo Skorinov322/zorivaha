@@ -14,7 +14,7 @@ from django import forms
 from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _
 
-from .models import RoomCategory, Room, RoomImage
+from .models import Amenity, RoomCategory, Room, RoomImage
 
 
 phone_validator = RegexValidator(
@@ -102,9 +102,28 @@ class ContactForm(forms.Form):
         })
     )
 
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if user and user.is_authenticated and not self.data:
+            self.fields["name"].initial = user.get_full_name() or user.email
+            self.fields["email"].initial = user.email
+            self.fields["phone"].initial = user.phone
+
 
 class RoomCategoryForm(forms.ModelForm):
     """Форма создания/редактирования категории номеров"""
+
+    new_amenities = forms.CharField(
+        label=_("Добавить удобства"),
+        required=False,
+        help_text=_("Введите несколько удобств через запятую или с новой строки."),
+        widget=forms.Textarea(attrs={
+            "class": "form-control",
+            "rows": 3,
+            "placeholder": "Wi-Fi, кондиционер, телевизор",
+        }),
+    )
 
     class Meta:
         model = RoomCategory
@@ -134,6 +153,21 @@ class RoomCategoryForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         # Slug is auto-generated via JS or in model.save(), so it's optional in the form
         self.fields['slug'].required = False
+        self.fields['amenities'].queryset = Amenity.objects.order_by("sort_order", "name")
+
+    def clean_new_amenities(self):
+        raw_value = self.cleaned_data.get("new_amenities", "")
+        names = []
+        seen = set()
+
+        for value in raw_value.replace("\n", ",").split(","):
+            name = value.strip()
+            key = name.casefold()
+            if name and key not in seen:
+                names.append(name)
+                seen.add(key)
+
+        return names
 
 
 class RoomForm(forms.ModelForm):

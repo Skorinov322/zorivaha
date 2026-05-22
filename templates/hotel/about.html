@@ -1,6 +1,7 @@
 {% extends "base.html" %}
+{% load static about_extras %}
 
-{% block title %}О гостинице{% endblock %}
+{% block title %}{{ about_page.hero_title|striptags }}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -9,10 +10,12 @@
 .reveal.visible{opacity:1;transform:translateY(0)}
 .eyebrow{display:inline-flex;align-items:center;gap:.5rem;font-size:.7rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--gold)}
 .eyebrow::before,.eyebrow::after{content:'';display:block;width:24px;height:1px;background:var(--gold);opacity:.5}
+.btn-luxury{display:inline-flex;align-items:center;gap:.6rem;padding:.9rem 2.25rem;background:linear-gradient(135deg,var(--gold) 0%,var(--gold-dark) 100%);color:#0d0d0d;font-size:.9rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;text-decoration:none;border:none;border-radius:var(--radius-sm);cursor:pointer;transition:opacity .2s,transform .15s,box-shadow .2s;box-shadow:0 4px 20px rgba(255,142,60,.25)}
+.btn-luxury:hover{opacity:.9;color:#0d0d0d;transform:translateY(-2px);box-shadow:0 8px 32px rgba(255,142,60,.35)}
 
 /* ── Page hero ── */
 .page-hero{background:radial-gradient(ellipse 70% 60% at 50% 0%,rgba(255,142,60,.12) 0%,transparent 65%),linear-gradient(160deg,#eff0f3 0%,#f4f5f8 50%,#ffffff 100%);padding:5rem 0 3.5rem;border-bottom:1px solid rgba(255,142,60,.1)}
-.page-hero-title{font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,5vw,3.5rem);font-weight:700;color:#0d0d0d;line-height:1.1;margin-bottom:.75rem}
+.page-hero-title{font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,5vw,3.5rem);font-weight:800;color:#0d0d0d;line-height:1.1;margin-bottom:.75rem}
 .page-hero-title em{font-style:normal;font-family:'Cormorant Garamond',serif;color:var(--gold)}
 .breadcrumb-lux{display:flex;align-items:center;gap:.5rem;font-size:.78rem;color:rgba(13,13,13,.45);margin-bottom:1.25rem;flex-wrap:wrap}
 .breadcrumb-lux a{color:rgba(13,13,13,.45);text-decoration:none;transition:color .2s}
@@ -20,14 +23,39 @@
 .breadcrumb-lux .sep{color:var(--text-faint)}
 .breadcrumb-lux .current{color:rgba(13,13,13,.72)}
 
-/* ── Content ── */
-.content-section{background:var(--dark-800);padding:4rem 0 6rem}
-.content-card{background:var(--dark-600);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:2rem}
-.content-card h2{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;color:#0d0d0d;margin-bottom:1rem}
-.content-card p{color:rgba(13,13,13,.62);line-height:1.8;font-size:.95rem}
-.stat-item{text-align:center;padding:1.5rem}
-.stat-item .num{font-family:'Cormorant Garamond',serif;font-size:2.5rem;font-weight:700;color:var(--gold);line-height:1}
-.stat-item .lbl{color:rgba(13,13,13,.52);font-size:.85rem;margin-top:.35rem}
+/* ── Stats (светлый блок) ── */
+.stats-section{background:var(--dark-800);padding:1.75rem 0}
+.stat-block{text-align:center;padding:.5rem .25rem}
+.stat-number{font-family:'Cormorant Garamond',serif;font-size:clamp(1.5rem,2.5vw,2rem);font-weight:700;color:var(--gold);line-height:1;margin-bottom:.25rem}
+.stat-label{font-size:.75rem;color:var(--text-muted);letter-spacing:.04em}
+
+/* ── Content blocks ── */
+.about-section{background:var(--dark-800);padding:5rem 0}
+.about-section:nth-child(even){background:var(--dark-700)}
+.about-media-card{background:var(--dark-600);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-gold);aspect-ratio:1/1;width:100%;max-width:420px;margin:0 auto}
+.about-media-card img{width:100%;height:100%;aspect-ratio:1/1;object-fit:cover;display:block;transition:transform .5s var(--ease-out)}
+.about-media-card:hover img{transform:scale(1.03)}
+.about-media-placeholder{aspect-ratio:1/1;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;padding:2rem;background:linear-gradient(135deg,var(--dark-500),var(--dark-600));color:var(--text-muted);text-align:center}
+.about-media-placeholder i{font-size:3.5rem;color:var(--gold);opacity:.55}
+.about-media-placeholder p{font-size:.9rem;margin:0;max-width:260px;line-height:1.6}
+.section-heading{font-family:'Cormorant Garamond',serif;font-size:clamp(1.75rem,3.5vw,2.5rem);font-weight:700;color:var(--text-primary);line-height:1.15;margin-bottom:1.25rem}
+.section-heading em{font-style:normal;color:var(--gold)}
+.about-prose{color:var(--text-muted);font-size:.95rem;line-height:1.8}
+.about-prose p{margin-bottom:1rem}
+.about-prose p:last-child{margin-bottom:0}
+.about-prose ul,.about-prose ol{padding-left:1.25rem;margin:1rem 0}
+.about-prose li{margin-bottom:.5rem}
+.about-prose strong{color:var(--text-primary);font-weight:600}
+
+@media (max-width: 991px) {
+  .about-section{padding:3.5rem 0}
+  .about-media-card{max-width:100%}
+}
+@media (max-width: 576px) {
+  .stats-section{padding:1.25rem 0}
+  .stat-number{font-size:1.4rem}
+  .stat-label{font-size:.7rem}
+}
 </style>
 {% endblock %}
 
@@ -42,117 +70,121 @@
       <span class="current">О нас</span>
     </nav>
     <div class="eyebrow mb-3">Узнайте о нас</div>
-    <h1 class="page-hero-title">О гостинице <em>Зори Ваха</em></h1>
+    <h1 class="page-hero-title">
+      {% if about_page.hero_title %}
+        {{ about_page.hero_title|safe }}
+      {% else %}
+        О гостинице <em>Зори Ваха</em>
+      {% endif %}
+    </h1>
     <p style="font-size:1rem;color:rgba(13,13,13,.55);margin-bottom:0">
-      Комфортное размещение в самом сердце Излучинска с заботой о каждом госте
+      {{ about_page.hero_subtitle|default:"Комфортное размещение в самом сердце Излучинска с заботой о каждом госте" }}
     </p>
   </div>
 </section>
 
-<div class="content-section">
+{# ══ STATS ══ #}
+<section class="stats-section" aria-label="Ключевые показатели">
   <div class="container">
-    <div class="row g-4">
-      <!-- Block 1: Философия и проживание -->
-      <div class="col-lg-6">
-        <div class="content-card d-flex flex-column h-100">
-          <h2>О нас</h2>
-          <p>Мы предлагаем всё необходимое для полноценного отдыха и продуктивной работы: чистые, ухоженные номера, продуманную инфраструктуру и доброжелательную атмосферу. Особого внимания заслуживает наш зелёный уголок на третьем этаже — место для тихого отдыха в любое время года.</p>
-          <p>Наша команда работает без громких обещаний и излишнего пафоса. Вместо этого мы ежедневно заботимся о том, чтобы ваше пребывание было максимально спокойным, а любая поездка — даже самая напряжённая командировка — становилась чуть менее утомительной.</p>
-          <p>«Зори Ваха» — это не просто гостиница. Это место, где соблюдают стандарты, но не забывают о человеческом отношении. Мы будем рады видеть вас в числе наших гостей.</p>
-          <h3>Номера</h3>
-          <p>В отеле 48 номеров. Цены варьируются в зависимости от категории: стандартные номера от 1800 ₽/ночь, люксы — дороже.</p>
-          <h4>Категории номеров:</h4>
-          <ul>
-            <li>Эконом: две одноместные кровати, возможное подселение ( возможен формат совместного проживания с гостем того же пола.).</li>
-            <li>Стандарт (Standard): с удобствами на блоке (санузел общий с соседним номером).</li>
-            <li>Полулюкс:  одноместные и двухместные.</li>
-            <li>Люкс: двухместный с двуспальной кроватью, имеется отдельный санузел.</li>
-          </ul>
-          <h4>Оснащение номеров:</h4>
-          <ul>
-            <li>Во всех номерах есть: телевизор (кабельное ТВ), холодильник, чайник, микроволновая печь, халат и тапочки.</li>
-            <li>В номерах Стандарт и Люкс есть отдельный санузел/душ.</li>
-          </ul>
+    <div class="row g-3">
+      <div class="col-6 col-md-3">
+        <div class="stat-block reveal">
+          <div class="stat-number">{{ about_page.stat1_number }}</div>
+          <div class="stat-label">{{ about_page.stat1_label }}</div>
         </div>
       </div>
-
-      <!-- Block 2: Визуальный акцент -->
-      <div class="col-lg-6">
-        <div class="content-card d-flex flex-column h-100" style="background: var(--dark-600);">
-          <div class="d-flex flex-column align-items-center justify-content-center text-center w-100" style="color: var(--text-muted);">
-            <div style="font-size: 5rem; margin-bottom: 1rem;">🏨</div>
-            <h4>Наше пространство</h4>
-            <p class="mb-0">Здесь будет размещено качественное фото гостиницы, интерьера или зелёного уголка на третьем этаже</p>
-          </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-block reveal" style="transition-delay:.1s">
+          <div class="stat-number">{{ about_page.stat2_number }}</div>
+          <div class="stat-label">{{ about_page.stat2_label }}</div>
         </div>
       </div>
-    </div>
-
-    <div class="row g-4">
-      <!-- Block 3: Сервис и инфраструктура -->
-      <div class="col-lg-6">
-        <div class="content-card d-flex flex-column h-100">
-          <h2>Сервис и инфраструктура</h2>
-          <h4>Ресепшн</h4>
-          <ul>
-            <li>Заезд: после 12:00</li>
-            <li>Выезд: до 12:00</li>
-            <li>Ресепшн работает круглосуточно</li>
-          </ul>
-          
-          <h4>Услуги</h4>
-          <h5>Wellness & SPA:</h5>
-          <ul>
-            <li>Сауна.</li>
-            <li>Спа-центр.</li>
-            <li>Массажный кабинет.</li>
-            <li>Солярий.</li>
-            <li>Соляная комната и инфракрасная сауна.</li>
-            <li>Тренажерный зал.</li>
-          </ul>
-          
-          <h5>Удобства:</h5>
-          <ul>
-            <li>Парковка: Бесплатная на территории.</li>
-            <li>Интернет: Бесплатный Wi-Fi.</li>
-            <li>Услуги: Круглосуточная стойка регистрации, гладильные принадлежности, фен (по запросу), факс/ксерокс (для деловых людей), камера хранения, прачечная.</li>
-            <li>Кондиционирование: Кондиционер есть не во всех номерах, но в отдельных категориях (Люкс, некоторые Стандарт) он присутствует. При бронировании уточняйте наличие кондиционирования.</li>
-          </ul>
+      <div class="col-6 col-md-3">
+        <div class="stat-block reveal" style="transition-delay:.2s">
+          <div class="stat-number">{{ about_page.stat3_number }}</div>
+          <div class="stat-label">{{ about_page.stat3_label }}</div>
         </div>
       </div>
-
-      <!-- Block 4: Важная информация и контакты -->
-      <div class="col-lg-6">
-        <div class="content-card d-flex flex-column h-100">
-          <h2>Важная информация и контакты</h2>
-          <h4>Правила и нюансы</h4>
-          <ul>
-            <li>Документы: При заезде гражданам РФ необходимо оригинал паспорта.</li>
-            <li>Политика курения: Отель полностью для некурящих.</li>
-            <li>Домашние животные: Размещение с питомцами к сожалению не допускается.</li>
-            <li>Состояние номеров: Ремонт выполнен в стиле начала 2000‑х — мы любим называть его уютный ретро‑стиль; сантехника полностью исправна, а номера всегда чистые и ухожены.</li>
-          </ul>
-          
-          <h4>Локация и контакты</h4>
-          <p><strong>Адрес:</strong> пгт. Излучинск, ул. Школьная, д. 12, Нижневартовский район, Ханты‑Мансийский АО — Югра.</p>
-          <p><strong>Ближайшие аэропорты:</strong></p>
-          <ul>
-            <li>Нижневартовск – 21,7 км</li>
-            <li>Стрежевой – 50,8 км</li>
-          </ul>
-          <p><strong>Категория:</strong> 3 звезды (по некоторым данным).</p>
-          <p><strong>Статус:</strong> Действующий отель, внесён в Единый реестр объектов размещения.</p>
-          <p><strong>Год постройки и реконструкции:</strong> 2006 год постройки, последний ремонт – 2015 год.</p>
-          
-          <h4>Контактные телефоны</h4>
-          <ul>
-            <li><a href="tel:+73466287003">+7 (3466) 28-70-03</a></li>
-            <li><a href="tel:+73466282361">+7 (3466) 28-23-61</a></li>
-          </ul>
+      <div class="col-6 col-md-3">
+        <div class="stat-block reveal" style="transition-delay:.3s">
+          <div class="stat-number">{{ about_page.stat4_number }}</div>
+          <div class="stat-label">{{ about_page.stat4_label }}</div>
         </div>
       </div>
     </div>
   </div>
-</div>
+</section>
+
+{# ══ BLOCK 1: О НАС ══ #}
+<section class="about-section" aria-labelledby="about-block-1">
+  <div class="container">
+    <div class="row g-4 g-xl-5 align-items-center reveal">
+      <div class="col-lg-6">
+        {% include "hotel/partials/about_media.html" with image_url=about_page.about_image_url alt=about_page.about_title icon="bi-building" placeholder="Фото гостиницы" %}
+      </div>
+      <div class="col-lg-6">
+        <div class="eyebrow mb-3">Наша история</div>
+        <h2 class="section-heading" id="about-block-1">{{ about_page.about_title }}</h2>
+        <div class="about-prose">{{ about_page.about_text|format_about_text }}</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ══ BLOCK 2: НОМЕРА ══ #}
+<section class="about-section" aria-labelledby="about-block-2">
+  <div class="container">
+    <div class="row g-4 g-xl-5 align-items-center reveal">
+      <div class="col-lg-6 order-lg-2">
+        {% include "hotel/partials/about_media.html" with image_url=about_page.rooms_image_url alt=about_page.rooms_title icon="bi-door-open" placeholder="Фото номера" %}
+      </div>
+      <div class="col-lg-6 order-lg-1">
+        <div class="eyebrow mb-3">Размещение</div>
+        <h2 class="section-heading" id="about-block-2">{{ about_page.rooms_title }}</h2>
+        <div class="about-prose">{{ about_page.rooms_text|format_about_text }}</div>
+        <a href="{% url 'hotel:room_list' %}" class="btn-luxury mt-4">
+          <i class="bi bi-door-open" aria-hidden="true"></i>
+          Посмотреть номера
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ══ BLOCK 3: СЕРВИС ══ #}
+<section class="about-section" aria-labelledby="about-block-3">
+  <div class="container">
+    <div class="row g-4 g-xl-5 align-items-center reveal">
+      <div class="col-lg-6">
+        {% include "hotel/partials/about_media.html" with image_url=about_page.services_image_url alt=about_page.services_title icon="bi-stars" placeholder="Фото услуг" %}
+      </div>
+      <div class="col-lg-6">
+        <div class="eyebrow mb-3">Удобства</div>
+        <h2 class="section-heading" id="about-block-3">{{ about_page.services_title }}</h2>
+        <div class="about-prose">{{ about_page.services_text|format_about_text }}</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ══ BLOCK 4: КОНТАКТЫ ══ #}
+<section class="about-section" aria-labelledby="about-block-4">
+  <div class="container">
+    <div class="row g-4 g-xl-5 align-items-center reveal">
+      <div class="col-lg-6 order-lg-2">
+        {% include "hotel/partials/about_media.html" with image_url=about_page.contacts_image_url alt=about_page.contacts_title icon="bi-geo-alt" placeholder="Фото локации" %}
+      </div>
+      <div class="col-lg-6 order-lg-1">
+        <div class="eyebrow mb-3">Информация</div>
+        <h2 class="section-heading" id="about-block-4">{{ about_page.contacts_title }}</h2>
+        <div class="about-prose">{{ about_page.contacts_text|format_about_text }}</div>
+        <a href="{% url 'hotel:contacts' %}" class="btn-luxury mt-4">
+          <i class="bi bi-geo-alt" aria-hidden="true"></i>
+          Контакты и карта
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
 
 {% endblock %}

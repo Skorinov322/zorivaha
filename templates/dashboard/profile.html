@@ -40,22 +40,17 @@
         {% csrf_token %}
         <input type="hidden" name="action" value="profile" />
         <div class="row g-3">
+          <div class="col-12"><label class="form-label" for="{{ form.email.id_for_label }}">Email</label>{{ form.email }}</div>
           <div class="col-sm-6"><label class="form-label" for="{{ form.last_name.id_for_label }}">Фамилия</label>{{ form.last_name }}</div>
           <div class="col-sm-6"><label class="form-label" for="{{ form.first_name.id_for_label }}">Имя</label>{{ form.first_name }}</div>
+          <div class="col-sm-6"><label class="form-label" for="{{ form.patronymic.id_for_label }}">Отчество</label>{{ form.patronymic }}</div>
           <div class="col-sm-6"><label class="form-label" for="{{ form.phone.id_for_label }}">Телефон</label>{{ form.phone }}</div>
           <div class="col-sm-6"><label class="form-label" for="{{ form.date_of_birth.id_for_label }}">Дата рождения</label>{{ form.date_of_birth }}</div>
-        </div>
-        <div style="height:1px;background:rgba(13,13,13,.08);margin:1.25rem 0"></div>
-        <div class="row g-3">
-          <div class="col-sm-4"><label class="form-label" for="{{ form.passport_series.id_for_label }}">Серия паспорта</label>{{ form.passport_series }}</div>
-          <div class="col-sm-8"><label class="form-label" for="{{ form.passport_number.id_for_label }}">Номер паспорта</label>{{ form.passport_number }}</div>
         </div>
         <div style="height:1px;background:rgba(13,13,13,.08);margin:1.25rem 0"></div>
         <div class="row g-3 mb-3">
           <div class="col-sm-6"><label class="form-label" for="{{ form.preferred_language.id_for_label }}">Язык</label>{{ form.preferred_language }}</div>
         </div>
-        <div class="form-check mb-2">{{ form.email_notifications }} <label class="form-check-label" for="{{ form.email_notifications.id_for_label }}">Получать email-уведомления</label></div>
-        <div class="form-check mb-3">{{ form.marketing_consent }} <label class="form-check-label" for="{{ form.marketing_consent.id_for_label }}">Получать новости и спецпредложения</label></div>
         <button type="submit"
                 style="background:linear-gradient(135deg,#ff8e3c,#d9376e);border:none;border-radius:10px;color:#0d0d0d;
                        padding:.7rem 1.75rem;font-weight:700;cursor:pointer">

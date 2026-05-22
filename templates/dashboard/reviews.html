@@ -45,16 +45,21 @@
         {% for review in reviews %}
         <tr>
           <td style="min-width:180px;">
-            <div style="font-weight:700;color:#0d0d0d;">{% if review.guest %}{{ review.guest.get_full_name|default:review.guest.email }}{% else %}Гость{% endif %}</div>
-            <div style="font-size:.82rem;color:rgba(13,13,13,.6);">{{ review.category.name }}</div>
+            <div style="font-weight:700;color:#0d0d0d;">{{ review.guest_name|default:"Гость" }}</div>
+            <div style="font-size:.82rem;color:rgba(13,13,13,.6);">
+              {% if review.room_category %}{{ review.room_category.name }}{% else %}Общий отзыв о гостинице{% endif %}
+            </div>
+            {% if review.author %}
+            <div style="font-size:.78rem;color:rgba(13,13,13,.45);">{{ review.author.email }}</div>
+            {% endif %}
             <div style="font-size:.78rem;color:rgba(13,13,13,.45);margin-top:.25rem">{{ review.created_at|date:"d.m.Y H:i" }}</div>
           </td>
           <td>
             <div style="font-weight:600;color:#0d0d0d;margin-bottom:.35rem">{{ review.title|default:"Без заголовка" }}</div>
-            <div style="font-size:.9rem;color:rgba(13,13,13,.75);line-height:1.5;white-space:pre-wrap">{{ review.body }}</div>
+            <div style="font-size:.9rem;color:rgba(13,13,13,.75);line-height:1.5;white-space:pre-wrap">{{ review.text }}</div>
             <div style="margin-top:.75rem;font-size:.85rem;color:rgba(13,13,13,.55);">
-              Рейтинг: {{ review.rating }} / 5
-              {% if review.is_approved %}· Одобрено {{ review.approved_at|date:"d.m.Y" }}{% endif %}
+              Рейтинг: {{ review.overall_rating }} / 5
+              {% if review.is_approved %}· Одобрено {{ review.moderated_at|date:"d.m.Y" }}{% endif %}
             </div>
           </td>
           <td>

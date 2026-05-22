@@ -1,4 +1,4 @@
-"""
+﻿"""
 Setup wizard form.
 
 Collects the minimum required data to create the first superuser:
@@ -46,7 +46,7 @@ class SetupForm(forms.Form):
         required=False,
         widget=forms.TextInput(attrs={
             "class": "form-control form-control-lg",
-            "placeholder": _("Отчество (необязательно)"),
+            "placeholder": _("Отчество (необязаостиницано)"),
         }),
     )
 
@@ -96,7 +96,7 @@ class SetupForm(forms.Form):
         email = self.cleaned_data["email"].lower().strip()
         if User.objects.filter(email=email).exists():
             raise forms.ValidationError(
-                _("Пользователь с таким email уже существует.")
+                _("Пользоваостиница с таким email уже существует.")
             )
         return email
 

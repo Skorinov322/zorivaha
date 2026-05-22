@@ -71,12 +71,22 @@ class IndexView(TemplateView):
     template_name = "hotel/index.html"
 
     def get_context_data(self, **kwargs):
+        from apps.content.models import AboutPage
+        from apps.reviews.models import Review, ReviewStatus
+
         ctx = super().get_context_data(**kwargs)
+        ctx["about_page"]     = AboutPage.get_instance()
         ctx["search_form"]    = AvailabilitySearchForm()
         ctx["featured_rooms"] = get_featured_room_categories(limit=3)
+        ctx["published_reviews"] = (
+            Review.objects
+            .filter(status=ReviewStatus.APPROVED)
+            .select_related("author", "room_category")
+            .order_by("-published_at", "-created_at")[:12]
+        )
         ctx["features"] = [
             ("bi-wifi",          "Бесплатный Wi-Fi",    "Высокоскоростной интернет во всех номерах"),
-            ("bi-cup-hot",       "Комфортный сервис",   "Внимательный персонал и уют на каждом шагу"),
+            ("bi-cup-hot",       "Комфортный сервис",   "Внимаостиницаный персонал и уют на каждом шагу"),
             ("bi-stars",         "Уборка номеров",      "Регулярная уборка и свежее бельё"),
             ("bi-geo-alt",       "Центр населённого пункта", "В шаговой доступности от магазинов и инфраструктуры"),
         ]
@@ -86,17 +96,29 @@ class IndexView(TemplateView):
                 bookings__guest=self.request.user,
                 bookings__status=BookingStatus.CHECKED_OUT,
             ).distinct().order_by("name")
-            ctx["review_form"] = ReviewForm(available_categories=completed_categories)
+            from apps.reviews.models import Review
+            ctx["user_review"] = (
+                Review.objects
+                .filter(author=self.request.user)
+                .select_related("room_category")
+                .first()
+            )
+            ctx["review_form"] = ReviewForm(available_categories=completed_categories) if not ctx["user_review"] else None
             ctx["review_categories"] = completed_categories
         else:
             ctx["review_form"] = None
             ctx["review_categories"] = RoomCategory.objects.none()
+            ctx["user_review"] = None
 
         return ctx
 
     def post(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
             return redirect(f"{reverse('login')}?next={request.path}")
+        from apps.reviews.models import Review
+        if Review.objects.filter(author=request.user).exists():
+            messages.info(request, "Вы уже оставили отзыв. Один аккаунт может оставить только один отзыв.")
+            return redirect("hotel:index")
 
         completed_categories = RoomCategory.objects.filter(
             bookings__guest=request.user,
@@ -195,22 +217,19 @@ class AboutView(TemplateView):
     template_name = "hotel/about.html"
 
     def get_context_data(self, **kwargs):
+        from apps.content.models import AboutPage
         ctx = super().get_context_data(**kwargs)
-        ctx["stats"] = [
-            ("48+", "Номеров"),
-            ("Без звезд",  "Категория"),
-            ("24/7","Поддержка"),
-            ("10+", "Лет опыта"),
-        ]
-        ctx["services"] = [
-            ("bi-person-badge",   "Круглосуточная стойка регистрации"),
-            ("bi-wifi",           "Бесплатный Wi-Fi"),
-            ("bi-thermometer-sun","Сауна"),
-            ("bi-bicycle",        "Фитнес-зал"),
-            ("bi-shield-check",   "Круглосуточное видеонаблюдение"),
-            ("bi-cup-hot",        "Вода, чай, кофе в холле 24/7"),
-            ("bi-basket",         "Прачечная"),
-        ]
+        ctx["about_page"] = (
+            AboutPage.objects.select_related(
+                "about_gallery_photo",
+                "rooms_gallery_photo",
+                "services_gallery_photo",
+                "contacts_gallery_photo",
+            )
+            .filter(pk=1)
+            .first()
+            or AboutPage.get_instance()
+        )
         return ctx
 
 
@@ -218,9 +237,40 @@ class ContactsView(FormView):
     template_name = "hotel/contacts.html"
     form_class = ContactForm
     success_url = reverse_lazy('hotel:contacts')
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
+        return kwargs
     
     def form_valid(self, form):
         d = form.cleaned_data
+
+        if self.request.user.is_authenticated:
+            from apps.accounts.services import update_user_profile_snapshot
+            name_parts = d.get("name", "").split()
+            profile_data = {
+                "phone": d.get("phone", ""),
+            }
+            if len(name_parts) >= 3:
+                profile_data.update({
+                    "last_name": name_parts[0],
+                    "first_name": name_parts[1],
+                    "patronymic": " ".join(name_parts[2:]),
+                })
+            elif len(name_parts) == 2:
+                profile_data.update({
+                    "last_name": name_parts[0],
+                    "first_name": name_parts[1],
+                })
+            elif len(name_parts) == 1:
+                profile_data["first_name"] = name_parts[0]
+
+            update_user_profile_snapshot(
+                self.request.user,
+                profile_data,
+                overwrite=False,
+            )
 
         # Сохраняем сообщение в БД
         from apps.notifications.models import ContactMessage

@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% load static %}
 
 {% block title %}Бронирование{% endblock %}
@@ -229,21 +229,7 @@
           {{ form.room_category }}
           {% for e in form.room_category.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
         </div>
-        {% if user.is_staff or user.is_admin %}
-        <div class="col-12">
-          <label class="form-label">Конкретный номер</label>
-          {{ form.room }}
-          <div style="font-size:.75rem;color:rgba(13,13,13,.4);margin-top:.3rem">{{ form.room.help_text }}</div>
-        </div>
-        {% else %}
         {{ form.room }}
-        <div class="col-12">
-          <div class="alert alert-info" style="background:rgba(13,110,253,.1);border:1px solid rgba(13,110,253,.2);border-radius:10px;padding:.75rem;font-size:.85rem;color:#0d6efd;">
-            <i class="bi bi-info-circle me-2"></i>
-            Конкретный номер будет назначен автоматически при заселении в соответствии с выбранной категорией.
-          </div>
-        </div>
-        {% endif %}
         <div class="col-sm-6">
           <label class="form-label">Дата заезда <span class="required-star">*</span></label>
           {{ form.check_in }}
@@ -269,9 +255,10 @@
         </div>
         <div class="col-sm-6">
           <label class="form-label">
-            Дети (от 1 года)
+            Дети с предоставлением спального места
           </label>
           {{ form.children }}
+          <div id="guestsCapacityHint" style="font-size:.75rem;color:rgba(13,13,13,.45);margin-top:.3rem"></div>
           {% for e in form.children.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
         </div>
       </div>
@@ -279,7 +266,7 @@
 
     {# 3. Additional #}
     <div class="booking-card">
-      <div class="section-title"><i class="bi bi-three-dots"></i>Дополнительно</div>
+      <div class="section-title"><i class="bi bi-three-dots"></i>Дополниостиницано</div>
       <div class="row g-3">
         <div class="col-12">
           <label class="form-label">Тип клиента</label>
@@ -402,7 +389,7 @@
                       background:rgba(255,193,7,.12);border:1px solid rgba(255,193,7,.4);
                       border-radius:8px;padding:.6rem .85rem;display:flex;align-items:center;gap:.5rem">
             <i class="bi bi-sunrise" style="color:#e6a817;font-size:1rem"></i>
-            <span>Ранний заезд (до 12:00) — автоматически добавляется стоимость одних суток.</span>
+            <span>Ранний заезд (до 12:00) — будет взиматься доплата 50% от стоимости одних суток.</span>
           </div>
         </div>
         <div class="col-12" id="normalCheckinNotice">
@@ -410,7 +397,7 @@
                       background:rgba(40,167,69,.06);border:1px solid rgba(40,167,69,.15);
                       border-radius:8px;padding:.6rem .85rem">
             <i class="bi bi-clock me-1" style="color:#28a745"></i>
-            Стандартное время заезда — с 12:00. Заезд до 12:00 считается ранним и добавляет стоимость одних суток.
+            Стандартное время заезда — с 12:00. Заезд до 12:00 считается ранним и будет взиматься доплата 50% от стоимости одних суток.
           </div>
         </div>
         <input type="hidden" name="early_check_in" id="id_early_check_in"
@@ -451,7 +438,7 @@
       </div>
       <div class="price-row" id="earlyCheckinRow" style="display:none">
         <span class="label">Ранний заезд</span>
-        <span class="value" id="previewEarlyCheckin" style="color:#ff8e3c">+ 1 сутки</span>
+        <span class="value" id="previewEarlyCheckin" style="color:#ff8e3c">+ 50%</span>
       </div>
       <div class="price-total">
         <span class="label">Итого</span>
@@ -496,6 +483,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const roomSelect   = document.getElementById('id_room');
   const adultsInput  = document.getElementById('id_adults');
   const childrenInput = document.querySelector('input[name="children"]');
+  const checkInInput = document.getElementById('id_check_in');
+  const checkOutInput = document.getElementById('id_check_out');
+  const capacityHint = document.getElementById('guestsCapacityHint');
+  let selectedMaxGuests = 0;
+  let capacityLoaded = false;
+  let availabilityMessage = '';
 
   // Update guests preview
   function updateGuestsPreview() {
@@ -504,11 +497,44 @@ document.addEventListener('DOMContentLoaded', () => {
     const guestsEl = document.getElementById('previewGuestsValue');
     if (guestsEl) {
       let txt = `${adults} взр.`;
-      if (children > 0) txt += `, ${children} дет.`;
+      if (children > 0) txt += `, ${children} дет. со спальным местом`;
       guestsEl.textContent = txt;
     }
+    validateGuestCapacity();
     // Trigger price recalc
     document.dispatchEvent(new CustomEvent('earlyCheckinChanged'));
+  }
+
+  function validateGuestCapacity() {
+    if (!capacityLoaded || !adultsInput || !childrenInput) return true;
+    if (availabilityMessage) {
+      childrenInput.setCustomValidity(availabilityMessage);
+      adultsInput.max = 1;
+      childrenInput.max = 0;
+      if (capacityHint) {
+        capacityHint.textContent = availabilityMessage;
+        capacityHint.style.color = '#dc3545';
+      }
+      return false;
+    }
+    const adults = parseInt(adultsInput.value || 1);
+    const children = parseInt(childrenInput.value || 0);
+    const total = adults + children;
+    const remainingForChildren = Math.max(selectedMaxGuests - adults, 0);
+    childrenInput.max = remainingForChildren;
+    adultsInput.max = Math.max(selectedMaxGuests - children, 1);
+
+    const message = total > selectedMaxGuests
+      ? `В выбранной категории на эти даты доступно мест: ${selectedMaxGuests}.`
+      : '';
+    childrenInput.setCustomValidity(message);
+    if (capacityHint) {
+      capacityHint.textContent = selectedMaxGuests
+        ? `Доступно мест в выбранной категории: ${selectedMaxGuests}`
+        : '';
+      capacityHint.style.color = message ? '#dc3545' : 'rgba(13,13,13,.45)';
+    }
+    return !message;
   }
 
   if (adultsInput) {
@@ -524,9 +550,18 @@ document.addEventListener('DOMContentLoaded', () => {
   // Fetch max_guests when category changes
   function onCategoryChange(catId) {
     if (!catId) return;
-    fetch(`/bookings/rooms-for-category/?category=${catId}`)
+    const params = new URLSearchParams({ category: catId });
+    if (checkInInput?.value) params.set('check_in', checkInInput.value);
+    if (checkOutInput?.value) params.set('check_out', checkOutInput.value);
+
+    fetch(`/bookings/rooms-for-category/?${params.toString()}`)
       .then(r => r.json())
       .then(data => {
+        selectedMaxGuests = parseInt(data.max_guests || 0);
+        capacityLoaded = true;
+        availabilityMessage = data.availability_message || '';
+        validateGuestCapacity();
+
         // Update category name in preview
         const catNameEl = document.getElementById('previewCategoryName');
         if (catNameEl && data.category_name) catNameEl.textContent = data.category_name;
@@ -544,6 +579,8 @@ document.addEventListener('DOMContentLoaded', () => {
         {% endif %}
       })
       .catch(() => {
+        capacityLoaded = false;
+        availabilityMessage = '';
         {% if user.is_staff or user.is_admin %}
         if (roomSelect) roomSelect.innerHTML = '<option value="">— Ошибка загрузки —</option>';
         {% endif %}
@@ -552,6 +589,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (catSelect) {
     catSelect.addEventListener('change', function() { onCategoryChange(this.value); });
+    checkInInput?.addEventListener('change', function() { onCategoryChange(catSelect.value); });
+    checkOutInput?.addEventListener('change', function() { onCategoryChange(catSelect.value); });
     // Init on load if category already selected
     if (catSelect.value) onCategoryChange(catSelect.value);
   }

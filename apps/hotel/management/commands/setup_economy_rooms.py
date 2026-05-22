@@ -1,4 +1,4 @@
-"""
+﻿"""
 Management command to set up economy rooms with subdivisions and multiple occupancy.
 Usage: python manage.py setup_economy_rooms
 """
@@ -23,7 +23,7 @@ class Command(BaseCommand):
         dry_run = options['dry_run']
         
         if dry_run:
-            self.stdout.write(self.style.WARNING('РЕЖИМ ПРЕДВАРИТЕЛЬНОГО ПРОСМОТРА'))
+            self.stdout.write(self.style.WARNING('РЕЖИМ ПРЕДВАРИостиницаНОГО ПРОСМОТРА'))
         
         try:
             # Find or create economy category

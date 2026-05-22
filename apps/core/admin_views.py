@@ -1,5 +1,5 @@
-"""
-Дополнительные view для админ-панели
+﻿"""
+Дополниостиницаные view для админ-панели
 """
 
 from django.contrib.admin.views.decorators import staff_member_required

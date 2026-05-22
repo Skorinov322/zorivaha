@@ -1,4 +1,4 @@
-from django.contrib import admin
+﻿from django.contrib import admin
 from django.utils.html import format_html
 from django.utils import timezone
 
@@ -26,7 +26,7 @@ class PageViewAdmin(RoleRestrictedMixin, admin.ModelAdmin):
         if obj.user:
             return f"{obj.user.email}"
         return f"Анонимный ({obj.ip_address})"
-    user_display.short_description = "Пользователь"
+    user_display.short_description = "Пользоваостиница"
 
     def user_agent_short(self, obj):
         if not obj.user_agent:
@@ -107,7 +107,7 @@ class BookingFunnelAdmin(RoleRestrictedMixin, admin.ModelAdmin):
         if obj.user:
             return f"{obj.user.email}"
         return f"Анонимный"
-    user_display.short_description = "Пользователь"
+    user_display.short_description = "Пользоваостиница"
     
     @admin.action(description="Отметить как брошенные")
     def mark_abandoned(self, request, queryset):

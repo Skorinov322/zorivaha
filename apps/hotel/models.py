@@ -326,25 +326,38 @@ class Room(TimeStampedModel):
         return self.max_guests_per_room > 1
 
     def get_current_occupancy_count(self) -> int:
-        """Get current number of active bookings for this room"""
+        """Get current number of guests in active bookings for this room."""
         from apps.bookings.models import BookingStatus
-        return self.bookings.filter(
-            status__in=[BookingStatus.CONFIRMED, BookingStatus.CHECKED_IN]
-        ).count()
+        totals = self.bookings.filter(
+            status__in=[BookingStatus.PENDING, BookingStatus.CONFIRMED, BookingStatus.CHECKED_IN]
+        ).aggregate(
+            adults=models.Sum("adults"),
+            children=models.Sum("children"),
+        )
+        return (totals["adults"] or 0) + (totals["children"] or 0)
 
     def has_availability(self, check_in, check_out) -> bool:
-        """Check if room has availability for the given period"""
-        from datetime import date
+        """Check if the room still has at least one free guest place."""
+        return self.available_capacity(check_in, check_out) > 0
+
+    def has_capacity_for(self, check_in, check_out, guests: int) -> bool:
+        """Check if the room can fit the requested number of guests."""
+        return self.available_capacity(check_in, check_out) >= guests
+
+    def available_capacity(self, check_in, check_out) -> int:
+        """Return free guest places for the given period."""
         from apps.bookings.models import BookingStatus
         
-        # Get overlapping bookings
-        overlapping_bookings = self.bookings.filter(
-            status__in=[BookingStatus.CONFIRMED, BookingStatus.CHECKED_IN],
+        booked = self.bookings.filter(
+            status__in=[BookingStatus.PENDING, BookingStatus.CONFIRMED, BookingStatus.CHECKED_IN],
             check_in__lt=check_out,
             check_out__gt=check_in,
-        ).count()
-        
-        return overlapping_bookings < self.max_guests_per_room
+        ).aggregate(
+            adults=models.Sum("adults"),
+            children=models.Sum("children"),
+        )
+        booked_guests = (booked["adults"] or 0) + (booked["children"] or 0)
+        return max(self.max_guests_per_room - booked_guests, 0)
 
     def mark_clean(self):
         from django.utils import timezone

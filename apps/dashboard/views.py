@@ -348,23 +348,114 @@ class GalleryManagementView(ReceptionistRequiredMixin, View):
     """
     template_name = "dashboard/gallery.html"
 
+    ABOUT_BLOCK_FIELDS = {
+        "about": "about_gallery_photo",
+        "rooms": "rooms_gallery_photo",
+        "services": "services_gallery_photo",
+        "contacts": "contacts_gallery_photo",
+    }
+
+    def _about_blocks_context(self, about_page):
+        blocks = [
+            ("about", "about_gallery_photo", about_page.about_title or "О нас"),
+            ("rooms", "rooms_gallery_photo", about_page.rooms_title or "Номера"),
+            (
+                "services",
+                "services_gallery_photo",
+                about_page.services_title or "Сервис и инфраструктура",
+            ),
+            (
+                "contacts",
+                "contacts_gallery_photo",
+                about_page.contacts_title or "Важная информация и контакты",
+            ),
+        ]
+        result = []
+        for key, field_name, label in blocks:
+            photo = getattr(about_page, field_name, None)
+            url = None
+            if photo and photo.image:
+                url = photo.image.url
+            result.append({
+                "key": key,
+                "label": label,
+                "photo": photo,
+                "photo_url": url,
+            })
+        return result
+
     def get(self, request):
-        from apps.content.models import HotelGallery
+        from apps.content.models import AboutPage, HotelGallery
+
         section_filter = request.GET.get("section", "")
         qs = HotelGallery.objects.all()
         if section_filter:
             qs = qs.filter(section=section_filter)
+
+        about_page = (
+            AboutPage.objects.select_related(
+                "about_gallery_photo",
+                "rooms_gallery_photo",
+                "services_gallery_photo",
+                "contacts_gallery_photo",
+            )
+            .filter(pk=1)
+            .first()
+            or AboutPage.get_instance()
+        )
+
         return render(request, self.template_name, {
             "photos":          qs.order_by("section", "sort_order"),
+            "picker_photos":   HotelGallery.objects.all().order_by(
+                "section", "sort_order"
+            ),
             "section_choices": HotelGallery.GallerySection.choices,
             "active_section":  section_filter,
             "total_count":     HotelGallery.objects.count(),
             "active_count":    HotelGallery.objects.filter(is_active=True).count(),
+            "about_page":      about_page,
+            "about_blocks":    self._about_blocks_context(about_page),
         })
 
     def post(self, request):
-        from apps.content.models import HotelGallery
+        from apps.content.models import AboutPage, HotelGallery
         action = request.POST.get("action")
+
+        if action in ("assign_about_photo", "clear_about_photo"):
+            block = request.POST.get("block", "")
+            photo_pk = request.POST.get("photo_pk", "").strip()
+            field_name = self.ABOUT_BLOCK_FIELDS.get(block)
+            if not field_name:
+                messages.error(request, "Неизвестный блок страницы «О нас».")
+                return redirect("dashboard:gallery")
+
+            about_page = AboutPage.get_instance()
+            if action == "clear_about_photo":
+                setattr(about_page, field_name, None)
+                about_page.save(update_fields=[field_name, "updated_at"])
+                messages.success(request, "Фото для блока снято.")
+                return redirect("dashboard:gallery")
+
+            if not photo_pk:
+                messages.error(request, "Выберите фото из списка.")
+                return redirect("dashboard:gallery")
+
+            photo = get_object_or_404(HotelGallery, pk=photo_pk)
+            setattr(about_page, field_name, photo)
+            if photo.section != HotelGallery.GallerySection.ABOUT:
+                photo.section = HotelGallery.GallerySection.ABOUT
+                photo.save(update_fields=["section", "updated_at"])
+            block_label = block
+            for b in self._about_blocks_context(about_page):
+                if b["key"] == block:
+                    block_label = b["label"]
+                    break
+            about_page.save(update_fields=[field_name, "updated_at"])
+            messages.success(
+                request,
+                f"Фото назначено для блока «{block_label}» на странице «О нас».",
+            )
+            return redirect("dashboard:gallery")
 
         if action == "upload":
             images = request.FILES.getlist("images")
@@ -428,47 +519,45 @@ class ReviewModerationView(ReceptionistRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        from apps.hotel.models import RoomReview
+        from apps.reviews.models import Review, ReviewStatus
 
         status = self.request.GET.get("status", "pending")
-        reviews = RoomReview.objects.select_related("guest", "category", "approved_by")
+        reviews = Review.objects.select_related("author", "room_category", "moderated_by")
 
         if status == "approved":
-            reviews = reviews.filter(is_approved=True)
+            reviews = reviews.filter(status=ReviewStatus.APPROVED)
         elif status == "all":
             reviews = reviews.order_by("-created_at")
         else:
-            reviews = reviews.filter(is_approved=False)
+            reviews = reviews.filter(status=ReviewStatus.PENDING)
 
         ctx.update({
             "reviews": reviews.order_by("-created_at"),
             "review_status": status,
             "review_counts": {
-                "pending": RoomReview.objects.filter(is_approved=False).count(),
-                "approved": RoomReview.objects.filter(is_approved=True).count(),
-                "all": RoomReview.objects.count(),
+                "pending": Review.objects.filter(status=ReviewStatus.PENDING).count(),
+                "approved": Review.objects.filter(status=ReviewStatus.APPROVED).count(),
+                "all": Review.objects.count(),
             },
         })
         return ctx
 
     def post(self, request, *args, **kwargs):
-        from apps.hotel.models import RoomReview
+        from apps.reviews.models import Review, ReviewStatus
 
         pk = request.POST.get("pk")
         action = request.POST.get("action")
-        review = get_object_or_404(RoomReview, pk=pk)
+        review = get_object_or_404(Review, pk=pk)
 
         if action == "approve":
-            review.is_approved = True
-            review.approved_by = request.user
-            review.approved_at = timezone.now()
-            review.save(update_fields=["is_approved", "approved_by", "approved_at"])
+            review.approve(moderator=request.user)
             messages.success(request, "Отзыв одобрен.")
         elif action == "unapprove":
-            review.is_approved = False
-            review.approved_by = None
-            review.approved_at = None
-            review.save(update_fields=["is_approved", "approved_by", "approved_at"])
+            review.status = ReviewStatus.PENDING
+            review.moderated_by = None
+            review.moderated_at = None
+            review.published_at = None
+            review.save(update_fields=["status", "moderated_by", "moderated_at", "published_at", "updated_at"])
             messages.success(request, "Отзыв снят с публикации.")
         else:
             messages.error(request, "Неподдерживаемое действие.")
@@ -506,7 +595,7 @@ class FAQManagementView(SuperAdminRequiredMixin, TemplateView):
                 sort_order = 0
 
             if not question or not answer:
-                messages.error(request, "Вопрос и ответ обязательны для создания FAQ.")
+                messages.error(request, "Вопрос и ответ обязаостиницаны для создания FAQ.")
             else:
                 FAQ.objects.create(
                     question=question,
@@ -539,6 +628,50 @@ class FAQManagementView(SuperAdminRequiredMixin, TemplateView):
             messages.error(request, "Неподдерживаемое действие.")
 
         return redirect("dashboard:faq")
+
+
+# ---------------------------------------------------------------------------
+# About page content
+# ---------------------------------------------------------------------------
+
+class AboutContentView(AdminRequiredMixin, TemplateView):
+    template_name = "dashboard/about_content.html"
+
+    TEXT_FIELDS = [
+        "hero_title",
+        "hero_subtitle",
+        "about_title",
+        "about_text",
+        "rooms_title",
+        "rooms_text",
+        "services_title",
+        "services_text",
+        "contacts_title",
+        "contacts_text",
+        "stat1_number",
+        "stat1_label",
+        "stat2_number",
+        "stat2_label",
+        "stat3_number",
+        "stat3_label",
+        "stat4_number",
+        "stat4_label",
+    ]
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        from apps.content.models import AboutPage
+        ctx["about_page"] = AboutPage.get_instance()
+        return ctx
+
+    def post(self, request, *args, **kwargs):
+        from apps.content.models import AboutPage
+        about_page = AboutPage.get_instance()
+        for field in self.TEXT_FIELDS:
+            setattr(about_page, field, request.POST.get(field, ""))
+        about_page.save(update_fields=[*self.TEXT_FIELDS, "updated_at"])
+        messages.success(request, "Страница «О нас» обновлена.")
+        return redirect("dashboard:about_content")
 
 
 # ---------------------------------------------------------------------------
@@ -577,22 +710,6 @@ class SiteContentPolicyView(AdminRequiredMixin, TemplateView):
 
         return redirect("dashboard:site_content")
 
-
 # ---------------------------------------------------------------------------
-# System administration
+# End of views
 # ---------------------------------------------------------------------------
-
-class RunMigrationsView(AdminRequiredMixin, View):
-    """Apply all pending database migrations."""
-
-    def post(self, request, *args, **kwargs):
-        from django.core.management import call_command
-        from io import StringIO
-
-        output = StringIO()
-        try:
-            call_command("migrate", "--no-input", stdout=output)
-            messages.success(request, "Миграции успешно применены.")
-        except Exception as e:
-            messages.error(request, f"Ошибка при применении миграций: {e}")
-        return redirect("dashboard:index")

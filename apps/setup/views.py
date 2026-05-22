@@ -1,4 +1,4 @@
-"""
+﻿"""
 Setup wizard views.
 
 URL: /setup/
@@ -142,7 +142,7 @@ class SetupIndexView(View):
             logger.exception("Failed to create initial superuser: %s", exc)
             messages.error(
                 request,
-                "Произошла ошибка при создании пользователя. Попробуйте ещё раз.",
+                "Произошла ошибка при создании пользоваостиницы. Попробуйте ещё раз.",
             )
             return render(request, self.template_name, {"form": form}, status=500)
 

@@ -1,4 +1,4 @@
-"""
+﻿"""
 analytics/models.py
 
 Models:
@@ -139,7 +139,7 @@ class PageView(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL, null=True, blank=True,
         related_name="page_views",
-        verbose_name=_("пользователь"),
+        verbose_name=_("пользоваостиница"),
     )
     session_key = models.CharField(
         _("сессия"), max_length=40, blank=True, db_index=True
@@ -210,7 +210,7 @@ class BookingFunnel(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL, null=True, blank=True,
         related_name="funnel_events",
-        verbose_name=_("пользователь"),
+        verbose_name=_("пользоваостиница"),
     )
     stage = models.CharField(
         _("этап"), max_length=20,

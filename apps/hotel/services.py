@@ -9,7 +9,7 @@ from django.db import transaction
 from django.utils.text import slugify
 
 from apps.core.utils import slugify_ru
-from .models import RoomCategory, Room, RoomImage
+from .models import Amenity, RoomCategory, Room, RoomImage
 
 
 # ---------------------------------------------------------------------------
@@ -20,14 +20,14 @@ from .models import RoomCategory, Room, RoomImage
 def create_room_category(cleaned_data: dict, actor=None) -> RoomCategory:
     """Create a new room category from validated form data."""
     amenities = cleaned_data.pop("amenities", [])
+    new_amenity_names = cleaned_data.pop("new_amenities", [])
 
     # Auto-generate slug if not provided
     if not cleaned_data.get("slug"):
         cleaned_data["slug"] = _unique_slug(cleaned_data["name"])
 
     category = RoomCategory.objects.create(**cleaned_data)
-    if amenities:
-        category.amenities.set(amenities)
+    category.amenities.set(_merge_amenities(amenities, new_amenity_names))
     return category
 
 
@@ -35,13 +35,14 @@ def create_room_category(cleaned_data: dict, actor=None) -> RoomCategory:
 def update_room_category(category: RoomCategory, cleaned_data: dict, actor=None) -> RoomCategory:
     """Update an existing room category."""
     amenities = cleaned_data.pop("amenities", None)
+    new_amenity_names = cleaned_data.pop("new_amenities", [])
 
     for field, value in cleaned_data.items():
         setattr(category, field, value)
     category.save()
 
     if amenities is not None:
-        category.amenities.set(amenities)
+        category.amenities.set(_merge_amenities(amenities, new_amenity_names))
     return category
 
 
@@ -144,3 +145,19 @@ def _unique_slug(name: str) -> str:
         slug = f"{base}-{counter}"
         counter += 1
     return slug
+
+
+def _merge_amenities(selected_amenities, new_amenity_names: list[str]) -> list[Amenity]:
+    """Return selected amenities plus newly created ones without duplicates."""
+    amenities = list(selected_amenities or [])
+    existing_ids = {amenity.pk for amenity in amenities if amenity.pk}
+
+    for name in new_amenity_names:
+        amenity = Amenity.objects.filter(name__iexact=name).first()
+        if amenity is None:
+            amenity = Amenity.objects.create(name=name)
+        if amenity.pk not in existing_ids:
+            amenities.append(amenity)
+            existing_ids.add(amenity.pk)
+
+    return amenities

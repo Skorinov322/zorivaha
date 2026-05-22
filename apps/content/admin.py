@@ -9,7 +9,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 
 from apps.core.admin_site import role_admin_site, RoleRestrictedMixin
-from .models import HotelGallery, FAQ, SiteContent, Testimonial, LegalPage, LegalPage
+from .models import HotelGallery, FAQ, SiteContent, Testimonial, LegalPage, AboutPage
 
 
 @admin.register(LegalPage, site=role_admin_site)
@@ -198,3 +198,127 @@ class TestimonialAdmin(RoleRestrictedMixin, admin.ModelAdmin):
         count = queryset.count()
         queryset.delete()
         self.message_user(request, f"Удалено отзывов: {count}")
+
+
+
+@admin.register(AboutPage, site=role_admin_site)
+class AboutPageAdmin(RoleRestrictedMixin, admin.ModelAdmin):
+    """
+    Админка для страницы «О нас» (singleton).
+    Фото блоков выбираются из галереи гостиницы.
+    """
+    min_view_role   = "manager"
+    min_change_role = "admin"
+    min_delete_role = "super_admin"
+    min_add_role    = "super_admin"
+
+    list_display  = ["__str__", "is_active", "updated_at"]
+    list_editable = ["is_active"]
+    autocomplete_fields = [
+        "about_gallery_photo",
+        "rooms_gallery_photo",
+        "services_gallery_photo",
+        "contacts_gallery_photo",
+    ]
+    readonly_fields = [
+        "about_gallery_preview",
+        "rooms_gallery_preview",
+        "services_gallery_preview",
+        "contacts_gallery_preview",
+    ]
+
+    fieldsets = (
+        ("Заголовок страницы", {
+            "fields": ("hero_title", "hero_subtitle"),
+        }),
+        ("О нас — блок 1", {
+            "fields": (
+                "about_title",
+                "about_text",
+                "about_gallery_photo",
+                "about_gallery_preview",
+                "about_image",
+            ),
+            "description": (
+                "Текст без звёздочек ** — они не отображаются на сайте. "
+                "Фото: выберите из «Галерея гостиницы» или загрузите файл ниже."
+            ),
+        }),
+        ("О нас — блок 2 (Номера)", {
+            "fields": (
+                "rooms_title",
+                "rooms_text",
+                "rooms_gallery_photo",
+                "rooms_gallery_preview",
+                "rooms_image",
+            ),
+        }),
+        ("О нас — блок 3 (Сервис)", {
+            "fields": (
+                "services_title",
+                "services_text",
+                "services_gallery_photo",
+                "services_gallery_preview",
+                "services_image",
+            ),
+        }),
+        ("О нас — блок 4 (Контакты)", {
+            "fields": (
+                "contacts_title",
+                "contacts_text",
+                "contacts_gallery_photo",
+                "contacts_gallery_preview",
+                "contacts_image",
+            ),
+        }),
+        ("Статистика", {
+            "fields": (
+                ("stat1_number", "stat1_label"),
+                ("stat2_number", "stat2_label"),
+                ("stat3_number", "stat3_label"),
+                ("stat4_number", "stat4_label"),
+            ),
+            "description": "Цифры под заголовком страницы",
+        }),
+        ("Настройки", {
+            "fields": ("is_active",),
+        }),
+    )
+
+    @staticmethod
+    def _gallery_preview(gallery_photo):
+        if gallery_photo and gallery_photo.image:
+            return format_html(
+                '<img src="{}" alt="" style="max-height:140px;max-width:140px;'
+                'object-fit:cover;border-radius:12px;border:1px solid rgba(0,0,0,.08);" />'
+                '<p style="margin:.5rem 0 0;font-size:12px;color:#666;">{}</p>',
+                gallery_photo.image.url,
+                gallery_photo,
+            )
+        return format_html(
+            '<span style="color:#999;">Фото не выбрано — на сайте будет заглушка</span>'
+        )
+
+    def about_gallery_preview(self, obj):
+        return self._gallery_preview(obj.about_gallery_photo)
+    about_gallery_preview.short_description = "Превью (галерея)"
+
+    def rooms_gallery_preview(self, obj):
+        return self._gallery_preview(obj.rooms_gallery_photo)
+    rooms_gallery_preview.short_description = "Превью (галерея)"
+
+    def services_gallery_preview(self, obj):
+        return self._gallery_preview(obj.services_gallery_photo)
+    services_gallery_preview.short_description = "Превью (галерея)"
+
+    def contacts_gallery_preview(self, obj):
+        return self._gallery_preview(obj.contacts_gallery_photo)
+    contacts_gallery_preview.short_description = "Превью (галерея)"
+    
+    def has_add_permission(self, request):
+        # Разрешаем создание только если записи нет
+        return not AboutPage.objects.exists()
+    
+    def has_delete_permission(self, request, obj=None):
+        # Запрещаем удаление (singleton)
+        return False

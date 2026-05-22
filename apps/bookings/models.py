@@ -196,7 +196,7 @@ class Booking(UUIDModel, TimeStampedModel):
     departure_time   = models.TimeField(_("примерное время отъезда"),  null=True, blank=True)
     early_check_in   = models.BooleanField(
         _("ранний заезд (до 12:00)"), default=False,
-        help_text=_("Заезд до 12:00 — добавляется стоимость одних суток"),
+        help_text=_("Заезд до 12:00 считается ранним и будет взиматься доплата 50% от стоимости одних суток"),
     )
 
     # ---- Internal ----
@@ -243,8 +243,8 @@ class Booking(UUIDModel, TimeStampedModel):
                 name="booking_checkout_after_checkin",
             ),
             models.CheckConstraint(
-                check=models.Q(adults__gte=1),
-                name="booking_at_least_one_adult",
+                check=models.Q(adults__gte=1) | models.Q(children__gte=1),
+                name="booking_at_least_one_guest",
             ),
         ]
 
@@ -281,6 +281,36 @@ class Booking(UUIDModel, TimeStampedModel):
     @property
     def total_guests(self) -> int:
         return self.adults + self.children
+
+    @property
+    def is_group_booking(self) -> bool:
+        return bool(self.group_id)
+
+    @property
+    def group_total_guests(self) -> int:
+        if not self.group_id:
+            return self.total_guests
+        totals = Booking.objects.filter(group_id=self.group_id).aggregate(
+            adults=models.Sum("adults"),
+            children=models.Sum("children"),
+        )
+        return (totals["adults"] or 0) + (totals["children"] or 0)
+
+    @property
+    def group_final_price(self) -> Decimal:
+        if not self.group_id:
+            return self.final_price
+        totals = Booking.objects.filter(group_id=self.group_id).aggregate(
+            total=models.Sum("total_price"),
+            discount=models.Sum("discount_amount"),
+        )
+        return (totals["total"] or Decimal("0")) - (totals["discount"] or Decimal("0"))
+
+    @property
+    def group_rooms_count(self) -> int:
+        if not self.group_id:
+            return 1
+        return Booking.objects.filter(group_id=self.group_id).count()
 
     @property
     def final_price(self) -> Decimal:

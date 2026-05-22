@@ -3,6 +3,7 @@ apps/reports/selectors.py — aggregation queries for PDF/Excel reports.
 """
 
 from datetime import date
+from decimal import Decimal
 from django.db.models import (
     Sum, Count, Avg, Q, F, Max, Min,
     ExpressionWrapper, DecimalField, FloatField,
@@ -47,7 +48,7 @@ def get_bookings_summary(start: date, end: date) -> dict:
 def get_revenue_by_month(year: int) -> list[dict]:
     """Monthly revenue breakdown for a given year."""
     from apps.bookings.models import Booking, BookingStatus
-    return list(
+    rows = (
         Booking.objects
         .filter(
             status__in=[BookingStatus.CONFIRMED, BookingStatus.CHECKED_IN, BookingStatus.CHECKED_OUT],
@@ -58,6 +59,21 @@ def get_revenue_by_month(year: int) -> list[dict]:
         .annotate(revenue=Sum("total_price"), bookings=Count("id"))
         .order_by("month")
     )
+    data_by_month = {
+        row["month"].month: {
+            "month": row["month"],
+            "revenue": row["revenue"] or Decimal("0"),
+            "bookings": row["bookings"] or 0,
+        }
+        for row in rows
+    }
+    return [
+        data_by_month.get(
+            month,
+            {"month": date(year, month, 1), "revenue": Decimal("0"), "bookings": 0},
+        )
+        for month in range(1, 13)
+    ]
 
 
 def get_occupancy_by_category(start: date, end: date) -> list[dict]:
@@ -138,30 +154,24 @@ def get_room_occupancy_report(start: date, end: date) -> list[dict]:
     result = []
 
     for room in rooms:
-        bookings = Booking.objects.filter(
+        bookings = list(Booking.objects.filter(
             room=room,
             status__in=[BookingStatus.CONFIRMED, BookingStatus.CHECKED_IN, BookingStatus.CHECKED_OUT],
             check_in__gte=start,
             check_out__lte=end,
-        )
-        agg = bookings.aggregate(
-            count=Count("id"),
-            nights=Sum(
-                ExpressionWrapper(F("check_out") - F("check_in"), output_field=DecimalField())
-            ),
-            revenue=Sum("total_price"),
-        )
+        ))
+        nights = sum(b.nights for b in bookings)
+        revenue = sum((b.total_price for b in bookings), Decimal("0"))
         total_days = (end - start).days or 1
-        nights = float(agg["nights"] or 0)
         result.append({
-            "number":    room.number,
+            "number":    room.full_number,
             "floor":     room.floor,
             "category":  room.category.name,
             "status":    room.get_status_display(),
-            "bookings":  agg["count"] or 0,
-            "nights":    int(nights),
-            "revenue":   float(agg["revenue"] or 0),
-            "occupancy": round(nights / total_days * 100, 1),
+            "bookings":  len(bookings),
+            "nights":    nights,
+            "revenue":   float(revenue),
+            "occupancy": min(round(nights / total_days * 100, 1), 100.0),
         })
 
     return result
@@ -175,26 +185,21 @@ def get_occupancy_summary(start: date, end: date) -> dict:
     total_rooms = Room.objects.count()
     total_days  = (end - start).days or 1
 
-    agg = Booking.objects.filter(
+    bookings = list(Booking.objects.filter(
         status__in=[BookingStatus.CONFIRMED, BookingStatus.CHECKED_IN, BookingStatus.CHECKED_OUT],
         check_in__gte=start,
         check_out__lte=end,
-    ).aggregate(
-        total_bookings=Count("id"),
-        total_revenue=Sum("total_price"),
-        total_nights=Sum(
-            ExpressionWrapper(F("check_out") - F("check_in"), output_field=DecimalField())
-        ),
-    )
+    ))
 
-    total_nights = float(agg["total_nights"] or 0)
+    total_nights = sum(b.nights for b in bookings)
+    total_revenue = sum((b.total_price for b in bookings), Decimal("0"))
     max_nights   = total_rooms * total_days
 
     return {
         "total_rooms":    total_rooms,
         "total_days":     total_days,
-        "total_bookings": agg["total_bookings"] or 0,
-        "total_revenue":  agg["total_revenue"] or 0,
-        "total_nights":   int(total_nights),
+        "total_bookings": len(bookings),
+        "total_revenue":  total_revenue,
+        "total_nights":   total_nights,
         "avg_occupancy":  round(total_nights / max_nights * 100, 1) if max_nights else 0,
     }

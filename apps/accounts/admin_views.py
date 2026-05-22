@@ -1,4 +1,4 @@
-"""
+﻿"""
 accounts/admin_views.py
 
 Views for user management (ADMIN+) and role assignment (SUPER_ADMIN only).
@@ -9,7 +9,7 @@ URLs mounted at /cabinet/users/ — see accounts/urls.py
 import logging
 
 from django.contrib import messages
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, update_session_auth_hash
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
 
@@ -20,7 +20,7 @@ from apps.core.permissions import (
     Permission,
     has_permission,
 )
-from .forms import RoleAssignForm
+from .forms import AdminSetUserPasswordForm, RoleAssignForm
 from .models import UserRole
 from .services import assign_role, get_assignable_roles, RoleAssignmentError
 
@@ -90,10 +90,10 @@ class UserDetailView(ReceptionistRequiredMixin, View):
         ) if assignable else None
 
         role_hierarchy = [
-            ("user",         "Пользователь",      "Гость — может бронировать номера"),
+            ("user",         "Пользоваостиница",      "Гость — может бронировать номера"),
             ("receptionist", "Ресепшн",            "Заселение, выселение, просмотр броней"),
             ("manager",      "Менеджер",           "CRM, все брони, отчёты, дашборд"),
-            ("admin",        "Администратор",      "Управление номерами, пользователями, контентом"),
+            ("admin",        "Администратор",      "Управление номерами, пользоваостиницыми, контентом"),
             ("super_admin",  "Супер-администратор","Полный доступ, назначение ролей"),
         ]
 
@@ -106,7 +106,9 @@ class UserDetailView(ReceptionistRequiredMixin, View):
         return render(request, self.template_name, {
             "target":         target,
             "form":           form,
+            "password_form":  AdminSetUserPasswordForm(target),
             "can_assign":     bool(assignable),
+            "can_set_password": request.user.is_admin and (not target.is_super_admin or request.user.is_super_admin),
             "role_hierarchy": role_hierarchy,
             "info_rows":      info_rows,
         })
@@ -139,11 +141,39 @@ class AssignRoleView(SuperAdminRequiredMixin, View):
             assign_role(actor=request.user, target=target, new_role=new_role)
             messages.success(
                 request,
-                f"Роль пользователя {target.email} изменена на «{UserRole(new_role).label}».",
+                f"Роль пользоваостиницы {target.email} изменена на «{UserRole(new_role).label}».",
             )
         except RoleAssignmentError as e:
             messages.error(request, str(e))
 
+        return redirect("accounts:user_detail", pk=pk)
+
+
+# ---------------------------------------------------------------------------
+# Password reset by admin  (ADMIN+)
+# ---------------------------------------------------------------------------
+
+class SetUserPasswordView(AdminRequiredMixin, View):
+    """Allow an administrator to set a new password for a user."""
+
+    def post(self, request, pk):
+        target = get_object_or_404(User, pk=pk)
+
+        if target.is_super_admin and not request.user.is_super_admin:
+            messages.error(request, "Пароль супер-администратора может менять только супер-администратор.")
+            return redirect("accounts:user_detail", pk=pk)
+
+        form = AdminSetUserPasswordForm(target, request.POST)
+        if not form.is_valid():
+            first_error = next(iter(form.errors.values()))[0]
+            messages.error(request, first_error)
+            return redirect("accounts:user_detail", pk=pk)
+
+        form.save()
+        if target.pk == request.user.pk:
+            update_session_auth_hash(request, target)
+
+        messages.success(request, f"Пароль пользователя {target.email} изменён.")
         return redirect("accounts:user_detail", pk=pk)
 
 
@@ -174,5 +204,5 @@ class ToggleUserActiveView(AdminRequiredMixin, View):
         target.save(update_fields=["is_active"])
 
         status = "активирован" if target.is_active else "деактивирован"
-        messages.success(request, f"Пользователь {target.email} {status}.")
+        messages.success(request, f"Пользоваостиница {target.email} {status}.")
         return redirect("accounts:user_list")

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Base settings for Зори Ваха hotel project.
 All environment-specific settings inherit from this file.
 """
@@ -158,7 +158,7 @@ LOGOUT_REDIRECT_URL = "/"
 ACCOUNT_AUTHENTICATION_METHOD = "email"
 ACCOUNT_EMAIL_REQUIRED        = True
 ACCOUNT_USERNAME_REQUIRED      = False
-ACCOUNT_EMAIL_VERIFICATION     = "none"   # отключаем обязательное подтверждение email
+ACCOUNT_EMAIL_VERIFICATION     = "none"   # отключаем обязаостиницаное подтверждение email
 ACCOUNT_UNIQUE_EMAIL           = True
 
 # ---------------------------------------------------------------------------

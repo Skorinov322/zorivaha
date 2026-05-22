@@ -41,7 +41,7 @@
 .contact-value-sub{font-size:.8rem;color:rgba(13,13,13,.52);margin-top:.2rem}
 
 /* ── Map card ── */
-.map-card{background:var(--dark-600);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);overflow:hidden;height:100%;min-height:420px;display:flex;flex-direction:column}
+.map-card{background:var(--dark-600);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);overflow:hidden;height:100%;min-height:650px;display:flex;flex-direction:column}
 .map-placeholder{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;padding:3rem;background:linear-gradient(135deg,var(--dark-600),var(--dark-500));position:relative;overflow:hidden}
 .map-placeholder::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 50%,rgba(201,168,76,.06) 0%,transparent 70%);pointer-events:none}
 .map-icon-wrap{width:80px;height:80px;border-radius:50%;background:var(--gold-dim);border:2px solid var(--gold-border);display:flex;align-items:center;justify-content:center;font-size:2rem;color:var(--gold);animation:pulse-gold 3s ease-in-out infinite}
@@ -51,6 +51,9 @@
 .map-footer-text{font-size:.8rem;color:rgba(13,13,13,.55)}
 .btn-gold-sm{display:inline-flex;align-items:center;gap:.4rem;padding:.55rem 1.25rem;background:var(--gold-dim);border:1px solid var(--gold-border);color:var(--gold);font-size:.82rem;font-weight:600;text-decoration:none;border-radius:6px;transition:all .2s}
 .btn-gold-sm:hover{background:rgba(201,168,76,.22);color:var(--gold)}
+
+/* Iframe карты */
+.map-card iframe{flex:1;min-height:580px}
 
 /* ── Form section ── */
 .form-section{background:var(--dark-700);padding:5rem 0 6rem;border-top:1px solid var(--border-subtle)}
@@ -66,6 +69,30 @@
 .gold-divider{display:flex;align-items:center;gap:1rem;margin:2.5rem 0}
 .gold-divider::before,.gold-divider::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--gold-border),transparent)}
 .gold-divider i{color:var(--gold);font-size:.8rem;opacity:.6}
+
+/* Мобильные устройства: уменьшаем высоту карты */
+@media (max-width: 768px) {
+  .map-card{min-height:350px}
+  .map-card iframe{min-height:280px !important}
+  
+  /* Центрируем кнопки контактов */
+  .row.g-3.justify-content-center .col-12 a {
+    display:flex !important;
+    justify-content:center;
+    width:100%;
+    max-width:400px;
+    margin:0 auto;
+  }
+}
+
+/* Быстрые контакты под формой */
+.quick-contact-btn{
+  display:inline-flex;align-items:center;gap:.6rem;padding:.75rem 1.5rem;
+  background:var(--dark-600);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);
+  color:rgba(13,13,13,.65);text-decoration:none;font-size:.875rem;
+  transition:border-color .2s,color .2s
+}
+.quick-contact-btn:hover{border-color:var(--gold-border);color:var(--gold)}
 </style>
 {% endblock %}
 
@@ -164,24 +191,21 @@
       {# Map #}
       <div class="col-lg-7 reveal" style="transition-delay:.1s">
         <div class="map-card">
-          <div style="border-radius:16px 16px 0 0;overflow:hidden;line-height:0">
-            <iframe
-              src="https://yandex.ru/map-widget/v1/?ll=76.892500%2C60.952536&z=16&pt=76.892500%2C60.952536%2Cpm2rdm&l=map"
-              width="100%"
-              height="360"
-              frameborder="0"
-              allowfullscreen
-              style="display:block;border:none"
-              title="Карта расположения гостиницы Зори Ваха"
-            ></iframe>
-          </div>
+          <iframe
+            src="https://yandex.ru/map-widget/v1/?ll=76.892500%2C60.952536&z=16&pt=76.892500%2C60.952536%2Cpm2rdm&l=map"
+            width="100%"
+            frameborder="0"
+            allowfullscreen
+            style="display:block;border:none"
+            title="Карта расположения гостиницы Зори Ваха"
+          ></iframe>
           <div class="map-footer">
             <span class="map-footer-text">
-              <i class="bi bi-geo-alt me-1" style="color:var(--gold)" aria-hidden="true"></i>
+              <i class="bi bi-geo-alt" aria-hidden="true"></i>
               Школьная улица, 12, пгт Излучинск, Нижневартовский район, Ханты-Мансийский автономный округ — Югра
             </span>
             <span class="map-footer-text">
-              <i class="bi bi-car-front me-1" style="color:var(--gold)" aria-hidden="true"></i>
+              <i class="bi bi-car-front" aria-hidden="true"></i>
               Бесплатная парковка
             </span>
           </div>
@@ -255,7 +279,7 @@
           <label for="{{ form.phone.id_for_label }}" class="form-field-label">
             <i class="bi bi-telephone me-1" aria-hidden="true"></i>
             Телефон
-            <span style="font-weight:400;text-transform:none;letter-spacing:0;color:rgba(13,13,13,.55)">(необязательно)</span>
+            <span style="font-weight:400;text-transform:none;letter-spacing:0;color:rgba(13,13,13,.55)">(необязаостиницано)</span>
           </label>
           {{ form.phone }}
           {% for error in form.phone.errors %}
@@ -302,28 +326,19 @@
     {# Quick contact links #}
     <div class="row g-3 justify-content-center mt-1 reveal" style="transition-delay:.15s">
       <div class="col-12 col-sm-auto">
-        <a href="tel:{{ CONTACT_PHONE }}"
-           style="display:inline-flex;align-items:center;gap:.6rem;padding:.75rem 1.5rem;background:var(--dark-600);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);color:rgba(13,13,13,.65);text-decoration:none;font-size:.875rem;transition:border-color .2s,color .2s"
-           onmouseover="this.style.borderColor='var(--gold-border)';this.style.color='#fff'"
-           onmouseout="this.style.borderColor='var(--border-subtle)';this.style.color='rgba(13,13,13,.65)'">
+        <a href="tel:{{ CONTACT_PHONE }}" class="quick-contact-btn">
           <i class="bi bi-telephone" style="color:var(--gold)" aria-hidden="true"></i>
           {{ CONTACT_PHONE }}
         </a>
       </div>
       <div class="col-12 col-sm-auto">
-        <a href="tel:{{ CONTACT_PHONE_SECOND }}"
-           style="display:inline-flex;align-items:center;gap:.6rem;padding:.75rem 1.5rem;background:var(--dark-600);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);color:rgba(13,13,13,.65);text-decoration:none;font-size:.875rem;transition:border-color .2s,color .2s"
-           onmouseover="this.style.borderColor='var(--gold-border)';this.style.color='#fff'"
-           onmouseout="this.style.borderColor='var(--border-subtle)';this.style.color='rgba(13,13,13,.65)'">
+        <a href="tel:{{ CONTACT_PHONE_SECOND }}" class="quick-contact-btn">
           <i class="bi bi-telephone" style="color:var(--gold)" aria-hidden="true"></i>
           {{ CONTACT_PHONE_SECOND }}
         </a>
       </div>
       <div class="col-12 col-sm-auto">
-        <a href="mailto:{{ CONTACT_EMAIL }}"
-           style="display:inline-flex;align-items:center;gap:.6rem;padding:.75rem 1.5rem;background:var(--dark-600);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);color:rgba(13,13,13,.65);text-decoration:none;font-size:.875rem;transition:border-color .2s,color .2s"
-           onmouseover="this.style.borderColor='var(--gold-border)';this.style.color='#fff'"
-           onmouseout="this.style.borderColor='var(--border-subtle)';this.style.color='rgba(13,13,13,.65)'">
+        <a href="mailto:{{ CONTACT_EMAIL }}" class="quick-contact-btn">
           <i class="bi bi-envelope" style="color:var(--gold)" aria-hidden="true"></i>
           {{ CONTACT_EMAIL }}
         </a>

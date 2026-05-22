@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 """
 Экспорт задач из crm.Task в CSV для импорта в Trello/Asana
 
@@ -62,7 +62,7 @@ def export_tasks_to_csv(output_file=None):
             'Статус',
             'Приоритет',
             'Создал',
-            'Исполнитель',
+            'Исполниостиница',
             'Клиент',
             'Бронирование',
             'Срок',
@@ -82,7 +82,7 @@ def export_tasks_to_csv(output_file=None):
                 'Статус': task.get_status_display(),
                 'Приоритет': task.get_priority_display(),
                 'Создал': task.created_by.get_full_name() if task.created_by else '',
-                'Исполнитель': task.assigned_to.get_full_name() if task.assigned_to else '',
+                'Исполниостиница': task.assigned_to.get_full_name() if task.assigned_to else '',
                 'Клиент': str(task.client.user) if task.client else '',
                 'Бронирование': task.booking.confirmation_number if task.booking else '',
                 'Срок': task.due_date.strftime('%d.%m.%Y') if task.due_date else '',

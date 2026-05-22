@@ -25,5 +25,6 @@ urlpatterns = [
     path("users/",                    admin_views.UserListView.as_view(),         name="user_list"),
     path("users/<int:pk>/",           admin_views.UserDetailView.as_view(),       name="user_detail"),
     path("users/<int:pk>/assign-role/", admin_views.AssignRoleView.as_view(),     name="assign_role"),
+    path("users/<int:pk>/set-password/", admin_views.SetUserPasswordView.as_view(), name="set_user_password"),
     path("users/<int:pk>/toggle/",    admin_views.ToggleUserActiveView.as_view(), name="toggle_user"),
 ]

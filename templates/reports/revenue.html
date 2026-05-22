@@ -4,10 +4,6 @@
 {% block dashboard_title %}Выручка{% endblock %}
 {% block dashboard_subtitle %}Финансовые отчёты{% endblock %}
 
-{% block extra_css %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-{% endblock %}
-
 {% block dashboard_content %}
 
 <div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
@@ -65,45 +61,49 @@
 
 {% endblock %}
 
-{% block extra_js %}
+{% block dashboard_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-const labels = [{% for row in monthly_data %}"{{ row.month|date:'M' }}",{% endfor %}];
-const data   = [{% for row in monthly_data %}{{ row.revenue|floatformat:2 }},{% endfor %}];
+const labels = {{ chart_labels|safe }};
+const data   = {{ chart_revenues|safe }};
 
-new Chart(document.getElementById('revenueChart'), {
-  type: 'bar',
-  data: {
-    labels,
-    datasets: [{
-      label: 'Выручка (₽)',
-      data,
-      backgroundColor: 'rgba(255,142,60,.35)',
-      borderColor: '#ff8e3c',
-      borderWidth: 2,
-      borderRadius: 6,
-    }]
-  },
-  options: {
-    responsive: true,
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        callbacks: {
-          label: ctx => ctx.parsed.y.toLocaleString('ru-RU') + ' ₽'
+const revenueChart = document.getElementById('revenueChart');
+if (revenueChart && window.Chart) {
+  new Chart(revenueChart, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Выручка (₽)',
+        data,
+        backgroundColor: 'rgba(255,142,60,.35)',
+        borderColor: '#ff8e3c',
+        borderWidth: 2,
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ctx.parsed.y.toLocaleString('ru-RU') + ' ₽'
+          }
+        }
+      },
+      scales: {
+        x: { ticks: { color: 'rgba(13,13,13,.5)' }, grid: { color: 'rgba(13,13,13,.05)' } },
+        y: {
+          ticks: {
+            color: 'rgba(13,13,13,.5)',
+            callback: v => v.toLocaleString('ru-RU') + ' ₽'
+          },
+          grid: { color: 'rgba(13,13,13,.05)' }
         }
       }
-    },
-    scales: {
-      x: { ticks: { color: 'rgba(13,13,13,.5)' }, grid: { color: 'rgba(13,13,13,.05)' } },
-      y: {
-        ticks: {
-          color: 'rgba(13,13,13,.5)',
-          callback: v => v.toLocaleString('ru-RU') + ' ₽'
-        },
-        grid: { color: 'rgba(13,13,13,.05)' }
-      }
     }
-  }
-});
+  });
+}
 </script>
 {% endblock %}

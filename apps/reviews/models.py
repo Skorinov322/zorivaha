@@ -61,10 +61,12 @@ class Review(UUIDModel, TimeStampedModel):
     # ---- Relations ----
     booking = models.OneToOneField(
         Booking,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
         related_name="review",
         verbose_name=_("бронирование"),
-        help_text=_("Отзыв привязан к конкретному бронированию"),
+        help_text=_("Если отзыв оставлен после проживания, он может быть привязан к конкретному бронированию"),
     )
     room_category = models.ForeignKey(
         "hotel.RoomCategory",
@@ -202,6 +204,9 @@ class Review(UUIDModel, TimeStampedModel):
             models.Index(fields=["author", "-created_at"]),
             models.Index(fields=["is_featured", "status"]),
             models.Index(fields=["-overall_rating", "status"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(fields=["author"], name="unique_review_per_author"),
         ]
 
     def __str__(self) -> str:
