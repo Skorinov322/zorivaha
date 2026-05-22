@@ -15,10 +15,12 @@
     <a href="{% url 'hotel:index' %}" style="
       display: flex;
       align-items: center;
+      gap: 10px;
       text-decoration: none;
       flex-shrink: 0;
     " class="navbar-logo-v2">
       <img src="{% static 'img/logoZV.png' %}" alt="Зори Ваха" style="height: 48px; width: auto; display: block;">
+      <span class="navbar-logo-text">Зори<span class="navbar-logo-accent">Ваха</span></span>
     </a>
 
     {# Desktop Navigation #}
@@ -104,7 +106,7 @@
          <a href="/auth/login/" class="nav-link-auth">Войти</a>
        </li>
        <li class="mobile-only">
-         <a href="/auth/register/" class="nav-link-auth">Регистрация</a>
+         <a href="/auth/register/" class="nav-link-auth register-link">Регистрация</a>
        </li>
         {% else %}
         <li class="mobile-only">
@@ -326,9 +328,16 @@
      font-weight: 700 !important;
    }
 
-   .navbar-logo-v2 span {
+   .navbar-logo-text {
      font-family: 'Cormorant Garamond', serif !important;
      font-weight: 700 !important;
+     font-size: 1.35rem;
+     color: #2C1F10;
+     white-space: nowrap;
+     line-height: 1;
+   }
+   .navbar-logo-accent {
+     color: #E8700A;
    }
 
    #navbar.scrolled {
@@ -380,25 +389,40 @@
      }
      .nav-links-desktop.open li a {
        display: block;
-       padding: 12px 20px;
-       font-size: 0.9rem;
+       padding: 14px 24px;
+       font-size: 1rem;
+       letter-spacing: 0.03em;
      }
      .nav-links-desktop.open li button.nav-link-auth {
        display: flex;
-       padding: 12px 20px;
+       padding: 14px 24px;
        width: 100%;
        text-align: left;
        background: none;
        border: none;
        cursor: pointer;
-       font-size: 0.9rem;
+       font-size: 1rem;
+       letter-spacing: 0.03em;
      }
-    .nav-links-desktop.open .mobile-only .nav-link-auth {
-      gap: 0 !important;
-    }
-    .nav-links-desktop.open .mobile-only .nav-link-auth i {
-      display: none !important;
-    }
+     .nav-links-desktop.open .mobile-only .nav-link-auth {
+       display: flex;
+       align-items: center;
+       width: 100%;
+       box-sizing: border-box;
+       padding: 14px 24px;
+       font-size: 1rem;
+       letter-spacing: 0.03em;
+       gap: 0 !important;
+     }
+     .nav-links-desktop.open .mobile-only .nav-link-auth i {
+       display: none !important;
+     }
+     .nav-links-desktop.open .mobile-only .nav-link-auth.register-link {
+       margin: 10px 16px;
+       width: calc(100% - 32px);
+       justify-content: center;
+       border-radius: 999px;
+     }
      .nav-links-desktop.open li {
        width: 100%;
        box-sizing: border-box;
@@ -420,6 +444,9 @@
      }
      .navbar-logo-v2 img {
        height: 42px !important;
+     }
+     .navbar-logo-text {
+       font-size: 1.2rem !important;
      }
 
      /* Hide desktop auth buttons on mobile */
@@ -453,14 +480,8 @@
     .navbar-logo-v2 img {
       height: 36px !important;
     }
-  }
-
-  @media (max-width: 480px) {
-    .navbar-logo-v2 span {
-      display: none;
-    }
-    .navbar-logo-v2 {
-      gap: 0 !important;
+    .navbar-logo-text {
+      font-size: 1.05rem !important;
     }
   }
 </style>

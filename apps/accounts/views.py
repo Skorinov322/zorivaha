@@ -146,11 +146,11 @@ class LoginView(View):
 
         user = form.get_user()
 
-        # Remember me: 2 weeks vs session-only
-        if not form.cleaned_data.get("remember_me"):
-            request.session.set_expiry(0)  # expires on browser close
-        else:
+        # Remember me: 2 weeks vs 1 day (avoid browser-session cookies that mobile browsers drop)
+        if form.cleaned_data.get("remember_me"):
             request.session.set_expiry(60 * 60 * 24 * 14)  # 14 days
+        else:
+            request.session.set_expiry(60 * 60 * 24)  # 1 day
 
         login(request, user, backend="django.contrib.auth.backends.ModelBackend")
         logger.info("User logged in: %s (id=%s)", user.email, user.pk)

@@ -282,8 +282,8 @@ CACHES = {
     }
 }
 
-SESSION_ENGINE      = "django.contrib.sessions.backends.cache"
-SESSION_CACHE_ALIAS = "default"
+SESSION_ENGINE      = "django.contrib.sessions.backends.db"
+SESSION_SAVE_EVERY_REQUEST = True
 
 # Redis connection for Celery broker (separate from cache)
 # db0 = broker, db1 = results, db2 = cache (via REDIS_URL)

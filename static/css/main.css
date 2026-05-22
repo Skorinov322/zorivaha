@@ -299,3 +299,61 @@ button, .btn, .nav-link, .dropdown-item,
   visibility: visible;
   transform: translateY(0);
 }
+
+/* =========================================================
+   Public site — fixed navbar offset
+   ========================================================= */
+body.site-public {
+  padding-top: 72px;
+}
+
+body.dash-app,
+body.cabinet-app {
+  padding-top: 0 !important;
+}
+
+body.dash-app #navbar,
+body.cabinet-app #navbar {
+  display: none !important;
+}
+
+.site-flash-messages {
+  position: fixed;
+  top: 80px;
+  right: 1rem;
+  z-index: 99999;
+  max-width: min(380px, calc(100vw - 2rem));
+  width: 100%;
+  pointer-events: none;
+}
+
+.site-flash-messages .alert {
+  pointer-events: auto;
+}
+
+body.dash-app .site-flash-messages,
+body.cabinet-app .site-flash-messages {
+  top: 1rem;
+  right: 1rem;
+  left: auto;
+  width: min(380px, calc(100vw - 2rem));
+  max-width: min(380px, calc(100vw - 2rem));
+}
+
+body.dash-app .site-flash-messages .alert,
+body.cabinet-app .site-flash-messages .alert {
+  width: 100%;
+  margin-left: 0;
+  margin-bottom: .75rem;
+  padding-right: 2.75rem;
+}
+
+@media (max-width: 900px) {
+  body.site-public { padding-top: 64px; }
+  .site-flash-messages { top: 72px; }
+}
+
+@media (max-width: 600px) {
+  body.site-public { padding-top: 60px; }
+  .site-flash-messages { top: 68px; }
+}
