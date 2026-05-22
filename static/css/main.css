@@ -271,8 +271,8 @@ button, .btn, .nav-link, .dropdown-item,
   right: 2rem;
   width: 48px;
   height: 48px;
-  background: var(--primary);
-  color: var(--text-headline);
+  background: linear-gradient(135deg, #ff8e3c, #e67a2a);
+  color: #0d0d0d;
   border: none;
   border-radius: 50%;
   cursor: pointer;
@@ -281,7 +281,7 @@ button, .btn, .nav-link, .dropdown-item,
   justify-content: center;
   font-size: 1.25rem;
   box-shadow: 0 4px 16px rgba(13, 13, 13, 0.2);
-  z-index: 1000;
+  z-index: 1200;
   opacity: 0;
   visibility: hidden;
   transform: translateY(20px);
@@ -290,8 +290,8 @@ button, .btn, .nav-link, .dropdown-item,
 }
 
 .back-to-top:hover {
-  background: var(--primary-dark);
-  color: var(--text-headline);
+  background: linear-gradient(135deg, #ff9d52, #d9376e);
+  color: #0d0d0d;
 }
 
 .back-to-top.show {
