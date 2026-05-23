@@ -1,0 +1,170 @@
+﻿{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}Лог email{% endblock %}
+{% block dashboard_title %}Email лог{% endblock %}
+{% block dashboard_subtitle %}История отправленных писем{% endblock %}
+
+{% block dashboard_content %}
+
+<h1 class="cabinet-page-title">Лог email-уведомлений</h1>
+<p class="cabinet-page-subtitle">История всех отправленных писем</p>
+
+{# ---- Stats ---- #}
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon"><i class="bi bi-envelope"></i></div>
+      <div class="stat-value">{{ counts.total }}</div>
+      <div class="stat-label">Всего писем</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon"><i class="bi bi-check-circle" style="color:#28a745"></i></div>
+      <div class="stat-value">{{ counts.sent }}</div>
+      <div class="stat-label">Отправлено</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon"><i class="bi bi-x-circle" style="color:#dc3545"></i></div>
+      <div class="stat-value">{{ counts.failed }}</div>
+      <div class="stat-label">Ошибок</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon"><i class="bi bi-clock" style="color:#ffc107"></i></div>
+      <div class="stat-value">{{ counts.pending }}</div>
+      <div class="stat-label">В очереди</div>
+    </div>
+  </div>
+</div>
+
+{# ---- Filters ---- #}
+<form method="get" class="d-flex gap-2 flex-wrap mb-4">
+  <input type="text" name="q" value="{{ filters.q }}"
+         placeholder="Email получаостиницы…"
+         style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+                color:#fff;border-radius:10px;padding:.5rem .9rem;font-size:.875rem;
+                min-width:220px;outline:none"
+         onfocus="this.style.borderColor='var(--gold)'"
+         onblur="this.style.borderColor='rgba(255,255,255,.1)'" />
+
+  <select name="status" onchange="this.form.submit()"
+          style="background:#1a1a2e;border:1px solid rgba(255,255,255,.1);color:#fff;
+                 border-radius:10px;padding:.5rem .9rem;font-size:.875rem">
+    <option value="">Все статусы</option>
+    {% for val, lbl in status_choices %}
+    <option value="{{ val }}" {% if filters.status == val %}selected{% endif %}>{{ lbl }}</option>
+    {% endfor %}
+  </select>
+
+  <select name="type" onchange="this.form.submit()"
+          style="background:#1a1a2e;border:1px solid rgba(255,255,255,.1);color:#fff;
+                 border-radius:10px;padding:.5rem .9rem;font-size:.875rem">
+    <option value="">Все типы</option>
+    {% for val, lbl in type_choices %}
+    <option value="{{ val }}" {% if filters.type == val %}selected{% endif %}>{{ lbl }}</option>
+    {% endfor %}
+  </select>
+
+  <button type="submit"
+          style="background:rgba(201,168,76,.15);color:var(--gold);
+                 border:1px solid rgba(201,168,76,.3);border-radius:10px;
+                 padding:.5rem 1rem;font-size:.875rem;cursor:pointer">
+    <i class="bi bi-search"></i>
+  </button>
+  {% if filters.q or filters.status or filters.type %}
+  <a href="{% url 'notifications:email_log' %}"
+     style="color:rgba(255,255,255,.4);font-size:.875rem;
+            display:flex;align-items:center;text-decoration:none">
+    Сбросить
+  </a>
+  {% endif %}
+</form>
+
+{# ---- Table ---- #}
+<div class="cabinet-card">
+  <div class="table-responsive">
+    <table class="table table-dark table-hover mb-0" style="--bs-table-bg:transparent">
+      <thead>
+        <tr style="color:rgba(255,255,255,.35);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em">
+          <th>Дата</th>
+          <th>Тип</th>
+          <th>Получаостиница</th>
+          <th>Тема</th>
+          <th>Статус</th>
+          <th>Попыток</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody style="font-size:.85rem">
+        {% for log in logs %}
+        <tr>
+          <td style="color:rgba(255,255,255,.5);font-size:.78rem;white-space:nowrap">
+            {{ log.created_at|date:"d.m.Y H:i" }}
+          </td>
+          <td style="color:rgba(255,255,255,.55);font-size:.78rem">
+            {{ log.get_email_type_display }}
+          </td>
+          <td style="color:rgba(255,255,255,.7)">{{ log.recipient_email }}</td>
+          <td style="color:rgba(255,255,255,.65);max-width:220px;
+                     overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+            {{ log.subject }}
+          </td>
+          <td>
+            {% if log.status == "sent" %}
+              <span style="color:#28a745;font-size:.8rem">✅ Отправлено</span>
+            {% elif log.status == "failed" %}
+              <span style="color:#ff6b6b;font-size:.8rem">❌ Ошибка</span>
+            {% elif log.status == "pending" %}
+              <span style="color:#ffc107;font-size:.8rem">⏳ В очереди</span>
+            {% else %}
+              <span style="color:rgba(255,255,255,.4);font-size:.8rem">{{ log.get_status_display }}</span>
+            {% endif %}
+          </td>
+          <td style="color:rgba(255,255,255,.4);font-size:.8rem;text-align:center">
+            {{ log.retry_count }}
+          </td>
+          <td>
+            <a href="{% url 'notifications:email_log_detail' log.pk %}"
+               style="color:rgba(255,255,255,.3);font-size:.85rem;text-decoration:none">
+              <i class="bi bi-eye"></i>
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" style="text-align:center;padding:2.5rem;color:rgba(255,255,255,.3)">
+            <i class="bi bi-envelope-x" style="font-size:2rem;display:block;margin-bottom:.5rem"></i>
+            Писем не найдено
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {# Pagination #}
+  {% if is_paginated %}
+  <div class="d-flex justify-content-center mt-3 gap-2">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}&status={{ filters.status }}&type={{ filters.type }}&q={{ filters.q }}"
+       style="padding:.4rem .8rem;background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);
+              border-radius:8px;text-decoration:none;font-size:.85rem">← Назад</a>
+    {% endif %}
+    <span style="padding:.4rem .8rem;background:rgba(201,168,76,.15);color:var(--gold);
+                 border-radius:8px;font-size:.85rem">
+      {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+    </span>
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}&status={{ filters.status }}&type={{ filters.type }}&q={{ filters.q }}"
+       style="padding:.4rem .8rem;background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);
+              border-radius:8px;text-decoration:none;font-size:.85rem">Вперёд →</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

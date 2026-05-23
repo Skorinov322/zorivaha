@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Отзывы гостей — Зори Ваха{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <h1 class="mb-4">Отзывы наших гостей</h1>
+            
+            <!-- Статистика -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-6">
+                            <h3 class="mb-0">{{ average_rating|floatformat:1 }}</h3>
+                            <div class="text-warning mb-2">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= average_rating %}⭐{% endif %}
+                                {% endfor %}
+                            </div>
+                            <p class="text-muted mb-0">Средняя оценка</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h3 class="mb-0">{{ total_reviews }}</h3>
+                            <p class="text-muted mb-0">Отзывов</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Избранные отзывы -->
+            {% if featured_reviews %}
+            <div class="mb-4">
+                <h3 class="mb-3">Избранные отзывы</h3>
+                {% for review in featured_reviews %}
+                <div class="card mb-3 border-warning">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <h5 class="card-title mb-1">{{ review.title }}</h5>
+                                <small class="text-muted">{{ review.guest_name }} • {{ review.created_at|date:"d.m.Y" }}</small>
+                            </div>
+                            <div class="text-warning">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= review.overall_rating %}⭐{% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <p class="card-text">{{ review.text|truncatewords:50 }}</p>
+                        <a href="{% url 'reviews:detail' review.pk %}" class="btn btn-sm btn-outline-primary">Читать полностью</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Сортировка -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3>Все отзывы</h3>
+                <div class="btn-group" role="group">
+                    <a href="?sort=-created_at" class="btn btn-sm btn-outline-secondary {% if request.GET.sort == '-created_at' or not request.GET.sort %}active{% endif %}">Новые</a>
+                    <a href="?sort=-overall_rating" class="btn btn-sm btn-outline-secondary {% if request.GET.sort == '-overall_rating' %}active{% endif %}">Лучшие</a>
+                    <a href="?sort=overall_rating" class="btn btn-sm btn-outline-secondary {% if request.GET.sort == 'overall_rating' %}active{% endif %}">Худшие</a>
+                </div>
+            </div>
+
+            <!-- Список отзывов -->
+            {% for review in reviews %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <h5 class="card-title mb-1">{{ review.title }}</h5>
+                            <small class="text-muted">
+                                {{ review.guest_name }} • {{ review.created_at|date:"d.m.Y" }}
+                                {% if review.room_category %}• {{ review.room_category.name }}{% endif %}
+                            </small>
+                        </div>
+                        <div class="text-warning">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= review.overall_rating %}⭐{% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Детальные оценки -->
+                    <div class="row small text-muted mb-2">
+                        <div class="col-6 col-md-4">Чистота: {{ review.cleanliness_rating }}/5</div>
+                        <div class="col-6 col-md-4">Комфорт: {{ review.comfort_rating }}/5</div>
+                        <div class="col-6 col-md-4">Персонал: {{ review.staff_rating }}/5</div>
+                    </div>
+                    
+                    <p class="card-text">{{ review.text|truncatewords:30 }}</p>
+                    
+                    {% if review.has_response %}
+                    <div class="alert alert-light mb-2">
+                        <strong>Ответ администрации:</strong>
+                        {{ review.response.text|truncatewords:20 }}
+                    </div>
+                    {% endif %}
+                    
+                    <a href="{% url 'reviews:detail' review.pk %}" class="btn btn-sm btn-outline-primary">Читать полностью</a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="alert alert-info">
+                Пока нет отзывов. Будьте первым!
+            </div>
+            {% endfor %}
+
+            <!-- Пагинация -->
+            {% if is_paginated %}
+            <nav aria-label="Навигация по страницам">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">Назад</a>
+                    </li>
+                    {% endif %}
+                    
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+                    </li>
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">Вперед</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

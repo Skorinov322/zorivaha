@@ -1,0 +1,111 @@
+﻿{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}Задачи CRM{% endblock %}
+{% block dashboard_title %}Задачи{% endblock %}
+{% block dashboard_subtitle %}CRM — управление задачами{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
+  <a href="{% url 'crm:task_create' %}"
+     style="background:linear-gradient(135deg,var(--gold),#a07830);border:none;
+            border-radius:10px;color:#fff;padding:.65rem 1.25rem;font-size:.875rem;
+            font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:.5rem">
+    <i class="bi bi-plus-lg"></i>Новая задача
+  </a>
+</div>
+
+{# Filters #}
+<div class="d-flex gap-2 flex-wrap mb-4">
+  {% for val, lbl in status_choices %}
+  <a href="?status={{ val }}{% if priority_filter %}&priority={{ priority_filter }}{% endif %}"
+     style="padding:.35rem .85rem;border-radius:20px;font-size:.78rem;text-decoration:none;
+            {% if status_filter == val %}background:var(--gold);color:#fff;{% else %}background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.1);{% endif %}">
+    {{ lbl }}
+  </a>
+  {% endfor %}
+  <a href="?"
+     style="padding:.35rem .85rem;border-radius:20px;font-size:.78rem;text-decoration:none;
+            {% if not status_filter %}background:var(--gold);color:#fff;{% else %}background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.1);{% endif %}">
+    Все
+  </a>
+</div>
+
+<div class="cabinet-card">
+  {% if tasks %}
+  <div class="table-responsive">
+    <table class="table table-dark table-hover mb-0" style="--bs-table-bg:transparent">
+      <thead>
+        <tr style="color:rgba(255,255,255,.35);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em">
+          <th>Задача</th><th>Клиент</th><th>Исполнитель</th><th>Приоритет</th><th>Крайний срок</th><th>Статус</th><th></th>
+        </tr>
+      </thead>
+      <tbody style="font-size:.875rem">
+        {% for task in tasks %}
+        <tr>
+          <td style="color:#fff;font-weight:500;max-width:220px">
+            <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ task.title }}</div>
+          </td>
+          <td>
+            {% if task.client %}
+            <a href="{% url 'crm:client_detail' task.client.user_id %}"
+               style="color:var(--gold);text-decoration:none;font-size:.85rem">
+              {{ task.client.user.get_short_name }}
+            </a>
+            {% else %}
+            <span style="color:rgba(255,255,255,.3)">—</span>
+            {% endif %}
+          </td>
+          <td style="color:rgba(255,255,255,.6);font-size:.85rem">
+            {{ task.assigned_to.get_short_name|default:"—" }}
+          </td>
+          <td>{% include "crm/_priority_badge.html" with priority=task.priority label=task.get_priority_display %}</td>
+          <td style="font-size:.8rem;{% if task.due_date %}color:rgba(255,255,255,.5){% else %}color:rgba(255,255,255,.25){% endif %}">
+            {{ task.due_date|date:"d.m.Y"|default:"—" }}
+          </td>
+          <td style="font-size:.8rem;color:rgba(255,255,255,.5)">{{ task.get_status_display }}</td>
+          <td>
+            <div style="display:flex;gap:.5rem">
+              {% if task.status in "open,in_progress" %}
+              <form method="post" action="{% url 'crm:task_complete' task.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}" />
+                <button type="submit" title="Выполнить"
+                        style="background:none;border:none;cursor:pointer;color:rgba(40,167,69,.6);font-size:.9rem;padding:0">
+                  <i class="bi bi-check-circle"></i>
+                </button>
+              </form>
+              <form method="post" action="{% url 'crm:task_cancel' task.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}" />
+                <button type="submit" title="Отменить"
+                        style="background:none;border:none;cursor:pointer;color:rgba(255,100,100,.5);font-size:.9rem;padding:0">
+                  <i class="bi bi-x-circle"></i>
+                </button>
+              </form>
+              {% endif %}
+              <form method="post" action="{% url 'crm:task_delete' task.pk %}"
+                    onsubmit="return confirm('Удалить задачу «{{ task.title|truncatechars:40 }}»?')">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}" />
+                <button type="submit" title="Удалить"
+                        style="background:none;border:none;cursor:pointer;color:rgba(220,53,69,.6);font-size:.9rem;padding:0">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="text-align:center;padding:3rem;color:rgba(255,255,255,.3)">
+    <i class="bi bi-list-check" style="font-size:2.5rem;display:block;margin-bottom:.75rem"></i>
+    Задачи не найдены
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

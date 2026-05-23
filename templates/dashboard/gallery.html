@@ -1,0 +1,745 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block dashboard_title %}Галерея{% endblock %}
+{% block dashboard_subtitle %}Управление фотографиями гостиницы{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+  .gallery-upload-zone {
+    border: 2px dashed rgba(255,142,60,.35);
+    border-radius: 14px;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all .25s;
+    background: rgba(255,142,60,.03);
+  }
+  .gallery-upload-zone:hover,
+  .gallery-upload-zone.drag-over {
+    border-color: var(--gold);
+    background: rgba(255,142,60,.07);
+  }
+  .gallery-upload-zone input[type="file"] {
+    display: none;
+  }
+
+  .photo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 14px;
+  }
+  .photo-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: box-shadow .2s, transform .2s;
+    position: relative;
+  }
+  .photo-card:hover {
+    box-shadow: 0 8px 24px rgba(13,13,13,.1);
+    transform: translateY(-2px);
+  }
+  .photo-card img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    display: block;
+  }
+  .photo-card-body {
+    padding: .65rem .75rem;
+  }
+  .photo-card-title {
+    font-size: .8rem;
+    font-weight: 500;
+    color: #0d0d0d;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: .25rem;
+  }
+  .photo-card-section {
+    font-size: .7rem;
+    color: var(--text-muted);
+  }
+  .photo-card-actions {
+    display: flex;
+    gap: 6px;
+    padding: .5rem .75rem;
+    border-top: 1px solid var(--border);
+    background: rgba(13,13,13,.02);
+  }
+  .photo-action-btn {
+    flex: 1;
+    padding: .3rem;
+    border: none;
+    border-radius: 7px;
+    font-size: .72rem;
+    cursor: pointer;
+    transition: all .15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    text-decoration: none;
+  }
+  .photo-action-btn.btn-toggle {
+    background: rgba(40,167,69,.1);
+    color: #28a745;
+  }
+  .photo-action-btn.btn-toggle.inactive {
+    background: rgba(13,13,13,.06);
+    color: rgba(13,13,13,.4);
+  }
+  .photo-action-btn.btn-featured {
+    background: rgba(255,193,7,.1);
+    color: #ffc107;
+  }
+  .photo-action-btn.btn-featured.not-featured {
+    background: rgba(13,13,13,.06);
+    color: rgba(13,13,13,.4);
+  }
+  .photo-action-btn.btn-edit {
+    background: rgba(110,168,254,.1);
+    color: #6ea8fe;
+  }
+  .photo-action-btn.btn-delete {
+    background: rgba(220,53,69,.1);
+    color: #dc3545;
+  }
+  .photo-action-btn:hover { filter: brightness(.9); }
+
+  /* Inactive overlay */
+  .photo-card.is-inactive img {
+    opacity: .45;
+    filter: grayscale(.5);
+  }
+  .photo-inactive-badge {
+    position: absolute;
+    top: 8px; left: 8px;
+    background: rgba(13,13,13,.6);
+    color: #fff;
+    font-size: .65rem;
+    padding: 2px 7px;
+    border-radius: 6px;
+    font-weight: 600;
+  }
+  .photo-featured-badge {
+    position: absolute;
+    top: 8px; right: 8px;
+    background: rgba(255,193,7,.85);
+    color: #0d0d0d;
+    font-size: .65rem;
+    padding: 2px 7px;
+    border-radius: 6px;
+    font-weight: 700;
+  }
+
+  /* Section filter tabs */
+  .section-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 1.25rem;
+  }
+  .section-tab {
+    padding: 5px 14px;
+    border-radius: 50px;
+    font-size: .75rem;
+    font-weight: 500;
+    text-decoration: none;
+    border: 1px solid var(--border);
+    color: rgba(13,13,13,.55);
+    transition: all .2s;
+  }
+  .section-tab:hover,
+  .section-tab.active {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: #0d0d0d;
+  }
+
+  /* Edit modal */
+  .edit-modal-backdrop {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(13,13,13,.5);
+    z-index: 1050;
+    align-items: center;
+    justify-content: center;
+  }
+  .edit-modal-backdrop.open { display: flex; }
+  .edit-modal {
+    background: #fff;
+    border-radius: 16px;
+    padding: 1.5rem;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 24px 64px rgba(13,13,13,.2);
+  }
+  .edit-modal-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0d0d0d;
+    margin-bottom: 1.25rem;
+  }
+  .edit-modal label {
+    font-size: .78rem;
+    font-weight: 600;
+    color: rgba(13,13,13,.6);
+    display: block;
+    margin-bottom: .3rem;
+  }
+  .edit-modal input,
+  .edit-modal select {
+    width: 100%;
+    padding: .5rem .75rem;
+    border: 1px solid rgba(13,13,13,.15);
+    border-radius: 8px;
+    font-size: .85rem;
+    color: #0d0d0d;
+    margin-bottom: .85rem;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .edit-modal input:focus,
+  .edit-modal select:focus {
+    border-color: var(--gold);
+  }
+
+  /* About page block assignment */
+  .about-blocks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+  }
+  .about-block-card {
+    background: rgba(255,142,60,.04);
+    border: 1px solid rgba(255,142,60,.2);
+    border-radius: 12px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
+  }
+  .about-block-label {
+    font-size: .8rem;
+    font-weight: 700;
+    color: #0d0d0d;
+    line-height: 1.35;
+  }
+  .about-block-preview {
+    aspect-ratio: 1/1;
+    border-radius: 10px;
+    overflow: hidden;
+    background: rgba(13,13,13,.04);
+    border: 1px dashed rgba(13,13,13,.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .about-block-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .about-block-preview-empty {
+    text-align: center;
+    font-size: .72rem;
+    color: rgba(13,13,13,.4);
+    padding: .5rem;
+  }
+  .about-block-form {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: auto;
+  }
+  .about-block-form select {
+    width: 100%;
+    padding: .45rem .6rem;
+    border: 1px solid rgba(13,13,13,.15);
+    border-radius: 8px;
+    font-size: .75rem;
+    color: #0d0d0d;
+    background: #fff;
+  }
+  .about-block-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .about-block-btn {
+    flex: 1;
+    min-width: 90px;
+    padding: .4rem .55rem;
+    border: none;
+    border-radius: 8px;
+    font-size: .72rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: filter .15s;
+  }
+  .about-block-btn-primary {
+    background: linear-gradient(135deg, var(--gold), #e67a2a);
+    color: #0d0d0d;
+  }
+  .about-block-btn-muted {
+    background: rgba(13,13,13,.06);
+    color: rgba(13,13,13,.55);
+  }
+  .about-block-btn:hover { filter: brightness(.95); }
+
+  .about-empty-hint {
+    background: rgba(255,193,7,.12);
+    border: 1px solid rgba(255,193,7,.35);
+    border-radius: 10px;
+    padding: .75rem 1rem;
+    font-size: .8rem;
+    color: rgba(13,13,13,.65);
+    margin-bottom: 1rem;
+  }
+
+  .picker-modal-backdrop {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(13,13,13,.55);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .picker-modal-backdrop.open { display: flex; }
+  .picker-modal {
+    background: #fff;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 720px;
+    max-height: 85vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 24px 64px rgba(13,13,13,.2);
+  }
+  .picker-modal-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .picker-modal-title {
+    font-size: .95rem;
+    font-weight: 700;
+    color: #0d0d0d;
+  }
+  .picker-modal-body {
+    padding: 1rem 1.25rem;
+    overflow-y: auto;
+  }
+  .picker-photo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 10px;
+  }
+  .picker-photo-item {
+    border: 2px solid transparent;
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    background: none;
+    padding: 0;
+    transition: border-color .15s, transform .15s;
+  }
+  .picker-photo-item:hover {
+    border-color: var(--gold);
+    transform: scale(1.02);
+  }
+  .picker-photo-item img {
+    width: 100%;
+    aspect-ratio: 1/1;
+    object-fit: cover;
+    display: block;
+  }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+
+<!-- KPI row -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="kpi-card kpi-gold">
+      <div class="kpi-icon"><i class="bi bi-images"></i></div>
+      <div>
+        <div class="kpi-value">{{ total_count }}</div>
+        <div class="kpi-label">Всего фото</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="kpi-card kpi-green">
+      <div class="kpi-icon"><i class="bi bi-eye"></i></div>
+      <div>
+        <div class="kpi-value">{{ active_count }}</div>
+        <div class="kpi-label">Активных</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="kpi-card kpi-amber">
+      <div class="kpi-icon"><i class="bi bi-star"></i></div>
+      <div>
+        <div class="kpi-value">{{ photos|length }}</div>
+        <div class="kpi-label">В фильтре</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="kpi-card kpi-blue">
+      <div class="kpi-icon"><i class="bi bi-globe"></i></div>
+      <div class="kpi-value" style="font-size:1rem;padding-top:.25rem">
+        <a href="{% url 'hotel:gallery' %}" target="_blank"
+           style="color:#6ea8fe;text-decoration:none;font-size:.8rem;font-weight:600">
+          Открыть галерею <i class="bi bi-arrow-up-right-square"></i>
+        </a>
+      </div>
+      <div class="kpi-label">Публичная страница</div>
+    </div>
+  </div>
+</div>
+
+<!-- Upload card -->
+<div class="dash-card mb-4">
+  <div class="dash-card-header">
+    <div class="dash-card-title"><i class="bi bi-cloud-upload"></i> Загрузить фото</div>
+  </div>
+
+  <form method="post" enctype="multipart/form-data" id="uploadForm">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="upload" />
+
+    <div class="gallery-upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+      <input type="file" name="images" id="fileInput" multiple accept="image/*"
+             onchange="handleFileSelect(this)" />
+      <i class="bi bi-cloud-arrow-up" style="font-size:2rem;color:var(--gold);display:block;margin-bottom:.5rem"></i>
+      <p style="font-size:.9rem;color:rgba(13,13,13,.6);margin:0">
+        Нажмите или перетащите файлы сюда
+      </p>
+      <p style="font-size:.75rem;color:rgba(13,13,13,.35);margin:.25rem 0 0">
+        JPG, PNG, WebP — можно несколько файлов сразу
+      </p>
+      <div id="filePreview" style="display:none;margin-top:1rem;font-size:.82rem;color:var(--gold);font-weight:600"></div>
+    </div>
+
+    <div class="row g-3 mt-2">
+      <div class="col-md-4">
+        <label style="font-size:.78rem;font-weight:600;color:rgba(13,13,13,.6);display:block;margin-bottom:.3rem">
+          Раздел
+        </label>
+        <select name="section" class="form-select form-select-sm">
+          {% for value, label in section_choices %}
+          <option value="{{ value }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-5">
+        <label style="font-size:.78rem;font-weight:600;color:rgba(13,13,13,.6);display:block;margin-bottom:.3rem">
+          Заголовок <span style="font-weight:400;opacity:.6">(необязаостиницано)</span>
+        </label>
+        <input type="text" name="title" class="form-control form-control-sm"
+               placeholder="Например: Вид из лобби" />
+      </div>
+      <div class="col-md-3 d-flex align-items-end">
+        <div class="form-check mb-2 me-3">
+          <input class="form-check-input" type="checkbox" name="is_featured" id="isFeatured" />
+          <label class="form-check-label" for="isFeatured"
+                 style="font-size:.82rem;color:rgba(13,13,13,.65)">
+            На главной
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-3">
+      <button type="submit" id="uploadBtn" disabled
+              style="background:linear-gradient(135deg,var(--gold),#d9376e);
+                     color:#0d0d0d;border:none;padding:.55rem 1.5rem;
+                     border-radius:9px;font-size:.85rem;font-weight:700;
+                     cursor:pointer;opacity:.5;transition:opacity .2s">
+        <i class="bi bi-upload me-1"></i> Загрузить
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- About page photos -->
+<div class="dash-card mb-4">
+  <div class="dash-card-header" style="flex-wrap:wrap;gap:.5rem">
+    <div class="dash-card-title">
+      <i class="bi bi-info-circle"></i> Фото для страницы «О нас»
+    </div>
+    <a href="{% url 'hotel:about' %}" target="_blank"
+       style="font-size:.78rem;color:#6ea8fe;text-decoration:none;font-weight:600">
+      Открыть страницу <i class="bi bi-arrow-up-right-square"></i>
+    </a>
+  </div>
+
+  {% if not picker_photos %}
+  <div class="about-empty-hint">
+    <i class="bi bi-exclamation-circle me-1"></i>
+    Сначала загрузите хотя бы одно фото в блоке «Загрузить фото» выше, затем выберите его в списке для каждого блока.
+  </div>
+  {% else %}
+  <p style="font-size:.8rem;color:rgba(13,13,13,.55);margin:0 0 1rem">
+    Выберите фото в списке и нажмите «Сохранить» для каждого блока.
+  </p>
+  {% endif %}
+
+  <div class="about-blocks-grid">
+    {% for block in about_blocks %}
+    <div class="about-block-card">
+      <div class="about-block-label">{{ block.label }}</div>
+      <div class="about-block-preview">
+        {% if block.photo_url %}
+          <img src="{{ block.photo_url }}" alt="{{ block.label }}" />
+        {% else %}
+          <div class="about-block-preview-empty">
+            <i class="bi bi-image" style="font-size:1.5rem;display:block;margin-bottom:.35rem;opacity:.4"></i>
+            Фото не выбрано
+          </div>
+        {% endif %}
+      </div>
+      <form method="post" class="about-block-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="assign_about_photo" />
+        <input type="hidden" name="block" value="{{ block.key }}" />
+        <select name="photo_pk"{% if not picker_photos %} disabled{% endif %}>
+          <option value="">— Выберите фото —</option>
+          {% for photo in picker_photos %}
+          <option value="{{ photo.pk }}"
+            {% if block.photo and block.photo.pk == photo.pk %}selected{% endif %}>
+            {{ photo.get_section_display }} — {{ photo.title|default:"Без названия" }}
+          </option>
+          {% endfor %}
+        </select>
+        <div class="about-block-actions">
+          <button type="submit" class="about-block-btn about-block-btn-primary"
+                  {% if not picker_photos %}disabled{% endif %}>
+            <i class="bi bi-check2 me-1"></i> Сохранить
+          </button>
+        </div>
+      </form>
+      {% if block.photo_url %}
+      <form method="post" style="margin-top:6px">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="clear_about_photo" />
+        <input type="hidden" name="block" value="{{ block.key }}" />
+        <button type="submit" class="about-block-btn about-block-btn-muted w-100"
+                title="Убрать фото с блока">
+          <i class="bi bi-x-lg"></i> Снять
+        </button>
+      </form>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Filter tabs + grid -->
+<div class="dash-card">
+  <div class="dash-card-header">
+    <div class="dash-card-title"><i class="bi bi-grid-3x3-gap"></i> Фотографии</div>
+  </div>
+
+  <!-- Section tabs -->
+  <div class="section-tabs">
+    <a href="{% url 'dashboard:gallery' %}"
+       class="section-tab {% if not active_section %}active{% endif %}">
+      Все ({{ total_count }})
+    </a>
+    {% for value, label in section_choices %}
+    <a href="{% url 'dashboard:gallery' %}?section={{ value }}"
+       class="section-tab {% if active_section == value %}active{% endif %}">
+      {{ label }}
+    </a>
+    {% endfor %}
+  </div>
+
+  {% if photos %}
+  <div class="photo-grid">
+    {% for photo in photos %}
+    <div class="photo-card {% if not photo.is_active %}is-inactive{% endif %}">
+      <img src="{{ photo.image.url }}"
+           alt="{{ photo.alt_text|default:photo.title|default:'Фото' }}"
+           loading="lazy" />
+
+      {% if not photo.is_active %}
+      <span class="photo-inactive-badge">Скрыто</span>
+      {% endif %}
+      {% if photo.is_featured %}
+      <span class="photo-featured-badge"><i class="bi bi-star-fill"></i> Главная</span>
+      {% endif %}
+
+      <div class="photo-card-body">
+        <div class="photo-card-title">{{ photo.title|default:"Без названия" }}</div>
+        <div class="photo-card-section">{{ photo.get_section_display }}</div>
+      </div>
+
+      <div class="photo-card-actions">
+        <!-- Toggle active -->
+        <form method="post" style="flex:1">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="toggle_active" />
+          <input type="hidden" name="pk" value="{{ photo.pk }}" />
+          <button type="submit"
+                  class="photo-action-btn btn-toggle {% if not photo.is_active %}inactive{% endif %}"
+                  title="{% if photo.is_active %}Скрыть{% else %}Показать{% endif %}">
+            <i class="bi bi-{% if photo.is_active %}eye{% else %}eye-slash{% endif %}"></i>
+          </button>
+        </form>
+
+        <!-- Toggle featured -->
+        <form method="post" style="flex:1">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="toggle_featured" />
+          <input type="hidden" name="pk" value="{{ photo.pk }}" />
+          <button type="submit"
+                  class="photo-action-btn btn-featured {% if not photo.is_featured %}not-featured{% endif %}"
+                  title="{% if photo.is_featured %}Убрать с главной{% else %}На главную{% endif %}">
+            <i class="bi bi-star{% if photo.is_featured %}-fill{% endif %}"></i>
+          </button>
+        </form>
+
+        <!-- Edit -->
+        <button type="button"
+                class="photo-action-btn btn-edit"
+                title="Редактировать"
+                onclick="openEditModal({{ photo.pk }}, '{{ photo.title|escapejs }}', '{{ photo.alt_text|escapejs }}', '{{ photo.section }}', {{ photo.sort_order }})">
+          <i class="bi bi-pencil"></i>
+        </button>
+
+        <!-- Delete -->
+        <form method="post" style="flex:1"
+              onsubmit="return confirm('Удалить это фото? Действие необратимо.')">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="delete" />
+          <input type="hidden" name="pk" value="{{ photo.pk }}" />
+          <button type="submit" class="photo-action-btn btn-delete" title="Удалить">
+            <i class="bi bi-trash3"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="dash-empty" style="padding:3rem">
+    <i class="bi bi-images"></i>
+    Фотографий нет. Загрузите первое фото выше.
+  </div>
+  {% endif %}
+</div>
+
+<!-- Edit modal -->
+<div class="edit-modal-backdrop" id="editModalBackdrop" onclick="closeEditModal(event)">
+  <div class="edit-modal" onclick="event.stopPropagation()">
+    <div class="edit-modal-title"><i class="bi bi-pencil-square me-2" style="color:var(--gold)"></i>Редактировать фото</div>
+    <form method="post" id="editForm">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="update" />
+      <input type="hidden" name="pk" id="editPk" />
+
+      <label>Заголовок</label>
+      <input type="text" name="title" id="editTitle" placeholder="Заголовок фото" />
+
+      <label>Alt текст <span style="font-weight:400;opacity:.6">(для SEO)</span></label>
+      <input type="text" name="alt_text" id="editAltText" placeholder="Описание для поисковиков" />
+
+      <label>Раздел</label>
+      <select name="section" id="editSection">
+        {% for value, label in section_choices %}
+        <option value="{{ value }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      <label>Порядок сортировки</label>
+      <input type="number" name="sort_order" id="editSortOrder" min="0" value="0" />
+
+      <div style="display:flex;gap:.75rem;margin-top:.5rem">
+        <button type="submit"
+                style="flex:1;background:linear-gradient(135deg,var(--gold),#d9376e);
+                       color:#0d0d0d;border:none;padding:.55rem;border-radius:9px;
+                       font-size:.85rem;font-weight:700;cursor:pointer">
+          Сохранить
+        </button>
+        <button type="button" onclick="closeEditModal()"
+                style="flex:1;background:rgba(13,13,13,.06);color:rgba(13,13,13,.6);
+                       border:none;padding:.55rem;border-radius:9px;
+                       font-size:.85rem;cursor:pointer">
+          Отмена
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block dashboard_js %}
+<script>
+  // ── File select ──────────────────────────────────────────────
+  function handleFileSelect(input) {
+    const preview = document.getElementById('filePreview');
+    const btn     = document.getElementById('uploadBtn');
+    if (input.files.length > 0) {
+      preview.style.display = 'block';
+      preview.textContent   = `Выбрано файлов: ${input.files.length}`;
+      btn.disabled  = false;
+      btn.style.opacity = '1';
+    } else {
+      preview.style.display = 'none';
+      btn.disabled  = true;
+      btn.style.opacity = '.5';
+    }
+  }
+
+  // ── Drag & drop ──────────────────────────────────────────────
+  const zone = document.getElementById('uploadZone');
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    const input = document.getElementById('fileInput');
+    input.files = e.dataTransfer.files;
+    handleFileSelect(input);
+  });
+
+  // ── Edit modal ───────────────────────────────────────────────
+  function openEditModal(pk, title, altText, section, sortOrder) {
+    document.getElementById('editPk').value        = pk;
+    document.getElementById('editTitle').value     = title;
+    document.getElementById('editAltText').value   = altText;
+    document.getElementById('editSection').value   = section;
+    document.getElementById('editSortOrder').value = sortOrder;
+    document.getElementById('editModalBackdrop').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeEditModal(e) {
+    if (!e || e.target === document.getElementById('editModalBackdrop')) {
+      document.getElementById('editModalBackdrop').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeEditModal();
+  });
+</script>
+{% endblock %}

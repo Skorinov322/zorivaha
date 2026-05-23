@@ -1,0 +1,124 @@
+﻿{% extends "notifications/email/base_email.html" %}
+
+{% block email_title %}Напоминание о заезде завтра — Зори Ваха{% endblock %}
+{% block preheader %}Ждём вас завтра! Бронь #{{ booking.confirmation_number }} · Заезд {{ booking.check_in|date:"d F" }}{% endblock %}
+
+{% block content %}
+
+<!-- Status badge -->
+<div style="text-align:center;margin-bottom:28px;">
+  <span style="display:inline-block;background:#e8f4fd;border:1px solid #a8d4f0;
+               color:#1a6a9a;font-size:12px;font-weight:700;letter-spacing:.08em;
+               text-transform:uppercase;padding:6px 16px;border-radius:20px;">
+    🔔 Напоминание о заезде
+  </span>
+</div>
+
+<!-- Heading -->
+<h1 style="font-family:Georgia,'Times New Roman',serif;font-size:26px;color:#0f0f1a;
+           margin:0 0 8px;text-align:center;font-weight:700;">
+  Ждём вас завтра!
+</h1>
+<p style="font-size:15px;color:#666;text-align:center;margin:0 0 28px;line-height:1.6;">
+  Здравствуйте, <strong style="color:#333;">{{ booking.guest_first_name }}</strong>!<br>
+  Напоминаем, что завтра у вас запланирован заезд в гостиницу «Зори Ваха».
+</p>
+
+<!-- Confirmation number -->
+<div style="background:linear-gradient(135deg,#0f0f1a,#1a1a2e);border-radius:12px;
+            padding:20px;text-align:center;margin-bottom:24px;">
+  <div style="font-size:11px;color:rgba(255,255,255,.5);letter-spacing:.12em;
+              text-transform:uppercase;margin-bottom:8px;">
+    Номер брони
+  </div>
+  <div style="font-family:Georgia,serif;font-size:30px;font-weight:800;
+              color:#c9a84c;letter-spacing:.08em;">
+    {{ booking.confirmation_number }}
+  </div>
+</div>
+
+<!-- Check-in / Check-out highlight -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+       style="margin:0 0 20px;">
+  <tr>
+    <td width="48%" valign="top"
+        style="background:#f0f9f4;border:1px solid #b8dfc8;border-radius:10px;
+               padding:18px;text-align:center;">
+      <div style="font-size:11px;color:#888;text-transform:uppercase;
+                  letter-spacing:.08em;margin-bottom:6px;">Заезд</div>
+      <div style="font-size:22px;font-weight:800;color:#1a7a3a;">
+        {{ booking.check_in|date:"d F" }}
+      </div>
+      <div style="font-size:13px;color:#555;margin-top:6px;font-weight:600;">
+        {{ booking.check_in|date:"l" }}
+      </div>
+      <div style="font-size:12px;color:#888;margin-top:4px;">с 14:00</div>
+    </td>
+    <td width="4%" style="text-align:center;color:#ccc;font-size:24px;vertical-align:middle;">
+      →
+    </td>
+    <td width="48%" valign="top"
+        style="background:#fff8f0;border:1px solid #f0d0a8;border-radius:10px;
+               padding:18px;text-align:center;">
+      <div style="font-size:11px;color:#888;text-transform:uppercase;
+                  letter-spacing:.08em;margin-bottom:6px;">Выезд</div>
+      <div style="font-size:22px;font-weight:800;color:#b8600a;">
+        {{ booking.check_out|date:"d F" }}
+      </div>
+      <div style="font-size:13px;color:#555;margin-top:6px;font-weight:600;">
+        {{ booking.check_out|date:"l" }}
+      </div>
+      <div style="font-size:12px;color:#888;margin-top:4px;">до 12:00</div>
+    </td>
+  </tr>
+</table>
+
+<!-- Booking details -->
+{% include "notifications/email/_booking_info_table.html" with booking=booking %}
+
+<!-- Checklist -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+       style="background:#faf8f3;border:1px solid #ede8dc;border-radius:10px;
+              padding:16px 20px;margin:16px 0;">
+  <tr>
+    <td style="font-size:13px;color:#555;line-height:2.0;">
+      <strong style="color:#333;font-size:14px;">Что взять с собой:</strong><br>
+      ✅ &nbsp;Паспорт (обязаостиницано)<br>
+      ✅ &nbsp;Номер брони: <strong style="color:#c9a84c;">{{ booking.confirmation_number }}</strong><br>
+      ✅ &nbsp;Подтверждение оплаты (если оплачено заранее)
+    </td>
+  </tr>
+</table>
+
+<!-- Address -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+       style="background:#f0f7ff;border:1px solid #d0e4f7;border-radius:10px;
+              padding:16px 20px;margin:16px 0;">
+  <tr>
+    <td style="font-size:13px;color:#1a5276;line-height:1.8;">
+      <strong style="font-size:14px;">Как добраться:</strong><br>
+      📍 &nbsp;Школьная улица, 12, пгт Излучинск, Нижневартовский район, Ханты-Мансийский автономный округ — Югра<br>
+      🚗 &nbsp;Бесплатная парковка для гостей<br>
+      🕐 &nbsp;Ресепшн работает круглосуточно
+    </td>
+  </tr>
+</table>
+
+{% if booking.special_requests %}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+       style="background:#fafafa;border:1px solid #eee;border-radius:10px;
+              padding:14px 18px;margin:16px 0;">
+  <tr>
+    <td style="font-size:13px;color:#555;">
+      <strong style="color:#333;">Ваши пожелания учтены:</strong><br>
+      {{ booking.special_requests }}
+    </td>
+  </tr>
+</table>
+{% endif %}
+
+<p style="font-size:13px;color:#999;text-align:center;margin:24px 0 0;">
+  Вопросы? Звоните: <a href="tel:+79280000000" style="color:#c9a84c;text-decoration:none;">+7 (928) 000-00-00</a>
+</p>
+
+{% endblock %}

@@ -1,0 +1,143 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}Категории номеров{% endblock %}
+{% block dashboard_title %}Категории номеров{% endblock %}
+{% block dashboard_subtitle %}Управление типами номеров{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="d-flex justify-content-end mb-4">
+  {% if perms_ctx.can_manage_rooms %}
+  <a href="{% url 'hotel:staff_category_create' %}"
+     style="background:linear-gradient(135deg,#ff8e3c,#d9376e);border:none;border-radius:10px;
+            color:#0d0d0d;padding:.65rem 1.25rem;font-size:.875rem;font-weight:700;
+            text-decoration:none;display:inline-flex;align-items:center;gap:.5rem">
+    <i class="bi bi-plus-lg"></i>Новая категория
+  </a>
+  {% endif %}
+</div>
+
+{# Stats row #}
+<div class="row g-3 mb-4">
+  {% for label, value, icon, color in room_stats_list %}
+  <div class="col-6 col-md-3">
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background:rgba(13,13,13,.05)">
+        <i class="{{ icon }}" style="color:{{ color }}"></i>
+      </div>
+      <div>
+        <div class="kpi-value">{{ value }}</div>
+        <div class="kpi-label">{{ label }}</div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="dash-card">
+  <div class="dash-table-wrap">
+    <table class="dash-table">
+      <thead>
+        <tr>
+          <th>Категория</th>
+          <th>Цена / ночь</th>
+          <th>Вместимость</th>
+          <th>Номеров</th>
+          <th>Свободно</th>
+          <th>Статус</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for cat in categories %}
+        <tr>
+          <td>
+            <div style="display:flex;align-items:center;gap:.75rem">
+              {% if cat.thumbnail %}
+              <img src="{{ cat.thumbnail.url }}" alt=""
+                   style="width:44px;height:36px;object-fit:cover;border-radius:6px;flex-shrink:0" />
+              {% else %}
+              <div style="width:44px;height:36px;border-radius:6px;flex-shrink:0;
+                          background:rgba(255,142,60,.1);display:flex;align-items:center;
+                          justify-content:center;color:#ff8e3c">
+                <i class="bi bi-building"></i>
+              </div>
+              {% endif %}
+              <div>
+                <div class="guest-name">{{ cat.name }}</div>
+                <div class="guest-sub">{{ cat.get_bed_type_display }} · {{ cat.area_sqm }} м²</div>
+              </div>
+            </div>
+          </td>
+          <td style="color:#ff8e3c;font-weight:600">{{ cat.base_price_per_night|floatformat:0 }} ₽</td>
+          <td class="text-muted-sm">до {{ cat.max_guests }} гост.</td>
+          <td class="text-muted-sm">{{ cat.total_rooms }}</td>
+          <td>
+            {% if cat.available_rooms > 0 %}
+              <span style="color:#28a745">{{ cat.available_rooms }}</span>
+            {% else %}
+              <span style="color:#dc3545">0</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if cat.is_active %}
+              <span style="color:#28a745;font-size:.8rem"><i class="bi bi-circle-fill me-1" style="font-size:.45rem"></i>Активна</span>
+            {% else %}
+              <span class="text-muted-sm"><i class="bi bi-circle me-1" style="font-size:.45rem"></i>Скрыта</span>
+            {% endif %}
+          </td>
+          <td>
+            <div style="display:flex;gap:.5rem;align-items:center">
+              <a href="{% url 'hotel:staff_category_images' cat.pk %}" title="Фото" class="dash-row-link">
+                <i class="bi bi-images"></i>
+              </a>
+              {% if perms_ctx.can_manage_rooms %}
+              <a href="{% url 'hotel:staff_category_edit' cat.pk %}" title="Редактировать" class="dash-row-link">
+                <i class="bi bi-pencil"></i>
+              </a>
+              {% if cat.is_active %}
+              <form method="post" action="{% url 'hotel:staff_category_visibility' cat.pk %}"
+                    style="display:inline"
+                    onsubmit="return confirm('Скрыть категорию «{{ cat.name }}» с сайта?')">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="hide" />
+                <button type="submit" title="Скрыть"
+                        style="background:none;border:none;cursor:pointer;color:rgba(255,193,7,.85);font-size:.9rem;padding:0">
+                  <i class="bi bi-eye-slash"></i>
+                </button>
+              </form>
+              {% else %}
+              <form method="post" action="{% url 'hotel:staff_category_visibility' cat.pk %}"
+                    style="display:inline">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="show" />
+                <button type="submit" title="Показать"
+                        style="background:none;border:none;cursor:pointer;color:rgba(40,167,69,.75);font-size:.9rem;padding:0">
+                  <i class="bi bi-eye"></i>
+                </button>
+              </form>
+              {% endif %}
+              <form method="post" action="{% url 'hotel:staff_category_delete' cat.pk %}"
+                    style="display:inline"
+                    onsubmit="return confirm('Удалить категорию «{{ cat.name }}» безвозвратно?')">
+                {% csrf_token %}
+                <button type="submit" title="Удалить"
+                        style="background:none;border:none;cursor:pointer;color:rgba(220,53,69,.6);font-size:.9rem;padding:0">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="dash-empty"><i class="bi bi-building"></i>Категории не найдены</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

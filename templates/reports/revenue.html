@@ -1,0 +1,109 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}Выручка {{ year }}{% endblock %}
+{% block dashboard_title %}Выручка{% endblock %}
+{% block dashboard_subtitle %}Финансовые отчёты{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
+  <a href="{% url 'reports:index' %}" style="color:rgba(13,13,13,.4);text-decoration:none;font-size:.875rem">
+    <i class="bi bi-arrow-left me-1"></i>Отчёты
+  </a>
+  <h1 class="cabinet-page-title mb-0">Выручка {{ year }}</h1>
+</div>
+
+{# Year selector #}
+<div class="d-flex gap-2 mb-4">
+  {% for y in year_range %}
+  <a href="?year={{ y }}"
+     style="padding:.35rem .85rem;border-radius:20px;font-size:.8rem;text-decoration:none;
+            {% if y == year %}background:#ff8e3c;color:#0d0d0d;{% else %}background:rgba(13,13,13,.06);color:rgba(13,13,13,.5);border:1px solid rgba(13,13,13,.1);{% endif %}">
+    {{ y }}
+  </a>
+  {% endfor %}
+</div>
+
+{# Chart #}
+<div class="cabinet-card mb-4">
+  <div class="cabinet-card-title">Выручка по месяцам</div>
+  <canvas id="revenueChart" height="80"></canvas>
+</div>
+
+{# Table #}
+<div class="cabinet-card">
+  <div class="cabinet-card-title">Детализация</div>
+  <div class="table-responsive">
+    <table class="table table-dark mb-0" style="--bs-table-bg:transparent">
+      <thead>
+        <tr style="color:rgba(13,13,13,.35);font-size:.75rem;text-transform:uppercase;letter-spacing:.06em">
+          <th>Месяц</th><th>Броней</th><th>Выручка</th>
+        </tr>
+      </thead>
+      <tbody style="font-size:.875rem">
+        {% for row in monthly_data %}
+        <tr>
+          <td style="color:#0d0d0d">{{ row.month|date:"F Y" }}</td>
+          <td style="color:rgba(13,13,13,.6)">{{ row.bookings }}</td>
+          <td style="color:#ff8e3c;font-weight:600">{{ row.revenue|floatformat:0 }} ₽</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="3" style="text-align:center;padding:2rem;color:rgba(13,13,13,.3)">
+            Нет данных за {{ year }} год
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block dashboard_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const labels = {{ chart_labels|safe }};
+const data   = {{ chart_revenues|safe }};
+
+const revenueChart = document.getElementById('revenueChart');
+if (revenueChart && window.Chart) {
+  new Chart(revenueChart, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Выручка (₽)',
+        data,
+        backgroundColor: 'rgba(255,142,60,.35)',
+        borderColor: '#ff8e3c',
+        borderWidth: 2,
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ctx.parsed.y.toLocaleString('ru-RU') + ' ₽'
+          }
+        }
+      },
+      scales: {
+        x: { ticks: { color: 'rgba(13,13,13,.5)' }, grid: { color: 'rgba(13,13,13,.05)' } },
+        y: {
+          ticks: {
+            color: 'rgba(13,13,13,.5)',
+            callback: v => v.toLocaleString('ru-RU') + ' ₽'
+          },
+          grid: { color: 'rgba(13,13,13,.05)' }
+        }
+      }
+    }
+  });
+}
+</script>
+{% endblock %}

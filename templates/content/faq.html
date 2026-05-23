@@ -1,0 +1,477 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Часто задаваемые вопросы{% endblock %}
+{% block meta_description %}Ответы на часто задаваемые вопросы о бронировании, заезде, услугах и оплате в гостинице {{ SITE_NAME }}{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+  --gold: #ff8e3c;
+  --gold-light: #ffb380;
+  --gold-dark: #e67a2a;
+  --gold-dim: rgba(255,142,60,.12);
+  --gold-border: rgba(255,142,60,.25);
+  --dark-800: #eff0f3;
+  --dark-700: #f7f8fa;
+  --dark-600: #ffffff;
+  --dark-500: #f6f7fa;
+  --text-primary: #0d0d0d;
+  --text-muted: rgba(13,13,13,.55);
+  --text-faint: rgba(13,13,13,.25);
+  --border-subtle: rgba(13,13,13,.08);
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --shadow-gold: 0 8px 32px rgba(255,142,60,.2);
+  --ease-out: cubic-bezier(.16,1,.3,1);
+}
+
+.reveal { opacity:0; transform:translateY(24px); transition:opacity .7s var(--ease-out),transform .7s var(--ease-out) }
+.reveal.visible { opacity:1; transform:translateY(0) }
+
+.eyebrow { display:inline-flex;align-items:center;gap:.5rem;font-size:.7rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--gold) }
+.eyebrow::before,.eyebrow::after { content:'';display:block;width:24px;height:1px;background:var(--gold);opacity:.5 }
+
+/* ── Page hero ── */
+.page-hero {
+  background: radial-gradient(ellipse 70% 60% at 50% 0%, rgba(255,142,60,.12) 0%, transparent 65%),
+              linear-gradient(160deg, #eff0f3 0%, #f4f5f8 50%, #ffffff 100%);
+  padding: 5rem 0 3.5rem;
+  border-bottom: 1px solid rgba(255,142,60,.1);
+}
+.page-hero-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 700;
+  color: #0d0d0d;
+  line-height: 1.1;
+  margin-bottom: .75rem;
+}
+.page-hero-title em { font-style:normal; color:var(--gold) }
+.breadcrumb-lux { display:flex;align-items:center;gap:.5rem;font-size:.78rem;color:rgba(13,13,13,.45);margin-bottom:1.25rem;flex-wrap:wrap }
+.breadcrumb-lux a { color:rgba(13,13,13,.45);text-decoration:none;transition:color .2s }
+.breadcrumb-lux a:hover { color:var(--gold) }
+.breadcrumb-lux .sep { color:var(--text-faint) }
+.breadcrumb-lux .current { color:rgba(13,13,13,.72) }
+
+/* ── FAQ section ── */
+.faq-section { background: var(--dark-800); padding: 5rem 0 6rem }
+
+/* ── Category header ── */
+.faq-category-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.faq-category-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: var(--radius-sm);
+  background: var(--gold-dim);
+  border: 1px solid var(--gold-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  color: var(--gold);
+  flex-shrink: 0;
+}
+.faq-category-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #0d0d0d;
+  margin: 0;
+  line-height: 1.2;
+}
+
+/* ── Accordion ── */
+.faq-accordion .accordion-item {
+  background: var(--dark-600);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md) !important;
+  margin-bottom: .75rem;
+  overflow: hidden;
+  transition: border-color .25s, box-shadow .25s;
+}
+.faq-accordion .accordion-item:hover {
+  border-color: var(--gold-border);
+  box-shadow: 0 4px 20px rgba(255,142,60,.08);
+}
+.faq-accordion .accordion-button {
+  background: var(--dark-600);
+  color: #0d0d0d;
+  font-size: .95rem;
+  font-weight: 500;
+  padding: 1.25rem 1.5rem;
+  border: none;
+  border-radius: var(--radius-md) !important;
+  transition: background .2s, color .2s;
+  line-height: 1.5;
+}
+.faq-accordion .accordion-button:not(.collapsed) {
+  background: var(--dark-600);
+  color: var(--gold);
+  box-shadow: none;
+  border-bottom: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md) var(--radius-md) 0 0 !important;
+}
+.faq-accordion .accordion-button:focus {
+  box-shadow: none;
+  outline: none;
+}
+.faq-accordion .accordion-button::after {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23ff8e3c'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+  flex-shrink: 0;
+}
+.faq-accordion .accordion-body {
+  background: var(--dark-600);
+  color: rgba(13,13,13,.65);
+  font-size: .9rem;
+  line-height: 1.8;
+  padding: 1.25rem 1.5rem 1.5rem;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+.faq-accordion .accordion-body p:last-child { margin-bottom: 0 }
+
+/* ── Empty state ── */
+.faq-empty {
+  text-align: center;
+  padding: 5rem 2rem;
+  background: var(--dark-600);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+}
+.faq-empty-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--gold-dim);
+  border: 2px solid var(--gold-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: var(--gold);
+  margin: 0 auto 1.5rem;
+}
+.faq-empty h3 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0d0d0d;
+  margin-bottom: .5rem;
+}
+.faq-empty p { color: var(--text-muted); font-size: .9rem }
+
+/* ── CTA block ── */
+.faq-cta {
+  background: var(--dark-600);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 3rem 2.5rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.faq-cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(255,142,60,.07) 0%, transparent 70%);
+  pointer-events: none;
+}
+.faq-cta-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  font-weight: 700;
+  color: #0d0d0d;
+  margin-bottom: .75rem;
+}
+.faq-cta-title em { font-style: normal; color: var(--gold) }
+.faq-cta p { color: var(--text-muted); font-size: .9rem; max-width: 480px; margin: 0 auto 2rem; line-height: 1.7 }
+.btn-luxury {
+  display: inline-flex;
+  align-items: center;
+  gap: .6rem;
+  padding: .9rem 2.25rem;
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+  color: #0d0d0d;
+  font-size: .9rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: opacity .2s, transform .15s, box-shadow .2s;
+  box-shadow: 0 4px 20px rgba(255,142,60,.25);
+}
+.btn-luxury:hover { opacity:.9; color:#0d0d0d; transform:translateY(-2px) }
+
+/* ── Gold divider ── */
+.gold-divider { display:flex;align-items:center;gap:1rem;margin:2.5rem 0 }
+.gold-divider::before,.gold-divider::after { content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--gold-border),transparent) }
+.gold-divider i { color:var(--gold);font-size:.8rem;opacity:.6 }
+
+/* ── Quick stats strip ── */
+.faq-stats { background: var(--dark-700); border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle); padding: 2rem 0 }
+.faq-stat-item { text-align: center; padding: .75rem 1rem }
+.faq-stat-num { font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 700; color: var(--gold); line-height: 1 }
+.faq-stat-lbl { color: var(--text-muted); font-size: .78rem; margin-top: .3rem; text-transform: uppercase; letter-spacing: .08em }
+</style>
+{% endblock %}
+
+{% block content %}
+
+{# ══ PAGE HERO ══ #}
+<section class="page-hero" aria-label="Заголовок страницы">
+  <div class="container">
+    <nav class="breadcrumb-lux" aria-label="Навигация">
+      <a href="{% url 'hotel:index' %}"><i class="bi bi-house" aria-hidden="true"></i> Главная</a>
+      <span class="sep" aria-hidden="true">/</span>
+      <span class="current">FAQ</span>
+    </nav>
+    <div class="eyebrow mb-3">Вопросы и ответы</div>
+    <h1 class="page-hero-title">Часто задаваемые <em>вопросы</em></h1>
+    <p style="font-size:1rem;color:rgba(13,13,13,.55);margin-bottom:0;max-width:560px">
+      Здесь собраны ответы на самые популярные вопросы о нашей гостинице — от бронирования до услуг
+    </p>
+  </div>
+</section>
+
+{# ══ QUICK STATS ══ #}
+<div class="faq-stats">
+  <div class="container">
+    <div class="row g-0 justify-content-center">
+      <div class="col-6 col-md-3">
+        <div class="faq-stat-item">
+          <div class="faq-stat-num">24/7</div>
+          <div class="faq-stat-lbl">Поддержка гостей</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="faq-stat-item">
+          <div class="faq-stat-num">2 ч</div>
+          <div class="faq-stat-lbl">Ответ на email</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="faq-stat-item">
+          <div class="faq-stat-num">12:00</div>
+          <div class="faq-stat-lbl">Заезд / Выезд</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="faq-stat-item">
+          <div class="faq-stat-num">0 ₽</div>
+          <div class="faq-stat-lbl">Парковка</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ══ SEARCH BAR ══ #}
+<div style="background:var(--dark-700);border-bottom:1px solid var(--border-subtle);padding:1.5rem 0">
+  <div class="container">
+    <div style="max-width:560px;margin:0 auto;position:relative">
+      <i class="bi bi-search" style="position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:var(--gold);font-size:.95rem;pointer-events:none" aria-hidden="true"></i>
+      <input
+        type="text"
+        id="faqSearch"
+        placeholder="Поиск по вопросам..."
+        autocomplete="off"
+        style="width:100%;padding:.85rem 1rem .85rem 2.75rem;background:#fff;border:1px solid var(--border-subtle);border-radius:var(--radius-sm);font-size:.9rem;color:#0d0d0d;outline:none;transition:border-color .2s,box-shadow .2s"
+        onfocus="this.style.borderColor='var(--gold)';this.style.boxShadow='0 0 0 3px rgba(255,142,60,.12)'"
+        onblur="this.style.borderColor='var(--border-subtle)';this.style.boxShadow='none'"
+        aria-label="Поиск по FAQ"
+      />
+      <span id="faqSearchClear" style="display:none;position:absolute;right:1rem;top:50%;transform:translateY(-50%);cursor:pointer;color:rgba(13,13,13,.35);font-size:1.1rem;line-height:1" aria-label="Очистить поиск">×</span>
+    </div>
+    <p id="faqSearchCount" style="text-align:center;font-size:.8rem;color:var(--text-muted);margin:.75rem 0 0;display:none"></p>
+  </div>
+</div>
+
+{# ══ FAQ CONTENT ══ #}
+<section class="faq-section" aria-labelledby="faq-heading">
+  <div class="container">
+
+    {% if faqs_by_category %}
+
+      <div class="row g-5">
+        <div class="col-lg-8">
+
+          {% for category, category_faqs in faqs_by_category.items %}
+          <div class="mb-5 reveal" style="transition-delay:{{ forloop.counter0 }}00ms">
+
+            {# Category header #}
+            <div class="faq-category-header">
+              <div class="faq-category-icon" aria-hidden="true">
+                {% if category == "Бронирование" %}<i class="bi bi-calendar-check"></i>
+                {% elif category == "Заезд и выезд" %}<i class="bi bi-door-open"></i>
+                {% elif category == "Услуги" %}<i class="bi bi-stars"></i>
+                {% elif category == "Оплата" %}<i class="bi bi-credit-card"></i>
+                {% else %}<i class="bi bi-info-circle"></i>
+                {% endif %}
+              </div>
+              <h2 class="faq-category-title" id="category-{{ forloop.counter }}">{{ category }}</h2>
+            </div>
+
+            {# Accordion #}
+            <div class="accordion faq-accordion" id="accordion-{{ forloop.counter }}">
+              {% for faq in category_faqs %}
+              <div class="accordion-item">
+                <h3 class="accordion-header" id="heading-{{ faq.id }}">
+                  <button
+                    class="accordion-button collapsed"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#collapse-{{ faq.id }}"
+                    aria-expanded="false"
+                    aria-controls="collapse-{{ faq.id }}"
+                  >
+                    {{ faq.question }}
+                  </button>
+                </h3>
+                <div
+                  id="collapse-{{ faq.id }}"
+                  class="accordion-collapse collapse"
+                  aria-labelledby="heading-{{ faq.id }}"
+                >
+                  <div class="accordion-body">
+                    {{ faq.answer|linebreaks }}
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+
+          </div>
+          {% endfor %}
+
+        </div>{# /col-lg-8 #}
+
+        {# ── Sidebar ── #}
+        <div class="col-lg-4">
+          <div style="position:sticky;top:96px">
+
+            {# Quick nav #}
+            <div class="reveal" style="background:var(--dark-600);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:1.75rem;margin-bottom:1.5rem">
+              <div style="font-size:.7rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:1.25rem">
+                <i class="bi bi-list-ul me-2" aria-hidden="true"></i>Разделы
+              </div>
+              <nav aria-label="Навигация по разделам FAQ">
+                {% for category, category_faqs in faqs_by_category.items %}
+                <a
+                  href="#category-{{ forloop.counter }}"
+                  style="display:flex;align-items:center;justify-content:space-between;padding:.6rem .75rem;border-radius:var(--radius-sm);color:rgba(13,13,13,.65);text-decoration:none;font-size:.875rem;transition:background .2s,color .2s;margin-bottom:.25rem"
+                  onmouseover="this.style.background='var(--gold-dim)';this.style.color='var(--gold)'"
+                  onmouseout="this.style.background='transparent';this.style.color='rgba(13,13,13,.65)'"
+                >
+                  <span>
+                    {% if category == "Бронирование" %}<i class="bi bi-calendar-check me-2" style="color:var(--gold)" aria-hidden="true"></i>
+                    {% elif category == "Заезд и выезд" %}<i class="bi bi-door-open me-2" style="color:var(--gold)" aria-hidden="true"></i>
+                    {% elif category == "Услуги" %}<i class="bi bi-stars me-2" style="color:var(--gold)" aria-hidden="true"></i>
+                    {% elif category == "Оплата" %}<i class="bi bi-credit-card me-2" style="color:var(--gold)" aria-hidden="true"></i>
+                    {% else %}<i class="bi bi-info-circle me-2" style="color:var(--gold)" aria-hidden="true"></i>
+                    {% endif %}
+                    {{ category }}
+                  </span>
+                  <span style="background:var(--gold-dim);border:1px solid var(--gold-border);color:var(--gold);font-size:.7rem;font-weight:700;padding:.15rem .5rem;border-radius:20px">
+                    {{ category_faqs|length }}
+                  </span>
+                </a>
+                {% endfor %}
+              </nav>
+            </div>
+
+            {# Contact card #}
+            <div class="reveal" style="transition-delay:.1s;background:var(--dark-600);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:1.75rem">
+              <div style="font-size:.7rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:1.25rem">
+                <i class="bi bi-headset me-2" aria-hidden="true"></i>Нужна помощь?
+              </div>
+              <p style="font-size:.875rem;color:var(--text-muted);line-height:1.7;margin-bottom:1.25rem">
+                Не нашли ответ? Наша служба поддержки работает круглосуточно.
+              </p>
+              <a href="tel:{{ CONTACT_PHONE }}"
+                 style="display:flex;align-items:center;gap:.75rem;padding:.85rem 1rem;background:var(--gold-dim);border:1px solid var(--gold-border);border-radius:var(--radius-sm);color:#0d0d0d;text-decoration:none;font-size:.875rem;font-weight:600;margin-bottom:.75rem;transition:background .2s"
+                 onmouseover="this.style.background='rgba(255,142,60,.2)'"
+                 onmouseout="this.style.background='var(--gold-dim)'">
+                <i class="bi bi-telephone-fill" style="color:var(--gold)" aria-hidden="true"></i>
+                {{ CONTACT_PHONE }}
+              </a>
+              <a href="{% url 'hotel:contacts' %}"
+                 style="display:flex;align-items:center;gap:.75rem;padding:.85rem 1rem;background:transparent;border:1px solid var(--border-subtle);border-radius:var(--radius-sm);color:rgba(13,13,13,.65);text-decoration:none;font-size:.875rem;font-weight:500;transition:border-color .2s,color .2s"
+                 onmouseover="this.style.borderColor='var(--gold-border)';this.style.color='#0d0d0d'"
+                 onmouseout="this.style.borderColor='var(--border-subtle)';this.style.color='rgba(13,13,13,.65)'">
+                <i class="bi bi-envelope" style="color:var(--gold)" aria-hidden="true"></i>
+                Написать нам
+              </a>
+            </div>
+
+          </div>
+        </div>{# /col-lg-4 #}
+
+      </div>{# /row #}
+
+    {% else %}
+
+      {# Empty state #}
+      <div class="faq-empty reveal">
+        <div class="faq-empty-icon" aria-hidden="true">
+          <i class="bi bi-question-lg"></i>
+        </div>
+        <h3>Вопросы пока не добавлены</h3>
+        <p>Скоро здесь появятся ответы на часто задаваемые вопросы</p>
+      </div>
+
+    {% endif %}
+
+    {# ── CTA ── #}
+    <div class="gold-divider reveal mt-5">
+      <i class="bi bi-gem" aria-hidden="true"></i>
+    </div>
+
+    <div class="faq-cta reveal" style="transition-delay:.1s">
+      <h2 class="faq-cta-title">Остались <em>вопросы?</em></h2>
+      <p>Свяжитесь с нами любым удобным способом — мы всегда рады помочь и ответим в ближайшее время</p>
+      <div class="d-flex flex-wrap gap-3 justify-content-center">
+        <a href="{% url 'hotel:contacts' %}" class="btn-luxury">
+          <i class="bi bi-envelope" aria-hidden="true"></i>
+          Написать нам
+        </a>
+        <a href="tel:{{ CONTACT_PHONE }}"
+           style="display:inline-flex;align-items:center;gap:.6rem;padding:.9rem 2.25rem;background:transparent;border:1px solid var(--gold-border);color:#0d0d0d;font-size:.9rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;text-decoration:none;border-radius:var(--radius-sm);transition:all .2s"
+           onmouseover="this.style.background='var(--gold-dim)'"
+           onmouseout="this.style.background='transparent'">
+          <i class="bi bi-telephone" style="color:var(--gold)" aria-hidden="true"></i>
+          Позвонить
+        </a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Smooth scroll for sidebar nav links
+  document.querySelectorAll('a[href^="#category-"]').forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      const target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        const offset = 96;
+        const top = target.getBoundingClientRect().top + window.scrollY - offset;
+        window.scrollTo({ top, behavior: 'smooth' });
+      }
+    });
+  });
+</script>
+{% endblock %}

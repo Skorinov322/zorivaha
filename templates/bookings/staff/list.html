@@ -1,0 +1,136 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}Бронирования{% endblock %}
+{% block dashboard_title %}Бронирования{% endblock %}
+{% block dashboard_subtitle %}Управление всеми бронями{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
+  {% if perms_ctx.is_manager %}
+  <a href="{% url 'bookings:staff_create' %}"
+     style="background:linear-gradient(135deg,var(--gold),#a07830);border:none;
+            border-radius:10px;color:#fff;padding:.65rem 1.25rem;font-size:.875rem;
+            font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:.5rem">
+    <i class="bi bi-plus-lg"></i>Новая бронь
+  </a>
+  {% endif %}
+</div>
+
+{# ---- Status tabs ---- #}
+<div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1.25rem">
+  <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}"
+     style="padding:.35rem .85rem;border-radius:20px;font-size:.78rem;text-decoration:none;
+            {% if not request.GET.status %}background:var(--gold);color:#fff;{% else %}background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.1);{% endif %}">
+    Все
+  </a>
+  {% for val, lbl in status_choices %}
+  <a href="?status={{ val }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}"
+     style="padding:.35rem .85rem;border-radius:20px;font-size:.78rem;text-decoration:none;
+            {% if request.GET.status == val %}background:var(--gold);color:#fff;{% else %}background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.1);{% endif %}">
+    {{ lbl }}
+  </a>
+  {% endfor %}
+</div>
+
+{# ---- Search ---- #}
+<form method="get" class="d-flex gap-2 mb-4 flex-wrap">
+  {% if request.GET.status %}<input type="hidden" name="status" value="{{ request.GET.status }}" />{% endif %}
+  <input type="text" name="q" value="{{ request.GET.q|default:'' }}"
+         placeholder="Номер брони, имя, email, телефон…"
+         style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+                color:#fff;border-radius:10px;padding:.5rem .9rem;font-size:.875rem;
+                min-width:260px;outline:none"
+         onfocus="this.style.borderColor='var(--gold)'"
+         onblur="this.style.borderColor='rgba(255,255,255,.1)'" />
+  <button type="submit"
+          style="background:rgba(201,168,76,.15);color:var(--gold);
+                 border:1px solid rgba(201,168,76,.3);border-radius:10px;
+                 padding:.5rem 1rem;font-size:.875rem;cursor:pointer">
+    <i class="bi bi-search"></i>
+  </button>
+</form>
+
+{# ---- Table ---- #}
+<div class="cabinet-card">
+  <div class="table-responsive">
+    <table class="table table-dark table-hover mb-0" style="--bs-table-bg:transparent">
+      <thead>
+        <tr style="color:rgba(255,255,255,.35);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em">
+          <th>№ брони</th>
+          <th>Гость</th>
+          <th>Категория</th>
+          <th>Гостей</th>
+          <th>Заезд</th>
+          <th>Выезд</th>
+          <th>Статус</th>
+          <th>Сумма</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody style="font-size:.875rem">
+        {% for b in bookings %}
+        <tr>
+          <td>
+            <a href="{% url 'bookings:staff_detail' b.pk %}"
+               style="color:var(--gold);font-weight:600;text-decoration:none">
+              {{ b.confirmation_number }}
+            </a>
+          </td>
+          <td>
+            <div style="color:#fff">{{ b.guest_full_name }}</div>
+            <div style="color:rgba(255,255,255,.35);font-size:.75rem">{{ b.guest_phone }}</div>
+          </td>
+          <td style="color:rgba(255,255,255,.7)">{{ b.room_category.name }}</td>
+          <td style="color:rgba(255,255,255,.7)">
+            {{ b.total_guests }}
+            {% if b.children %}<span style="color:rgba(255,255,255,.4);font-size:.75rem">({{ b.adults }}+{{ b.children }})</span>{% endif %}
+            {% if b.is_group_booking %}
+              <div style="color:rgba(255,255,255,.35);font-size:.72rem">группа: {{ b.group_total_guests }} гостей / {{ b.group_rooms_count }} ном.</div>
+            {% endif %}
+          </td>
+          <td style="color:rgba(255,255,255,.6)">{{ b.check_in|date:"d.m.Y" }}</td>
+          <td style="color:rgba(255,255,255,.6)">{{ b.check_out|date:"d.m.Y" }}</td>
+          <td>{% include "bookings/_status_badge.html" with status=b.status label=b.get_status_display %}</td>
+          <td style="color:#fff;font-weight:500">
+            {{ b.final_price|floatformat:0 }} ₽
+            {% if b.is_group_booking %}
+              <div style="color:rgba(255,255,255,.35);font-size:.72rem">вся группа: {{ b.group_final_price|floatformat:0 }} ₽</div>
+            {% endif %}
+          </td>
+          <td>
+            <div style="display:flex;align-items:center;gap:.5rem">
+              <a href="{% url 'bookings:staff_detail' b.pk %}"
+                 style="color:rgba(255,255,255,.35);font-size:.85rem;text-decoration:none">
+                <i class="bi bi-chevron-right"></i>
+              </a>
+              {% if perms_ctx.is_admin or perms_ctx.is_super_admin %}
+              {% if b.status != "checked_in" %}
+              <form method="post" action="{% url 'bookings:staff_delete' b.pk %}"
+                    onsubmit="return confirm('Удалить бронь {{ b.confirmation_number }}? Это действие необратимо.')"
+                    style="display:inline">
+                {% csrf_token %}
+                <button type="submit" title="Удалить"
+                        style="background:none;border:none;cursor:pointer;color:rgba(220,53,69,.6);font-size:.9rem;padding:0">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </form>
+              {% endif %}
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="9" style="text-align:center;padding:2.5rem;color:rgba(255,255,255,.3)">
+            <i class="bi bi-calendar-x" style="font-size:2rem;display:block;margin-bottom:.5rem"></i>
+            Бронирования не найдены
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

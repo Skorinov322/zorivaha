@@ -1,0 +1,94 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block dashboard_title %}Модерация отзывов{% endblock %}
+{% block dashboard_subtitle %}Одобрение и снятие одобрения отзывов гостей{% endblock %}
+
+{% block dashboard_content %}
+<div class="dash-card mb-4">
+  <div class="dash-card-header">
+    <div class="dash-card-title"><i class="bi bi-chat-square-text"></i> Фильтр отзывов</div>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:.75rem;align-items:center">
+    <a href="{% url 'dashboard:reviews' %}?status=pending"
+       class="btn btn-sm {% if review_status != 'approved' and review_status != 'all' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+      Ожидают ({% if review_counts %}{{ review_counts.pending }}{% else %}0{% endif %})
+    </a>
+    <a href="{% url 'dashboard:reviews' %}?status=approved"
+       class="btn btn-sm {% if review_status == 'approved' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+      Одобренные ({% if review_counts %}{{ review_counts.approved }}{% else %}0{% endif %})
+    </a>
+    <a href="{% url 'dashboard:reviews' %}?status=all"
+       class="btn btn-sm {% if review_status == 'all' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+      Все ({% if review_counts %}{{ review_counts.all }}{% else %}0{% endif %})
+    </a>
+  </div>
+</div>
+
+<div class="dash-card">
+  <div class="dash-card-header">
+    <div class="dash-card-title"><i class="bi bi-card-text"></i> Список отзывов</div>
+  </div>
+
+  {% if reviews %}
+  <div class="table-responsive">
+    <table class="table table-borderless align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Гость</th>
+          <th>Отзыв</th>
+          <th>Статус</th>
+          <th class="text-end">Действия</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for review in reviews %}
+        <tr>
+          <td style="min-width:180px;">
+            <div style="font-weight:700;color:#0d0d0d;">{{ review.guest_name|default:"Гость" }}</div>
+            <div style="font-size:.82rem;color:rgba(13,13,13,.6);">
+              {% if review.room_category %}{{ review.room_category.name }}{% else %}Общий отзыв о гостинице{% endif %}
+            </div>
+            {% if review.author %}
+            <div style="font-size:.78rem;color:rgba(13,13,13,.45);">{{ review.author.email }}</div>
+            {% endif %}
+            <div style="font-size:.78rem;color:rgba(13,13,13,.45);margin-top:.25rem">{{ review.created_at|date:"d.m.Y H:i" }}</div>
+          </td>
+          <td>
+            <div style="font-weight:600;color:#0d0d0d;margin-bottom:.35rem">{{ review.title|default:"Без заголовка" }}</div>
+            <div style="font-size:.9rem;color:rgba(13,13,13,.75);line-height:1.5;white-space:pre-wrap">{{ review.text }}</div>
+            <div style="margin-top:.75rem;font-size:.85rem;color:rgba(13,13,13,.55);">
+              Рейтинг: {{ review.overall_rating }} / 5
+              {% if review.is_approved %}· Одобрено {{ review.moderated_at|date:"d.m.Y" }}{% endif %}
+            </div>
+          </td>
+          <td>
+            {% if review.is_approved %}
+            <span class="badge bg-success">Одобрен</span>
+            {% else %}
+            <span class="badge bg-warning text-dark">Ожидает</span>
+            {% endif %}
+          </td>
+          <td class="text-end">
+            <form method="post" style="display:inline-block;">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="{% if review.is_approved %}unapprove{% else %}approve{% endif %}">
+              <input type="hidden" name="pk" value="{{ review.pk }}">
+              <button type="submit" class="btn btn-sm {% if review.is_approved %}btn-outline-secondary{% else %}btn-success{% endif %}">
+                {% if review.is_approved %}Снять{% else %}Одобрить{% endif %}
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="dash-empty" style="padding:2rem;text-align:center">
+    <i class="bi bi-chat-square-text" style="font-size:2rem;margin-bottom:1rem;display:block;color:rgba(13,13,13,.35)"></i>
+    Нет отзывов для показа.
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,172 @@
+﻿{% load static %}
+<footer style="background:#eff0f3;color:rgba(13,13,13,0.6);padding:70px 8% 36px;margin-top:auto;border-top:1px solid rgba(13,13,13,0.08)">
+  <div style="max-width:1400px;margin:0 auto">
+    <div style="display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:48px;margin-bottom:56px">
+      
+      {# Brand with logo #}
+      <div>
+        <a href="{% url 'hotel:index' %}" class="footer-logo-link" style="
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          text-decoration: none;
+          margin-bottom: 16px;
+        ">
+          <img src="{% static 'img/logoZV.png' %}" alt="Зори Ваха" style="height: 52px; width: auto; display: block;">
+          <span class="navbar-logo-text">Зори<span class="navbar-logo-accent">Ваха</span></span>
+        </a>
+        <p style="font-size:14px;line-height:1.7;font-weight:300;margin:0">
+          Уютный отдых в сердце Излучинска. Комфортные номера, внимательный сервис и домашняя атмосфера.
+        </p>
+      </div>
+
+      {# Navigation #}
+      <div>
+        <h5 style="color:#0d0d0d;font-size:13px;font-weight:500;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:20px">
+          Навигация
+        </h5>
+        <ul style="list-style:none;padding:0;margin:0">
+          <li style="margin-bottom:10px">
+            <a href="{% url 'hotel:index' %}" style="color:rgba(13,13,13,0.5);text-decoration:none;font-size:14px;transition:color 0.35s"
+               onmouseover="this.style.color='#ff8e3c'" onmouseout="this.style.color='rgba(13,13,13,0.5)'">
+              Главная
+            </a>
+          </li>
+          <li style="margin-bottom:10px">
+            <a href="{% url 'hotel:room_list' %}" style="color:rgba(13,13,13,0.5);text-decoration:none;font-size:14px;transition:color 0.35s"
+               onmouseover="this.style.color='#ff8e3c'" onmouseout="this.style.color='rgba(13,13,13,0.5)'">
+              Номера
+            </a>
+          </li>
+          <li style="margin-bottom:10px">
+            <a href="{% url 'hotel:about' %}" style="color:rgba(13,13,13,0.5);text-decoration:none;font-size:14px;transition:color 0.35s"
+               onmouseover="this.style.color='#ff8e3c'" onmouseout="this.style.color='rgba(13,13,13,0.5)'">
+              О нас
+            </a>
+          </li>
+          <li style="margin-bottom:10px">
+            <a href="{% url 'hotel:gallery' %}" style="color:rgba(13,13,13,0.5);text-decoration:none;font-size:14px;transition:color 0.35s"
+               onmouseover="this.style.color='#ff8e3c'" onmouseout="this.style.color='rgba(13,13,13,0.5)'">
+              Галерея
+            </a>
+          </li>
+          <li style="margin-bottom:10px">
+            <a href="{% url 'content:faq' %}" style="color:rgba(13,13,13,0.5);text-decoration:none;font-size:14px;transition:color 0.35s"
+               onmouseover="this.style.color='#ff8e3c'" onmouseout="this.style.color='rgba(13,13,13,0.5)'">
+              FAQ
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      {# Services #}
+      <div>
+        <h5 style="color:#0d0d0d;font-size:13px;font-weight:500;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:20px">
+          Услуги
+        </h5>
+        <ul style="list-style:none;padding:0;margin:0">
+          <li style="margin-bottom:10px">
+            <a href="{% url 'hotel:room_list' %}" style="color:rgba(13,13,13,0.5);text-decoration:none;font-size:14px;transition:color 0.35s"
+               onmouseover="this.style.color='#ff8e3c'" onmouseout="this.style.color='rgba(13,13,13,0.5)'">
+              Бронирование
+            </a>
+          </li>
+          <li style="margin-bottom:10px">
+            <a href="{% url 'accounts:cabinet' %}" style="color:rgba(13,13,13,0.5);text-decoration:none;font-size:14px;transition:color 0.35s"
+               onmouseover="this.style.color='#ff8e3c'" onmouseout="this.style.color='rgba(13,13,13,0.5)'">
+              Личный кабинет
+            </a>
+          </li>
+          {% if perms_ctx.can_view_dashboard %}
+          <li style="margin-bottom:10px">
+            <a href="{% url 'dashboard:index' %}" style="color:#ff8e3c;text-decoration:none;font-size:14px;transition:color 0.35s">
+              Панель управления
+            </a>
+          </li>
+          {% endif %}
+        </ul>
+      </div>
+
+      {# Contacts #}
+      <div>
+        <h5 style="color:#0d0d0d;font-size:13px;font-weight:500;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:20px">
+          Контакты
+        </h5>
+        <ul style="list-style:none;padding:0;margin:0">
+          <li style="margin-bottom:10px">
+            <a href="tel:{{ CONTACT_PHONE }}" style="color:rgba(13,13,13,0.5);text-decoration:none;font-size:14px;transition:color 0.35s"
+               onmouseover="this.style.color='#ff8e3c'" onmouseout="this.style.color='rgba(13,13,13,0.5)'">
+              {{ CONTACT_PHONE }}
+            </a>
+          </li>
+          <li style="margin-bottom:10px">
+            <a href="tel:{{ CONTACT_PHONE_SECOND }}" style="color:rgba(13,13,13,0.5);text-decoration:none;font-size:14px;transition:color 0.35s"
+               onmouseover="this.style.color='#ff8e3c'" onmouseout="this.style.color='rgba(13,13,13,0.5)'">
+              {{ CONTACT_PHONE_SECOND }}
+            </a>
+          </li>
+          <li style="margin-bottom:10px">
+            <a href="mailto:{{ CONTACT_EMAIL }}" style="color:rgba(13,13,13,0.5);text-decoration:none;font-size:14px;transition:color 0.35s"
+               onmouseover="this.style.color='#ff8e3c'" onmouseout="this.style.color='rgba(13,13,13,0.5)'">
+              {{ CONTACT_EMAIL }}
+            </a>
+          </li>
+          <li style="margin-bottom:10px">
+            <a href="{% url 'hotel:contacts' %}" style="color:rgba(13,13,13,0.5);text-decoration:none;font-size:14px;transition:color 0.35s"
+               onmouseover="this.style.color='#ff8e3c'" onmouseout="this.style.color='rgba(13,13,13,0.5)'">
+              Написать нам
+            </a>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div style="border-top:1px solid rgba(13,13,13,0.08);padding-top:28px;text-align:center">
+      <p style="font-size:13px;margin:0;color:rgba(13,13,13,0.5)">© 2026 Зори Ваха. Все права защищены.</p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .navbar-logo-text {
+    font-family: 'Cormorant Garamond', serif !important;
+    font-weight: 700 !important;
+    font-size: 1.35rem;
+    color: #2C1F10;
+    white-space: nowrap;
+    line-height: 1;
+  }
+
+  .navbar-logo-accent {
+    color: #E8700A;
+    font-family: inherit;
+    font-weight: inherit;
+    font-size: inherit;
+  }
+
+  @media (max-width: 900px) {
+    footer > div > div:first-child {
+      grid-template-columns: 1fr !important;
+    }
+    
+    /* Mobile footer logo adjustments */
+    .footer-logo-link img {
+      height: 40px !important;
+    }
+
+    .navbar-logo-text {
+      font-size: 1.2rem !important;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .footer-logo-link img {
+      height: 36px !important;
+    }
+
+    .navbar-logo-text {
+      font-size: 1.05rem !important;
+    }
+  }
+</style>

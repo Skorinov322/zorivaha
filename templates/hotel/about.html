@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% load static about_extras %}
+
+{% block title %}{{ about_page.hero_title|striptags }}{% endblock %}
+
+{% block extra_css %}
+<style>
+:root{--gold:#ff8e3c;--gold-light:#ffb380;--gold-dark:#e67a2a;--gold-dim:rgba(255,142,60,.12);--gold-border:rgba(255,142,60,.25);--dark-800:#eff0f3;--dark-700:#f7f8fa;--dark-600:#ffffff;--dark-500:#f6f7fa;--text-primary:#0d0d0d;--text-muted:rgba(13,13,13,.55);--text-faint:rgba(13,13,13,.25);--border-subtle:rgba(13,13,13,.08);--radius-sm:10px;--radius-md:16px;--radius-lg:24px;--shadow-gold:0 8px 32px rgba(255,142,60,.2);--ease-out:cubic-bezier(.16,1,.3,1)}
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .7s var(--ease-out),transform .7s var(--ease-out)}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.eyebrow{display:inline-flex;align-items:center;gap:.5rem;font-size:.7rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--gold)}
+.eyebrow::before,.eyebrow::after{content:'';display:block;width:24px;height:1px;background:var(--gold);opacity:.5}
+.btn-luxury{display:inline-flex;align-items:center;gap:.6rem;padding:.9rem 2.25rem;background:linear-gradient(135deg,var(--gold) 0%,var(--gold-dark) 100%);color:#0d0d0d;font-size:.9rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;text-decoration:none;border:none;border-radius:var(--radius-sm);cursor:pointer;transition:opacity .2s,transform .15s,box-shadow .2s;box-shadow:0 4px 20px rgba(255,142,60,.25)}
+.btn-luxury:hover{opacity:.9;color:#0d0d0d;transform:translateY(-2px);box-shadow:0 8px 32px rgba(255,142,60,.35)}
+
+/* ── Page hero ── */
+.page-hero{background:radial-gradient(ellipse 70% 60% at 50% 0%,rgba(255,142,60,.12) 0%,transparent 65%),linear-gradient(160deg,#eff0f3 0%,#f4f5f8 50%,#ffffff 100%);padding:5rem 0 3.5rem;border-bottom:1px solid rgba(255,142,60,.1)}
+.page-hero-title{font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,5vw,3.5rem);font-weight:800;color:#0d0d0d;line-height:1.1;margin-bottom:.75rem}
+.page-hero-title em{font-style:normal;font-family:'Cormorant Garamond',serif;color:var(--gold)}
+.breadcrumb-lux{display:flex;align-items:center;gap:.5rem;font-size:.78rem;color:rgba(13,13,13,.45);margin-bottom:1.25rem;flex-wrap:wrap}
+.breadcrumb-lux a{color:rgba(13,13,13,.45);text-decoration:none;transition:color .2s}
+.breadcrumb-lux a:hover{color:var(--gold)}
+.breadcrumb-lux .sep{color:var(--text-faint)}
+.breadcrumb-lux .current{color:rgba(13,13,13,.72)}
+
+/* ── Stats (светлый блок) ── */
+.stats-section{background:var(--dark-800);padding:1.75rem 0}
+.stat-block{text-align:center;padding:.5rem .25rem}
+.stat-number{font-family:'Cormorant Garamond',serif;font-size:clamp(1.5rem,2.5vw,2rem);font-weight:700;color:var(--gold);line-height:1;margin-bottom:.25rem}
+.stat-label{font-size:.75rem;color:var(--text-muted);letter-spacing:.04em}
+
+/* ── Content blocks ── */
+.about-section{background:var(--dark-800);padding:5rem 0}
+.about-section:nth-child(even){background:var(--dark-700)}
+.about-media-card{background:var(--dark-600);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-gold);aspect-ratio:1/1;width:100%;max-width:420px;margin:0 auto}
+.about-media-card img{width:100%;height:100%;aspect-ratio:1/1;object-fit:cover;display:block;transition:transform .5s var(--ease-out)}
+.about-media-card:hover img{transform:scale(1.03)}
+.about-media-placeholder{aspect-ratio:1/1;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;padding:2rem;background:linear-gradient(135deg,var(--dark-500),var(--dark-600));color:var(--text-muted);text-align:center}
+.about-media-placeholder i{font-size:3.5rem;color:var(--gold);opacity:.55}
+.about-media-placeholder p{font-size:.9rem;margin:0;max-width:260px;line-height:1.6}
+.section-heading{font-family:'Cormorant Garamond',serif;font-size:clamp(1.75rem,3.5vw,2.5rem);font-weight:700;color:var(--text-primary);line-height:1.15;margin-bottom:1.25rem}
+.section-heading em{font-style:normal;color:var(--gold)}
+.about-prose{color:var(--text-muted);font-size:.95rem;line-height:1.8}
+.about-prose p{margin-bottom:1rem}
+.about-prose p:last-child{margin-bottom:0}
+.about-prose ul,.about-prose ol{padding-left:1.25rem;margin:1rem 0}
+.about-prose li{margin-bottom:.5rem}
+.about-prose strong{color:var(--text-primary);font-weight:600}
+
+@media (max-width: 991px) {
+  .about-section{padding:3.5rem 0}
+  .about-media-card{max-width:100%}
+}
+@media (max-width: 576px) {
+  .stats-section{padding:1.25rem 0}
+  .stat-number{font-size:1.4rem}
+  .stat-label{font-size:.7rem}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+{# ══ PAGE HERO ══ #}
+<section class="page-hero" aria-label="Заголовок страницы">
+  <div class="container">
+    <nav class="breadcrumb-lux" aria-label="Навигация">
+      <a href="{% url 'hotel:index' %}"><i class="bi bi-house" aria-hidden="true"></i> Главная</a>
+      <span class="sep" aria-hidden="true">/</span>
+      <span class="current">О нас</span>
+    </nav>
+    <div class="eyebrow mb-3">Узнайте о нас</div>
+    <h1 class="page-hero-title">
+      {% if about_page.hero_title %}
+        {{ about_page.hero_title|safe }}
+      {% else %}
+        О гостинице <em>Зори Ваха</em>
+      {% endif %}
+    </h1>
+    <p style="font-size:1rem;color:rgba(13,13,13,.55);margin-bottom:0">
+      {{ about_page.hero_subtitle|default:"Комфортное размещение в самом сердце Излучинска с заботой о каждом госте" }}
+    </p>
+  </div>
+</section>
+
+{# ══ STATS ══ #}
+<section class="stats-section" aria-label="Ключевые показатели">
+  <div class="container">
+    <div class="row g-3">
+      <div class="col-6 col-md-3">
+        <div class="stat-block reveal">
+          <div class="stat-number">{{ about_page.stat1_number }}</div>
+          <div class="stat-label">{{ about_page.stat1_label }}</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-block reveal" style="transition-delay:.1s">
+          <div class="stat-number">{{ about_page.stat2_number }}</div>
+          <div class="stat-label">{{ about_page.stat2_label }}</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-block reveal" style="transition-delay:.2s">
+          <div class="stat-number">{{ about_page.stat3_number }}</div>
+          <div class="stat-label">{{ about_page.stat3_label }}</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-block reveal" style="transition-delay:.3s">
+          <div class="stat-number">{{ about_page.stat4_number }}</div>
+          <div class="stat-label">{{ about_page.stat4_label }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ══ BLOCK 1: О НАС ══ #}
+<section class="about-section" aria-labelledby="about-block-1">
+  <div class="container">
+    <div class="row g-4 g-xl-5 align-items-center reveal">
+      <div class="col-lg-6">
+        {% include "hotel/partials/about_media.html" with image_url=about_page.about_image_url alt=about_page.about_title icon="bi-building" placeholder="Фото гостиницы" %}
+      </div>
+      <div class="col-lg-6">
+        <div class="eyebrow mb-3">Наша история</div>
+        <h2 class="section-heading" id="about-block-1">{{ about_page.about_title }}</h2>
+        <div class="about-prose">{{ about_page.about_text|format_about_text }}</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ══ BLOCK 2: НОМЕРА ══ #}
+<section class="about-section" aria-labelledby="about-block-2">
+  <div class="container">
+    <div class="row g-4 g-xl-5 align-items-center reveal">
+      <div class="col-lg-6 order-lg-2">
+        {% include "hotel/partials/about_media.html" with image_url=about_page.rooms_image_url alt=about_page.rooms_title icon="bi-door-open" placeholder="Фото номера" %}
+      </div>
+      <div class="col-lg-6 order-lg-1">
+        <div class="eyebrow mb-3">Размещение</div>
+        <h2 class="section-heading" id="about-block-2">{{ about_page.rooms_title }}</h2>
+        <div class="about-prose">{{ about_page.rooms_text|format_about_text }}</div>
+        <a href="{% url 'hotel:room_list' %}" class="btn-luxury mt-4">
+          <i class="bi bi-door-open" aria-hidden="true"></i>
+          Посмотреть номера
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ══ BLOCK 3: СЕРВИС ══ #}
+<section class="about-section" aria-labelledby="about-block-3">
+  <div class="container">
+    <div class="row g-4 g-xl-5 align-items-center reveal">
+      <div class="col-lg-6">
+        {% include "hotel/partials/about_media.html" with image_url=about_page.services_image_url alt=about_page.services_title icon="bi-stars" placeholder="Фото услуг" %}
+      </div>
+      <div class="col-lg-6">
+        <div class="eyebrow mb-3">Удобства</div>
+        <h2 class="section-heading" id="about-block-3">{{ about_page.services_title }}</h2>
+        <div class="about-prose">{{ about_page.services_text|format_about_text }}</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ══ BLOCK 4: КОНТАКТЫ ══ #}
+<section class="about-section" aria-labelledby="about-block-4">
+  <div class="container">
+    <div class="row g-4 g-xl-5 align-items-center reveal">
+      <div class="col-lg-6 order-lg-2">
+        {% include "hotel/partials/about_media.html" with image_url=about_page.contacts_image_url alt=about_page.contacts_title icon="bi-geo-alt" placeholder="Фото локации" %}
+      </div>
+      <div class="col-lg-6 order-lg-1">
+        <div class="eyebrow mb-3">Информация</div>
+        <h2 class="section-heading" id="about-block-4">{{ about_page.contacts_title }}</h2>
+        <div class="about-prose">{{ about_page.contacts_text|format_about_text }}</div>
+        <a href="{% url 'hotel:contacts' %}" class="btn-luxury mt-4">
+          <i class="bi bi-geo-alt" aria-hidden="true"></i>
+          Контакты и карта
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
