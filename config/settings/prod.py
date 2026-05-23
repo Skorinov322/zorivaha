@@ -53,6 +53,8 @@ SECURE_REFERRER_POLICY          = "strict-origin-when-cross-origin"
 # ---------------------------------------------------------------------------
 
 STORAGES["staticfiles"]["BACKEND"] = "whitenoise.storage.CompressedStaticFilesStorage"  # noqa
+WHITENOISE_MAX_AGE = 31536000
+WHITENOISE_USE_FINDERS = False
 
 # ---------------------------------------------------------------------------
 # Database — PostgreSQL via DATABASE_URL (Railway provides this automatically)
