@@ -80,10 +80,12 @@ LOCAL_APPS = [
 ]
 
 _installed_apps = list(DJANGO_APPS)
-if USE_CLOUDINARY:
-    _installed_apps += ["cloudinary_storage", "cloudinary"]
 _installed_apps.append("django.contrib.staticfiles")
 INSTALLED_APPS = _installed_apps + THIRD_PARTY_APPS + LOCAL_APPS
+if USE_CLOUDINARY:
+    # After LOCAL_APPS so apps.core.management.commands.collectstatic wins
+    # over cloudinary_storage's collectstatic (WhiteNoise serves static files).
+    INSTALLED_APPS += ["cloudinary_storage", "cloudinary"]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
