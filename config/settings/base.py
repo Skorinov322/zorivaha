@@ -58,6 +58,15 @@ if USE_CLOUDINARY:
     import cloudinary
 
     cloudinary.config(secure=True)
+
+    if not CLOUDINARY_URL and CLOUDINARY_CLOUD_NAME:
+        CLOUDINARY_STORAGE = {
+            "CLOUD_NAME": CLOUDINARY_CLOUD_NAME,
+            "API_KEY": CLOUDINARY_API_KEY,
+            "API_SECRET": CLOUDINARY_API_SECRET,
+            "SECURE": True,
+        }
+
     try:
         import cloudinary.api
 
@@ -66,10 +75,9 @@ if USE_CLOUDINARY:
         import logging
 
         logging.getLogger(__name__).warning(
-            "Cloudinary is configured but unavailable (%s). Using local media storage.",
+            "Cloudinary ping failed (%s). Uploads will retry locally until CLOUDINARY_URL is fixed.",
             exc,
         )
-        USE_CLOUDINARY = False
 
 THIRD_PARTY_APPS = [
     "crispy_forms",
@@ -239,6 +247,8 @@ STORAGES = {
 
 if USE_CLOUDINARY:
     STORAGES["default"]["BACKEND"] = "apps.core.storage.ResilientMediaStorage"
+else:
+    STORAGES["default"]["BACKEND"] = "django.core.files.storage.FileSystemStorage"
 
 MEDIA_URL = config("MEDIA_URL", default="/media/")
 MEDIA_ROOT = BASE_DIR / "media"

@@ -30,7 +30,9 @@ class ResilientMediaStorage(FileSystemStorage):
             try:
                 if hasattr(content, "seek"):
                     content.seek(0)
-                return self._cloudinary._save(name, content)
+                saved_name = self._cloudinary._save(name, content)
+                logger.info("Uploaded media to Cloudinary: %s", saved_name)
+                return saved_name
             except Exception as exc:
                 logger.warning(
                     "Cloudinary upload failed for %s, saving locally: %s",
@@ -42,27 +44,36 @@ class ResilientMediaStorage(FileSystemStorage):
         return super()._save(name, content)
 
     def url(self, name):
-        if self._cloudinary is not None:
+        if name and super().exists(name):
+            return super().url(name)
+        if self._cloudinary is not None and name:
             try:
-                return self._cloudinary.url(name)
+                if self._cloudinary.exists(name):
+                    return self._cloudinary.url(name)
             except Exception:
                 pass
         return super().url(name)
 
     def delete(self, name):
-        if self._cloudinary is not None:
-            try:
-                self._cloudinary.delete(name)
-                return
-            except Exception:
-                pass
-        super().delete(name)
-
-    def exists(self, name):
-        if self._cloudinary is not None:
+        deleted = False
+        if self._cloudinary is not None and name:
             try:
                 if self._cloudinary.exists(name):
-                    return True
+                    self._cloudinary.delete(name)
+                    deleted = True
             except Exception:
                 pass
-        return super().exists(name)
+        if super().exists(name):
+            super().delete(name)
+            deleted = True
+        return deleted
+
+    def exists(self, name):
+        if name and super().exists(name):
+            return True
+        if self._cloudinary is not None and name:
+            try:
+                return self._cloudinary.exists(name)
+            except Exception:
+                pass
+        return False
