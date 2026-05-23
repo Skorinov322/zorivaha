@@ -51,31 +51,25 @@ USE_CLOUDINARY = bool(
 
 if CLOUDINARY_URL and not _cloudinary_url_is_placeholder(CLOUDINARY_URL):
     import os
-    import re
 
     os.environ.setdefault("CLOUDINARY_URL", CLOUDINARY_URL)
-
-    match = re.match(r"cloudinary://([^:]+):([^@]+)@([^/?]+)", CLOUDINARY_URL)
-    if match:
-        CLOUDINARY_STORAGE = {
-            "CLOUD_NAME": match.group(3),
-            "API_KEY": match.group(1),
-            "API_SECRET": match.group(2),
-            "SECURE": True,
-        }
-
-if USE_CLOUDINARY and not CLOUDINARY_URL:
-    CLOUDINARY_STORAGE = {
-        "CLOUD_NAME": CLOUDINARY_CLOUD_NAME,
-        "API_KEY": CLOUDINARY_API_KEY,
-        "API_SECRET": CLOUDINARY_API_SECRET,
-        "SECURE": True,
-    }
 
 if USE_CLOUDINARY:
     import cloudinary
 
     cloudinary.config(secure=True)
+    try:
+        import cloudinary.api
+
+        cloudinary.api.ping()
+    except Exception as exc:
+        import logging
+
+        logging.getLogger(__name__).warning(
+            "Cloudinary is configured but unavailable (%s). Using local media storage.",
+            exc,
+        )
+        USE_CLOUDINARY = False
 
 THIRD_PARTY_APPS = [
     "crispy_forms",
@@ -244,10 +238,13 @@ STORAGES = {
 }
 
 if USE_CLOUDINARY:
-    STORAGES["default"]["BACKEND"] = "cloudinary_storage.storage.MediaCloudinaryStorage"
+    STORAGES["default"]["BACKEND"] = "apps.core.storage.ResilientMediaStorage"
 
 MEDIA_URL = config("MEDIA_URL", default="/media/")
 MEDIA_ROOT = BASE_DIR / "media"
+
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
 
 # ---------------------------------------------------------------------------
 # Email — SMTP configuration
@@ -273,8 +270,9 @@ EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
 
 # Email addresses
 DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="noreply@zorivaha.ru")
-CONTACT_EMAIL = config("CONTACT_EMAIL", default="info@zorivaha.ru")
-CONTACT_PHONE = config("CONTACT_PHONE", default="+7 (928) 000-00-00")
+CONTACT_EMAIL = config("CONTACT_EMAIL", default="zorivaha@mail.ru")
+CONTACT_PHONE = config("CONTACT_PHONE", default="+7 (3466) 28-70-03")
+CONTACT_PHONE_SECOND = config("CONTACT_PHONE_SECOND", default="+7 (3466) 28-23-61")
 EMAIL_USE_SSL     = config("EMAIL_USE_SSL",     default=False, cast=bool)
 EMAIL_HOST_USER   = config("EMAIL_HOST_USER",   default="")
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")

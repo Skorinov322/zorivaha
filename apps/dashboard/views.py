@@ -409,6 +409,20 @@ class GalleryManagementView(ReceptionistRequiredMixin, View):
 
     def post(self, request):
         from apps.content.models import AboutPage, HotelGallery
+
+        try:
+            return self._handle_post(request)
+        except Exception as exc:
+            import logging
+
+            from apps.core.media import media_upload_error_message
+
+            logging.getLogger(__name__).exception("Gallery action failed")
+            messages.error(request, media_upload_error_message(exc))
+            return redirect("dashboard:gallery")
+
+    def _handle_post(self, request):
+        from apps.content.models import AboutPage, HotelGallery
         action = request.POST.get("action")
 
         if action in ("assign_about_photo", "clear_about_photo"):
@@ -505,7 +519,7 @@ class GalleryManagementView(ReceptionistRequiredMixin, View):
             photo.save(update_fields=["title", "alt_text", "section", "sort_order", "updated_at"])
             messages.success(request, "Фото обновлено.")
 
-        return redirect(request.get_full_path())
+        return redirect("dashboard:gallery")
 
 
 # ---------------------------------------------------------------------------

@@ -63,11 +63,10 @@ urlpatterns = [
     path("", include("apps.hotel.urls", namespace="hotel")),
 ]
 
-# Serve media files in development
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Uploaded media: Cloudinary URLs are external; local fallback needs /media/ serving on Railway.
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-    # Temporarily disabled debug_toolbar
+if settings.DEBUG:
     # import debug_toolbar
     # urlpatterns = [path("__debug__/", include(debug_toolbar.urls))] + urlpatterns
 

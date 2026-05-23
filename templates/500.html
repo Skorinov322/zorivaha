@@ -215,41 +215,6 @@
   margin-bottom: 1.5rem;
 }
 
-.contact-info {
-  background: var(--gold-dim);
-  border: 1px solid var(--gold-border);
-  border-radius: var(--radius-sm);
-  padding: 1rem;
-  margin-top: 1rem;
-}
-
-.contact-title {
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 0.5rem;
-  font-size: 0.9rem;
-}
-
-.contact-details {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.contact-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-}
-
-.contact-item i {
-  color: var(--gold);
-  width: 16px;
-  text-align: center;
-}
-
 @media (max-width: 768px) {
   .error-section {
     padding: 2rem 0;
@@ -332,23 +297,7 @@
             • Если проблема повторяется, свяжитесь с нами
           </p>
           
-          <div class="contact-info">
-            <div class="contact-title">Нужна помощь? Свяжитесь с нами:</div>
-            <div class="contact-details">
-              <div class="contact-item">
-                <i class="bi bi-telephone" aria-hidden="true"></i>
-                <span>+7 (XXX) XXX-XX-XX</span>
-              </div>
-              <div class="contact-item">
-                <i class="bi bi-envelope" aria-hidden="true"></i>
-                <span>info@zorivaha.ru</span>
-              </div>
-              <div class="contact-item">
-                <i class="bi bi-clock" aria-hidden="true"></i>
-                <span>Круглосуточно</span>
-              </div>
-            </div>
-          </div>
+          {% include "partials/_error_contact.html" %}
         </div>
         
       </div>

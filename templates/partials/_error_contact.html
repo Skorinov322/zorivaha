@@ -1,0 +1,70 @@
+<style>
+  .contact-info {
+    background: rgba(255,142,60,.08);
+    border: 1px solid rgba(255,142,60,.2);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+    text-align: left;
+  }
+
+  .contact-title {
+    font-weight: 600;
+    color: #0d0d0d;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+  }
+
+  .contact-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .contact-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: rgba(13,13,13,.65);
+    font-size: 0.9rem;
+  }
+
+  .contact-item a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .contact-item a:hover {
+    color: #e67a2a;
+  }
+
+  .contact-item i {
+    color: #ff8e3c;
+    width: 16px;
+    text-align: center;
+  }
+</style>
+
+<div class="contact-info">
+  <div class="contact-title">Нужна помощь? Свяжитесь с нами:</div>
+  <div class="contact-details">
+    <div class="contact-item">
+      <i class="bi bi-telephone" aria-hidden="true"></i>
+      <a href="tel:{{ CONTACT_PHONE }}">{{ CONTACT_PHONE }}</a>
+    </div>
+    {% if CONTACT_PHONE_SECOND %}
+    <div class="contact-item">
+      <i class="bi bi-telephone" aria-hidden="true"></i>
+      <a href="tel:{{ CONTACT_PHONE_SECOND }}">{{ CONTACT_PHONE_SECOND }}</a>
+    </div>
+    {% endif %}
+    <div class="contact-item">
+      <i class="bi bi-envelope" aria-hidden="true"></i>
+      <a href="mailto:{{ CONTACT_EMAIL }}">{{ CONTACT_EMAIL }}</a>
+    </div>
+    <div class="contact-item">
+      <i class="bi bi-clock" aria-hidden="true"></i>
+      <span>Круглосуточно</span>
+    </div>
+  </div>
+</div>

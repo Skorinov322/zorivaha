@@ -8,9 +8,9 @@ def site_settings(request):
     return {
         "SITE_NAME": "Зори Ваха",
         "SITE_TAGLINE": "Уютный отдых в тихом посёлке",
-        "CONTACT_PHONE": "+7 (3466) 28-70-03",
-        "CONTACT_PHONE_SECOND": "+7 (3466) 28-23-61",
-        "CONTACT_EMAIL": "zorivaha@mail.ru",
+        "CONTACT_PHONE": settings.CONTACT_PHONE,
+        "CONTACT_PHONE_SECOND": settings.CONTACT_PHONE_SECOND,
+        "CONTACT_EMAIL": settings.CONTACT_EMAIL,
         "DEBUG": settings.DEBUG,
         "footer_links_hotel": [
             ("Номера", "/rooms/"),

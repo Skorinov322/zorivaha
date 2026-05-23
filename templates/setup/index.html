@@ -76,22 +76,10 @@
       overflow: hidden;
       padding: .6rem;
     }
-    .setup-logo .logo-icon .site-logo-mark {
+    .setup-logo .logo-icon img {
       width: 100%;
       height: 100%;
-      font-size: 22px;
-    }
-
-    .site-logo-mark {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 10px;
-      background: #0d0d0d;
-      color: #E8700A;
-      font-family: 'Cormorant Garamond', Georgia, serif;
-      font-weight: 700;
-      letter-spacing: 0.02em;
+      object-fit: contain;
     }
     .setup-logo h1 {
       font-family: 'Cormorant Garamond', serif;
@@ -286,7 +274,7 @@
   <!-- Logo -->
   <div class="setup-logo">
     <div class="logo-icon">
-      <span class="site-logo-mark">ZV</span>
+      <img src="{% static 'img/logoZV.png' %}" alt="Зори Ваха">
     </div>
     <h1>Зори Ваха</h1>
     <p>Система управления гостиницей</p>
