@@ -14,6 +14,7 @@
 
 {% block extrahead %}
     {{ block.super }}
+    {% include "partials/_favicon.html" %}
     <link rel="stylesheet" type="text/css" href="{% static 'admin/css/admin_improvements.css' %}">
     <style>
         /* Дополниостиницаные стили для брендинга */

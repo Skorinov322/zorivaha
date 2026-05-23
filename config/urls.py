@@ -3,13 +3,20 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.contrib.staticfiles.storage import staticfiles_storage
 from django.urls import path, include
-from django.views.generic import TemplateView
+from django.views.generic import RedirectView, TemplateView
 
 from apps.core.health import HealthCheckView
 from apps.core.admin_site import role_admin_site
 
 urlpatterns = [
+    path(
+        "favicon.ico",
+        RedirectView.as_view(url=staticfiles_storage.url("favicon.ico"), permanent=True),
+        name="favicon",
+    ),
+
     # Yandex Webmaster verification
     path(
         "yandex_26cd3036c0f3861a.html",

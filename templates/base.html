@@ -7,10 +7,8 @@
   <meta name="theme-color" content="#eff0f3" />
   <title>{% block title %}{{ SITE_NAME }}{% endblock %} — {{ SITE_NAME }}</title>
 
-  <!-- Favicon -->
   {% load static %}
-  <link rel="icon" type="image/png" href="{% static 'img/logoZV.png' %}">
-  <link rel="shortcut icon" href="{% static 'img/logoZV.png' %}">
+  {% include "partials/_favicon.html" %}
 
   <!-- Preconnect -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
