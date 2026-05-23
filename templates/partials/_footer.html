@@ -3,18 +3,9 @@
   <div style="max-width:1400px;margin:0 auto">
     <div style="display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:48px;margin-bottom:56px">
       
-      {# Brand with logo #}
+      {# Brand logo — static, separate from gallery uploads #}
       <div>
-        <a href="{% url 'hotel:index' %}" class="footer-logo-link" style="
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          text-decoration: none;
-          margin-bottom: 16px;
-        ">
-          <img src="{% static 'img/logoZV.png' %}" alt="Зори Ваха" style="height: 52px; width: auto; display: block;">
-          <span class="navbar-logo-text">Зори<span class="navbar-logo-accent">Ваха</span></span>
-        </a>
+        {% include "partials/_logo.html" with extra_class="footer-logo-link" %}
         <p style="font-size:14px;line-height:1.7;font-weight:300;margin:0">
           Уютный отдых в сердце Излучинска. Комфортные номера, внимательный сервис и домашняя атмосфера.
         </p>
@@ -145,14 +136,20 @@
     font-size: inherit;
   }
 
+  .footer-logo-link {
+    margin-bottom: 16px;
+  }
+
   @media (max-width: 900px) {
     footer > div > div:first-child {
       grid-template-columns: 1fr !important;
     }
     
     /* Mobile footer logo adjustments */
-    .footer-logo-link img {
-      height: 40px !important;
+    .footer-logo-link .site-logo-mark {
+      width: 36px !important;
+      height: 36px !important;
+      font-size: 13px !important;
     }
 
     .navbar-logo-text {
@@ -161,8 +158,10 @@
   }
 
   @media (max-width: 600px) {
-    .footer-logo-link img {
-      height: 36px !important;
+    .footer-logo-link .site-logo-mark {
+      width: 32px !important;
+      height: 32px !important;
+      font-size: 12px !important;
     }
 
     .navbar-logo-text {

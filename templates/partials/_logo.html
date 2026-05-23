@@ -1,0 +1,29 @@
+{% load static %}
+<a href="{% url 'hotel:index' %}" class="site-logo-link{% if extra_class %} {{ extra_class }}{% endif %}" style="
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  flex-shrink: 0;
+">
+  <span class="site-logo-mark" aria-hidden="true">ZV</span>
+  <span class="navbar-logo-text">Зори<span class="navbar-logo-accent">Ваха</span></span>
+</a>
+
+<style>
+  .site-logo-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: #0d0d0d;
+    color: #E8700A;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    flex-shrink: 0;
+  }
+</style>

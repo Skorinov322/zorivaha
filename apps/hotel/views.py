@@ -481,18 +481,28 @@ class CategoryImageUploadView(AdminRequiredMixin, View):
         })
 
     def post(self, request, pk):
+        from apps.core.media import media_upload_error_message
+
         category = get_room_category_for_edit(pk)
         form = RoomImageForm(request.POST, request.FILES)
         if form.is_valid():
             d = form.cleaned_data
-            add_room_image(
-                category=category,
-                image_file=d["image"],
-                caption=d.get("caption", ""),
-                alt_text=d.get("alt_text", ""),
-                is_primary=d.get("is_primary", False),
-                sort_order=d.get("sort_order", 0),
-            )
+            try:
+                add_room_image(
+                    category=category,
+                    image_file=d["image"],
+                    caption=d.get("caption", ""),
+                    alt_text=d.get("alt_text", ""),
+                    is_primary=d.get("is_primary", False),
+                    sort_order=d.get("sort_order", 0),
+                )
+            except Exception as exc:
+                messages.error(request, media_upload_error_message(exc))
+                return render(request, self.template_name, {
+                    "category": category,
+                    "images":   category.images.all(),
+                    "form":     form,
+                })
             messages.success(request, "Фото добавлено.")
             return redirect("hotel:staff_category_images", pk=pk)
         return render(request, self.template_name, {

@@ -30,19 +30,39 @@ DJANGO_APPS = [
 # Cloudinary — media storage (optional, enabled via env vars)
 # ---------------------------------------------------------------------------
 
-CLOUDINARY_URL = config("CLOUDINARY_URL", default="")
-CLOUDINARY_CLOUD_NAME = config("CLOUDINARY_CLOUD_NAME", default="")
-CLOUDINARY_API_KEY = config("CLOUDINARY_API_KEY", default="")
-CLOUDINARY_API_SECRET = config("CLOUDINARY_API_SECRET", default="")
+CLOUDINARY_URL = config("CLOUDINARY_URL", default="").strip()
+CLOUDINARY_CLOUD_NAME = config("CLOUDINARY_CLOUD_NAME", default="").strip()
+CLOUDINARY_API_KEY = config("CLOUDINARY_API_KEY", default="").strip()
+CLOUDINARY_API_SECRET = config("CLOUDINARY_API_SECRET", default="").strip()
+
+_CLOUDINARY_PLACEHOLDER_MARKERS = {
+    "API_KEY", "API_SECRET", "CLOUD_NAME", "your_cloud_name", "REPLACE_ME",
+}
+
+
+def _cloudinary_url_is_placeholder(url: str) -> bool:
+    return any(marker in url for marker in _CLOUDINARY_PLACEHOLDER_MARKERS)
+
 
 USE_CLOUDINARY = bool(
-    CLOUDINARY_URL
+    (CLOUDINARY_URL and not _cloudinary_url_is_placeholder(CLOUDINARY_URL))
     or (CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET)
 )
 
-if CLOUDINARY_URL:
+if CLOUDINARY_URL and not _cloudinary_url_is_placeholder(CLOUDINARY_URL):
     import os
+    import re
+
     os.environ.setdefault("CLOUDINARY_URL", CLOUDINARY_URL)
+
+    match = re.match(r"cloudinary://([^:]+):([^@]+)@([^/?]+)", CLOUDINARY_URL)
+    if match:
+        CLOUDINARY_STORAGE = {
+            "CLOUD_NAME": match.group(3),
+            "API_KEY": match.group(1),
+            "API_SECRET": match.group(2),
+            "SECURE": True,
+        }
 
 if USE_CLOUDINARY and not CLOUDINARY_URL:
     CLOUDINARY_STORAGE = {
@@ -51,6 +71,11 @@ if USE_CLOUDINARY and not CLOUDINARY_URL:
         "API_SECRET": CLOUDINARY_API_SECRET,
         "SECURE": True,
     }
+
+if USE_CLOUDINARY:
+    import cloudinary
+
+    cloudinary.config(secure=True)
 
 THIRD_PARTY_APPS = [
     "crispy_forms",

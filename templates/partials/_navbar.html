@@ -11,17 +11,8 @@
 ">
   <div style="display: flex; align-items: center; width: 100%; max-width: 1400px; margin: 0 auto; justify-content: space-between; position: relative;">
     
-    {# Logo from static/img #}
-    <a href="{% url 'hotel:index' %}" style="
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      text-decoration: none;
-      flex-shrink: 0;
-    " class="navbar-logo-v2">
-      <img src="{% static 'img/logoZV.png' %}" alt="Зори Ваха" style="height: 48px; width: auto; display: block;">
-      <span class="navbar-logo-text">Зори<span class="navbar-logo-accent">Ваха</span></span>
-    </a>
+    {# Logo — static brand mark, not from uploaded gallery photos #}
+    {% include "partials/_logo.html" with extra_class="navbar-logo-v2" %}
 
     {# Desktop Navigation #}
      <ul id="navLinks" style="
@@ -461,8 +452,10 @@
        gap: 8px !important;
        flex-shrink: 0;
      }
-     .navbar-logo-v2 img {
-       height: 42px !important;
+     .navbar-logo-v2 .site-logo-mark {
+       width: 38px !important;
+       height: 38px !important;
+       font-size: 13px !important;
      }
      .navbar-logo-text {
        font-size: 1.2rem !important;
@@ -497,8 +490,10 @@
       font-size: 16px !important;
       gap: 6px !important;
     }
-    .navbar-logo-v2 img {
-      height: 36px !important;
+    .navbar-logo-v2 .site-logo-mark {
+      width: 32px !important;
+      height: 32px !important;
+      font-size: 12px !important;
     }
     .navbar-logo-text {
       font-size: 1.05rem !important;

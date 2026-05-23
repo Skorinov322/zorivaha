@@ -448,22 +448,32 @@ class GalleryManagementView(ReceptionistRequiredMixin, View):
             return redirect("dashboard:gallery")
 
         if action == "upload":
+            from apps.core.media import media_upload_error_message
+
             images = request.FILES.getlist("images")
             section = request.POST.get("section", "other")
             title   = request.POST.get("title", "")
             is_featured = request.POST.get("is_featured") == "on"
             count = 0
+            errors = 0
             for img in images:
-                HotelGallery.objects.create(
-                    image=img,
-                    section=section,
-                    title=title,
-                    alt_text=title,
-                    is_featured=is_featured,
-                    is_active=True,
-                )
-                count += 1
-            messages.success(request, f"Загружено фото: {count}.")
+                try:
+                    HotelGallery.objects.create(
+                        image=img,
+                        section=section,
+                        title=title,
+                        alt_text=title,
+                        is_featured=is_featured,
+                        is_active=True,
+                    )
+                    count += 1
+                except Exception as exc:
+                    errors += 1
+                    messages.error(request, media_upload_error_message(exc))
+            if count:
+                messages.success(request, f"Загружено фото: {count}.")
+            elif not errors:
+                messages.warning(request, "Файлы не выбраны.")
 
         elif action == "delete":
             pk = request.POST.get("pk")

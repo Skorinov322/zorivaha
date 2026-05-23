@@ -243,11 +243,20 @@ class ProfileUpdateView(LoginRequiredMixin, View):
         action = request.POST.get("action", "profile")
 
         if action == "avatar":
+            from apps.core.media import media_upload_error_message
+
             avatar_form = AvatarUploadForm(
                 request.POST, request.FILES, instance=request.user
             )
             if avatar_form.is_valid():
-                avatar_form.save()
+                try:
+                    avatar_form.save()
+                except Exception as exc:
+                    messages.error(request, media_upload_error_message(exc))
+                    return render(request, self._template_name(request), {
+                        "form": ProfileUpdateForm(instance=request.user),
+                        "avatar_form": avatar_form,
+                    })
                 messages.success(request, "Фото профиля обновлено.")
                 return redirect("accounts:profile")
             return render(request, self._template_name(request), {
