@@ -145,7 +145,12 @@ class Command(BaseCommand):
 
         template = template_map[email_type]
         subject  = subject_map[email_type]
-        context  = {"booking": booking}
+        context  = {
+            "booking": booking,
+            "CONTACT_PHONE": settings.CONTACT_PHONE,
+            "CONTACT_PHONE_SECOND": settings.CONTACT_PHONE_SECOND,
+            "CONTACT_EMAIL": settings.CONTACT_EMAIL,
+        }
 
         try:
             html_content = render_to_string(template, context)

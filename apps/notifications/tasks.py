@@ -53,6 +53,13 @@ def _send_email(
     """
     from apps.notifications.models import EmailLog
 
+    context = {
+        **context,
+        "CONTACT_PHONE": settings.CONTACT_PHONE,
+        "CONTACT_PHONE_SECOND": settings.CONTACT_PHONE_SECOND,
+        "CONTACT_EMAIL": settings.CONTACT_EMAIL,
+    }
+
     html_content = render_to_string(template, context)
     text_content = strip_tags(html_content)
 
