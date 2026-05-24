@@ -1,14 +1,11 @@
 from django.db import migrations
 
 
-OLD_PHONES = (
-    "+7 (3466) 28-70-03",
-    "+7 (3466) 28-23-61",
-)
-NEW_PHONES = (
-    "+7 (346) 628-70-03",
-    "+7 (995) 097-30-59",
-)
+REPLACEMENTS = {
+    "+7 (928) 000-00-00": "+7 (346) 628-70-03",
+    "+7 (3466) 28-70-03": "+7 (346) 628-70-03",
+    "+7 (3466) 28-23-61": "+7 (995) 097-30-59",
+}
 
 
 def update_contact_phones(apps, schema_editor):
@@ -16,7 +13,7 @@ def update_contact_phones(apps, schema_editor):
     for page in AboutPage.objects.all():
         text = page.contacts_text or ""
         updated = text
-        for old, new in zip(OLD_PHONES, NEW_PHONES):
+        for old, new in REPLACEMENTS.items():
             updated = updated.replace(old, new)
         if updated != text:
             page.contacts_text = updated

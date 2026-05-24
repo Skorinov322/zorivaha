@@ -20,3 +20,9 @@ services:
         sync: false
       - key: CSRF_TRUSTED_ORIGINS
         sync: false
+      - key: CONTACT_EMAIL
+        value: zorivaha@mail.ru
+      - key: CONTACT_PHONE
+        value: "+7 (346) 628-70-03"
+      - key: CONTACT_PHONE_SECOND
+        value: "+7 (995) 097-30-59"

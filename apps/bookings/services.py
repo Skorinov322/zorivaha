@@ -12,8 +12,11 @@ import math
 from datetime import date, timedelta
 from decimal import Decimal
 
+from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
+
+from apps.core.contact_info import resolve_contact_phone
 
 from apps.hotel.models import RoomCategory
 from apps.hotel.selectors import get_available_room_for_category
@@ -235,7 +238,8 @@ def create_booking_group(
 
     if remaining > 0:
         # Недостаточно номеров — собираем альтернативы
-        contact_phone = SiteContent.get("contact_phone", "")
+        contact_phone = SiteContent.get("contact_phone", "") or settings.CONTACT_PHONE
+        contact_phone = resolve_contact_phone(contact_phone, primary=True)
         alternatives = list(get_alternative_categories(
             check_in=check_in,
             check_out=check_out,

@@ -199,7 +199,7 @@ html { scroll-behavior: smooth; }
 }
 
 .gallery-item {
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 1 / 1;
 }
 
 .gallery-img {

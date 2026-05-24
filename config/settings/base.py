@@ -278,11 +278,27 @@ EMAIL_USE_TLS     = config("EMAIL_USE_TLS",     default=True,  cast=bool)
 EMAIL_HOST_USER   = config("EMAIL_HOST_USER",   default="")
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
 
+from apps.core.contact_info import (
+    CONTACT_EMAIL_CANONICAL,
+    CONTACT_PHONE_CANONICAL,
+    CONTACT_PHONE_SECOND_CANONICAL,
+    resolve_contact_email,
+    resolve_contact_phone,
+)
+
 # Email addresses
 DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="noreply@zorivaha.ru")
-CONTACT_EMAIL = config("CONTACT_EMAIL", default="zorivaha@mail.ru")
-CONTACT_PHONE = config("CONTACT_PHONE", default="+7 (346) 628-70-03")
-CONTACT_PHONE_SECOND = config("CONTACT_PHONE_SECOND", default="+7 (995) 097-30-59")
+CONTACT_EMAIL = resolve_contact_email(
+    config("CONTACT_EMAIL", default=CONTACT_EMAIL_CANONICAL)
+)
+CONTACT_PHONE = resolve_contact_phone(
+    config("CONTACT_PHONE", default=CONTACT_PHONE_CANONICAL),
+    primary=True,
+)
+CONTACT_PHONE_SECOND = resolve_contact_phone(
+    config("CONTACT_PHONE_SECOND", default=CONTACT_PHONE_SECOND_CANONICAL),
+    primary=False,
+)
 EMAIL_USE_SSL     = config("EMAIL_USE_SSL",     default=False, cast=bool)
 EMAIL_HOST_USER   = config("EMAIL_HOST_USER",   default="")
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
