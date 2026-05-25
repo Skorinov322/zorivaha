@@ -166,7 +166,19 @@
               {% endif %}
             {% endwith %}
             <span class="img-badge img-badge-cat">{{ cat.name }}</span>
-            {% if cat.room_count > 0 %}
+            {% if is_filtered %}
+              {% if cat.available_rooms_for_dates > 0 %}
+              <span class="avail-badge avail-free">
+                <span class="avail-dot avail-dot-free" aria-hidden="true"></span>
+                Свободно {{ cat.available_rooms_for_dates }}
+              </span>
+              {% else %}
+              <span class="avail-badge avail-busy">
+                <span class="avail-dot avail-dot-busy" aria-hidden="true"></span>
+                Занято
+              </span>
+              {% endif %}
+            {% elif cat.room_count > 0 %}
             <span class="avail-badge avail-free">
               <span class="avail-dot avail-dot-free" aria-hidden="true"></span>
               Свободно {{ cat.room_count }}

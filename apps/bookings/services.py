@@ -87,14 +87,11 @@ def create_booking(
                 f"В номере {room.full_number} недостаточно свободных мест на выбранные даты."
             )
     else:
-        from apps.hotel.models import Room
+        from apps.hotel.selectors import get_bookable_rooms
         room = next(
             (
                 candidate
-                for candidate in Room.objects.select_for_update().filter(
-                    category=room_category,
-                    status=Room.RoomStatus.AVAILABLE,
-                ).order_by("-max_guests_per_room", "floor", "number", "subdivision")
+                for candidate in get_bookable_rooms(room_category.pk).select_for_update()
                 if candidate.has_capacity_for(check_in, check_out, total_persons)
             ),
             None,
@@ -200,7 +197,7 @@ def create_booking_group(
     Создаёт N броней в одной транзакции, связанных общим group_id.
     ...
     """
-    from apps.hotel.selectors import get_available_rooms_for_group, get_alternative_categories
+    from apps.hotel.selectors import get_alternative_categories, get_bookable_rooms
     from apps.bookings.price_calculator import PriceCalculator, calculate_paid_persons
     from apps.content.models import SiteContent
     from apps.hotel.models import Room as RoomModel
@@ -208,10 +205,7 @@ def create_booking_group(
     total_persons = adults + children
 
     # Получаем все доступные номера с блокировкой строк
-    all_available = RoomModel.objects.select_for_update().filter(
-        category=room_category,
-        status=RoomModel.RoomStatus.AVAILABLE,
-    ).order_by("-max_guests_per_room", "floor", "number", "subdivision")
+    all_available = get_bookable_rooms(room_category.pk).select_for_update()
 
     # Фильтруем по доступности дат
     date_available = []

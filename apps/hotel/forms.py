@@ -44,6 +44,14 @@ class AvailabilitySearchForm(forms.Form):
         widget=forms.NumberInput(attrs={'class': 'form-control'})
     )
 
+    def clean(self):
+        cleaned = super().clean()
+        check_in = cleaned.get("check_in")
+        check_out = cleaned.get("check_out")
+        if check_in and check_out and check_out <= check_in:
+            raise forms.ValidationError(_("Дата выезда должна быть позже даты заезда."))
+        return cleaned
+
 
 class ContactForm(forms.Form):
     """Форма обратной связи на странице контактов"""

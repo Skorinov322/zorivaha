@@ -295,9 +295,10 @@ class BookingCreateForm(forms.Form):
 
         if check_in and check_out and category:
             total_persons = (cleaned.get("adults") or 0) + (cleaned.get("children") or 0)
+            from apps.hotel.selectors import get_bookable_rooms
             available_capacity = sum(
                 room.available_capacity(check_in, check_out)
-                for room in Room.objects.filter(category=category, status=Room.RoomStatus.AVAILABLE)
+                for room in get_bookable_rooms(category.pk)
             )
             if available_capacity <= 0:
                 self.add_error(

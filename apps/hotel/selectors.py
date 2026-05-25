@@ -10,6 +10,47 @@ from django.db.models import QuerySet, Prefetch, Count, Q
 from .models import RoomCategory, Room, Amenity, RoomImage
 
 
+NON_BOOKABLE_ROOM_STATUSES = (
+    Room.RoomStatus.MAINTENANCE,
+    Room.RoomStatus.BLOCKED,
+    Room.RoomStatus.CLEANING,
+)
+
+
+def get_bookable_rooms(category_id: Optional[int] = None) -> QuerySet:
+    """Physical rooms that can be booked (ignore current occupied flag)."""
+    qs = Room.objects.exclude(status__in=NON_BOOKABLE_ROOM_STATUSES)
+    if category_id is not None:
+        qs = qs.filter(category_id=category_id)
+    return qs.order_by("floor", "number", "subdivision")
+
+
+def count_available_rooms_for_category(
+    category_id: int,
+    check_in: date,
+    check_out: date,
+    guests: int = 1,
+) -> int:
+    """How many rooms in the category can host guests on the given dates."""
+    return sum(
+        1
+        for room in get_bookable_rooms(category_id)
+        if room.has_capacity_for(check_in, check_out, guests)
+    )
+
+
+def get_category_free_capacity(
+    category_id: int,
+    check_in: date,
+    check_out: date,
+) -> int:
+    """Total free guest places in the category for the given period."""
+    return sum(
+        room.available_capacity(check_in, check_out)
+        for room in get_bookable_rooms(category_id)
+    )
+
+
 # ---------------------------------------------------------------------------
 # Public selectors
 # ---------------------------------------------------------------------------
@@ -26,7 +67,10 @@ def get_active_room_categories() -> QuerySet:
                 to_attr="primary_images",
             ),
         )
-        .annotate(room_count=Count("rooms", filter=Q(rooms__status="available")))
+        .annotate(room_count=Count(
+            "rooms",
+            filter=~Q(rooms__status__in=NON_BOOKABLE_ROOM_STATUSES),
+        ))
         .order_by("sort_order", "name")
     )
 
@@ -66,7 +110,10 @@ def get_room_category_by_slug(slug: str) -> RoomCategory:
             ),
         )
         .annotate(
-            available_rooms=Count("rooms", filter=Q(rooms__status="available")),
+            available_rooms=Count(
+                "rooms",
+                filter=~Q(rooms__status__in=NON_BOOKABLE_ROOM_STATUSES),
+            ),
             total_rooms=Count("rooms"),
         ),
         slug=slug,
@@ -75,20 +122,11 @@ def get_room_category_by_slug(slug: str) -> RoomCategory:
 
 
 def get_available_categories(check_in: date, check_out: date, guests: int = 1) -> QuerySet:
-    """Categories with at least one free room for the given period."""
-    from apps.bookings.models import Booking, BookingStatus
-
+    """Categories with enough free capacity for the given period."""
     available_category_ids = []
-    
-    # Check each category for availability
+
     for category in RoomCategory.objects.filter(is_active=True):
-        rooms = Room.objects.filter(
-            category=category,
-            status=Room.RoomStatus.AVAILABLE,
-        )
-        
-        available_capacity = sum(room.available_capacity(check_in, check_out) for room in rooms)
-        if available_capacity >= guests:
+        if get_category_free_capacity(category.id, check_in, check_out) >= guests:
             available_category_ids.append(category.id)
 
     return (
@@ -183,10 +221,7 @@ def get_available_room_for_category(
     from apps.bookings.models import Booking, BookingStatus
 
     # Get all rooms for this category
-    rooms = Room.objects.filter(
-        category_id=category_id,
-        status=Room.RoomStatus.AVAILABLE,
-    ).order_by("-max_guests_per_room", "number", "subdivision")
+    rooms = get_bookable_rooms(category_id).order_by("-max_guests_per_room", "number", "subdivision")
 
     for room in rooms:
         if room.has_capacity_for(check_in, check_out, guests):
@@ -202,10 +237,7 @@ def get_available_rooms_for_category(
     from apps.bookings.models import Booking, BookingStatus
 
     available_rooms = []
-    rooms = Room.objects.filter(
-        category_id=category_id,
-        status=Room.RoomStatus.AVAILABLE,
-    ).order_by("number", "subdivision")
+    rooms = get_bookable_rooms(category_id).order_by("number", "subdivision")
 
     for room in rooms:
         if room.has_availability(check_in, check_out):
@@ -244,7 +276,8 @@ def get_available_rooms_for_group(
     """
     rooms = Room.objects.select_for_update().filter(
         category_id=category_id,
-        status=Room.RoomStatus.AVAILABLE,
+    ).exclude(
+        status__in=NON_BOOKABLE_ROOM_STATUSES,
     ).order_by("floor", "number", "subdivision")
 
     available = []
@@ -274,10 +307,7 @@ def get_alternative_categories(
         is_active=True,
     ).exclude(id=exclude_category_id):
         # Получаем все доступные номера категории
-        rooms = Room.objects.filter(
-            category=category,
-            status=Room.RoomStatus.AVAILABLE,
-        ).order_by("floor", "number", "subdivision")
+        rooms = get_bookable_rooms(category.id)
 
         # Считаем сколько персон можно разместить
         total_capacity = 0

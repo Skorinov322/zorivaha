@@ -27,10 +27,8 @@ def rooms_for_category(request):
             check_in = datetime.strptime(check_in_str, "%Y-%m-%d").date()
             check_out = datetime.strptime(check_out_str, "%Y-%m-%d").date()
 
-        rooms = Room.objects.filter(
-            category_id=category_id,
-            status=Room.RoomStatus.AVAILABLE,
-        ).order_by("floor", "number", "subdivision")
+        from apps.hotel.selectors import get_bookable_rooms
+        rooms = get_bookable_rooms(int(category_id))
 
         room_list = []
         for room in rooms:

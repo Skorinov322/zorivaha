@@ -43,6 +43,7 @@ from .models import RoomCategory, Room, RoomImage
 from .selectors import (
     get_active_room_categories,
     get_available_categories,
+    count_available_rooms_for_category,
     get_featured_room_categories,
     get_room_category_by_slug,
     get_all_room_categories_for_staff,
@@ -150,26 +151,33 @@ class IndexView(TemplateView):
 class RoomListView(ListView):
     """
     Public room catalog.
-    If search params are valid → show only available categories.
-    Otherwise → show all active categories.
+    When search params are valid, availability badges are calculated from
+    overlapping bookings for the selected dates.
     """
     template_name        = "hotel/room_list.html"
     context_object_name  = "categories"
 
     def get_queryset(self):
         self._search_form = AvailabilitySearchForm(self.request.GET or None)
-        if self._search_form.is_valid():
-            d = self._search_form.cleaned_data
-            return get_available_categories(d["check_in"], d["check_out"], d["guests"])
         return get_active_room_categories()
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx["search_form"]    = self._search_form
-        ctx["is_filtered"]    = self._search_form.is_valid()
-        ctx["category_stats"] = {
-            c.slug: c for c in get_active_room_categories()
-        }
+        ctx["search_form"] = self._search_form
+        ctx["is_filtered"] = self._search_form.is_valid()
+
+        if self._search_form.is_valid():
+            d = self._search_form.cleaned_data
+            categories = list(ctx["categories"])
+            for cat in categories:
+                cat.available_rooms_for_dates = count_available_rooms_for_category(
+                    cat.pk,
+                    d["check_in"],
+                    d["check_out"],
+                    d["guests"],
+                )
+            ctx["categories"] = categories
+
         return ctx
 
 
