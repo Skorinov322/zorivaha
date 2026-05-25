@@ -293,19 +293,6 @@ class ContactsView(FormView):
             message=d["message"],
         )
 
-        # Отправляем email с обратной связью
-        try:
-            self._send_contact_email(d)
-            messages.success(
-                self.request,
-                "Спасибо за ваше сообщение! Мы ответим в ближайшее время."
-            )
-        except Exception:
-            messages.error(
-                self.request,
-                "Произошла ошибка при отправке сообщения. Попробуйте позже или свяжитесь с нами по телефону."
-            )
-
         # Уведомляем персонал через in-app уведомления
         try:
             from apps.notifications.models import notify_staff_contact_form
@@ -319,6 +306,21 @@ class ContactsView(FormView):
             )
         except Exception:
             pass
+
+        # Email — дополнительный канал; сбой не должен пугать гостя
+        try:
+            self._send_contact_email(d)
+        except Exception:
+            import logging
+            logging.getLogger(__name__).exception(
+                "Contact form saved (id=%s) but notification email failed",
+                contact_msg.pk,
+            )
+
+        messages.success(
+            self.request,
+            "Спасибо за ваше сообщение! Мы ответим в ближайшее время.",
+        )
 
         return super().form_valid(form)
     
