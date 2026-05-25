@@ -11,6 +11,8 @@ Forms:
 """
 
 from django import forms
+from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
 from django.utils.translation import gettext_lazy as _
 
 from .models import ClientProfile, AdminComment, Interaction, Task, Organization
@@ -138,6 +140,15 @@ class ClientStatusForm(forms.Form):
 # ---------------------------------------------------------------------------
 
 class OrganizationForm(forms.ModelForm):
+    website = forms.CharField(
+        label=_("сайт"),
+        required=False,
+        widget=forms.TextInput(attrs={
+            "class": _C,
+            "placeholder": "https://example.ru",
+        }),
+    )
+
     class Meta:
         model  = Organization
         fields = [
@@ -159,7 +170,6 @@ class OrganizationForm(forms.ModelForm):
             "actual_address":          forms.Textarea(attrs={"class": _C, "rows": 2}),
             "phone":                   forms.TextInput(attrs={"class": _C}),
             "email":                   forms.EmailInput(attrs={"class": _C}),
-            "website":                 forms.URLInput(attrs={"class": _C}),
             "contact_person":          forms.TextInput(attrs={"class": _C}),
             "corporate_discount_pct":  forms.NumberInput(attrs={"class": _C, "step": "0.01"}),
             "credit_limit":            forms.NumberInput(attrs={"class": _C, "step": "0.01"}),
@@ -176,3 +186,31 @@ class OrganizationForm(forms.ModelForm):
             role__in=[UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]
         )
         self.fields["assigned_manager"].required = False
+        for field_name in ("inn", "kpp", "ogrn", "legal_address", "actual_address",
+                           "phone", "email", "contact_person", "notes"):
+            self.fields[field_name].required = False
+        for field_name in ("corporate_discount_pct", "credit_limit", "payment_terms_days"):
+            self.fields[field_name].required = False
+
+    def clean_website(self):
+        website = (self.cleaned_data.get("website") or "").strip()
+        if not website:
+            return ""
+        if not website.startswith(("http://", "https://")):
+            website = f"https://{website}"
+        validator = URLValidator()
+        try:
+            validator(website)
+        except ValidationError:
+            raise forms.ValidationError(_("Введите корректный адрес сайта."))
+        return website
+
+    def clean(self):
+        cleaned = super().clean()
+        if cleaned.get("corporate_discount_pct") in (None, ""):
+            cleaned["corporate_discount_pct"] = 0
+        if cleaned.get("credit_limit") in (None, ""):
+            cleaned["credit_limit"] = 0
+        if cleaned.get("payment_terms_days") in (None, ""):
+            cleaned["payment_terms_days"] = 0
+        return cleaned

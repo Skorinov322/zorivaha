@@ -359,6 +359,46 @@ class Room(TimeStampedModel):
         booked_guests = (booked["adults"] or 0) + (booked["children"] or 0)
         return max(self.max_guests_per_room - booked_guests, 0)
 
+    def get_checked_in_guest_count(self) -> int:
+        """Guests currently checked in to this physical room."""
+        from apps.bookings.models import BookingStatus
+
+        totals = self.bookings.filter(status=BookingStatus.CHECKED_IN).aggregate(
+            adults=models.Sum("adults"),
+            children=models.Sum("children"),
+        )
+        return (totals["adults"] or 0) + (totals["children"] or 0)
+
+    def refresh_status(self, save: bool = True) -> str:
+        """Sync operational status with current bookings."""
+        from apps.bookings.models import BookingStatus
+        from django.utils import timezone
+
+        today = timezone.localdate()
+
+        if self.status in (self.RoomStatus.MAINTENANCE, self.RoomStatus.BLOCKED):
+            return self.status
+
+        has_checked_in = self.bookings.filter(status=BookingStatus.CHECKED_IN).exists()
+        has_active_stay = self.bookings.filter(
+            status=BookingStatus.CONFIRMED,
+            check_in__lte=today,
+            check_out__gt=today,
+        ).exists()
+
+        if has_checked_in or has_active_stay:
+            new_status = self.RoomStatus.OCCUPIED
+        elif self.status == self.RoomStatus.CLEANING:
+            new_status = self.RoomStatus.CLEANING
+        else:
+            new_status = self.RoomStatus.AVAILABLE
+
+        if self.status != new_status:
+            self.status = new_status
+            if save:
+                self.save(update_fields=["status", "updated_at"])
+        return self.status
+
     def mark_clean(self):
         from django.utils import timezone
         self.status = self.RoomStatus.AVAILABLE

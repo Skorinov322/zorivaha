@@ -332,7 +332,7 @@ class BookingCreateForm(forms.Form):
                 for field in required_fields:
                     if not cleaned.get(field):
                         field_label = self.fields[field].label
-                        self.add_error(field, _("Это поле обязаостиницано для новой организации."))
+                        self.add_error(field, _("Это поле обязательно для новой организации."))
                 
                 # Check if organization with this name or INN already exists
                 new_org_name = cleaned.get("new_org_name")

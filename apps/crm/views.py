@@ -352,6 +352,7 @@ class OrganizationCreateView(ReceptionistRequiredMixin, View):
             org = create_organization(form.cleaned_data, actor=request.user)
             messages.success(request, f"Организация «{org.name}» создана.")
             return redirect("crm:organization_detail", pk=org.pk)
+        messages.error(request, "Не удалось создать организацию. Проверьте выделенные поля.")
         return render(request, self.template_name, {"form": form, "title": "Новая организация"})
 
 
@@ -394,6 +395,7 @@ class OrganizationUpdateView(ReceptionistRequiredMixin, View):
             update_organization(org, form.cleaned_data, actor=request.user)
             messages.success(request, f"Организация «{org.name}» обновлена.")
             return redirect("crm:organization_detail", pk=pk)
+        messages.error(request, "Не удалось сохранить изменения. Проверьте выделенные поля.")
         return render(request, self.template_name, {
             "form": form, "org": org, "title": f"Редактировать: {org.name}",
         })

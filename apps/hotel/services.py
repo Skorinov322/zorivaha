@@ -111,6 +111,17 @@ def update_room_status(room: Room, new_status: str, actor=None) -> Room:
     return room
 
 
+def sync_all_room_statuses() -> int:
+    """Reconcile stored room statuses with active bookings."""
+    updated = 0
+    for room in Room.objects.all():
+        before = room.status
+        after = room.refresh_status(save=True)
+        if before != after:
+            updated += 1
+    return updated
+
+
 def delete_room(room: Room) -> None:
     """Physical delete — only allowed if room has no active bookings."""
     from apps.bookings.models import Booking, BookingStatus

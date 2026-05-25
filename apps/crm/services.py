@@ -159,7 +159,11 @@ def delete_task(task_id: int, actor=None) -> None:
 
 @transaction.atomic
 def create_organization(cleaned_data: dict, actor=None) -> Organization:
-    return Organization.objects.create(**cleaned_data)
+    data = dict(cleaned_data)
+    if actor is not None:
+        data["created_by_user"] = actor
+        data["is_approved"] = True
+    return Organization.objects.create(**data)
 
 
 @transaction.atomic

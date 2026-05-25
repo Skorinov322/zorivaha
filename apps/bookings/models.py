@@ -337,6 +337,8 @@ class Booking(UUIDModel, TimeStampedModel):
         self.auto_cancel_at = None
         self.save(update_fields=["status", "auto_cancel_at", "updated_at"])
         self._log("Бронь подтверждена.", actor, BookingHistory.Action.CONFIRMED)
+        if self.room_id:
+            self.room.refresh_status()
 
     def cancel(self, reason: str = "", actor=None):
         if not self.can_be_cancelled:
@@ -350,6 +352,8 @@ class Booking(UUIDModel, TimeStampedModel):
             "cancelled_by", "updated_at",
         ])
         self._log(f"Отменено: {reason}", actor, BookingHistory.Action.CANCELLED)
+        if self.room_id:
+            self.room.refresh_status()
 
     def check_in_guest(self, room: Room, actor=None):
         if self.status != BookingStatus.CONFIRMED:
@@ -358,14 +362,7 @@ class Booking(UUIDModel, TimeStampedModel):
         self.room = room
         self.save(update_fields=["status", "room", "updated_at"])
         
-        # Update room status based on occupancy
-        current_occupancy = room.get_current_occupancy_count()
-        if current_occupancy >= room.max_guests_per_room:
-            room.status = Room.RoomStatus.OCCUPIED
-        else:
-            # Room is partially occupied but can still accept more guests
-            room.status = Room.RoomStatus.AVAILABLE
-        room.save(update_fields=["status", "updated_at"])
+        room.refresh_status()
         
         self._log(f"Заселён в номер {room.full_number}.", actor, BookingHistory.Action.CHECKED_IN)
 
@@ -376,14 +373,15 @@ class Booking(UUIDModel, TimeStampedModel):
         self.save(update_fields=["status", "updated_at"])
         
         if self.room:
-            # Check remaining occupancy after checkout
-            remaining_occupancy = self.room.get_current_occupancy_count() - 1  # -1 for current checkout
-            if remaining_occupancy <= 0:
-                self.room.status = Room.RoomStatus.CLEANING
+            room = self.room
+            still_checked_in = room.bookings.filter(
+                status=BookingStatus.CHECKED_IN
+            ).exists()
+            if still_checked_in:
+                room.refresh_status()
             else:
-                # Still has other guests, keep as available for new bookings
-                self.room.status = Room.RoomStatus.AVAILABLE
-            self.room.save(update_fields=["status", "updated_at"])
+                room.status = Room.RoomStatus.CLEANING
+                room.save(update_fields=["status", "updated_at"])
             
         self._log("Гость выселился.", actor, BookingHistory.Action.CHECKED_OUT)
 
@@ -392,6 +390,8 @@ class Booking(UUIDModel, TimeStampedModel):
             raise ValueError("Только подтверждённые брони можно отметить как незаезд.")
         self.status = BookingStatus.NO_SHOW
         self.save(update_fields=["status", "updated_at"])
+        if self.room_id:
+            self.room.refresh_status()
         self._log("Гость не явился (незаезд).", actor, BookingHistory.Action.NO_SHOW)
 
     def undo_check_in(self, actor=None):
@@ -400,19 +400,13 @@ class Booking(UUIDModel, TimeStampedModel):
             raise ValueError("Отменить заселение можно только для заселённой брони.")
         prev_room = self.room
 
-        # Освобождаем номер перед сменой статуса
-        if prev_room:
-            # После отмены заселения этой брони считаем оставшуюся занятость
-            remaining = prev_room.bookings.filter(
-                status=BookingStatus.CHECKED_IN
-            ).exclude(pk=self.pk).count()
-            if remaining <= 0:
-                prev_room.status = Room.RoomStatus.AVAILABLE
-            prev_room.save(update_fields=["status", "updated_at"])
-
         self.status = BookingStatus.CONFIRMED
         self.room = None
         self.save(update_fields=["status", "room", "updated_at"])
+
+        if prev_room:
+            prev_room.refresh_status()
+
         self._log(
             f"Заселение отменено (номер {prev_room.full_number if prev_room else '—'}).",
             actor,
@@ -430,12 +424,7 @@ class Booking(UUIDModel, TimeStampedModel):
 
         # Возвращаем номер в занятый статус
         room = self.room
-        current_occupancy = room.get_current_occupancy_count()
-        if current_occupancy >= room.max_guests_per_room:
-            room.status = Room.RoomStatus.OCCUPIED
-        else:
-            room.status = Room.RoomStatus.AVAILABLE
-        room.save(update_fields=["status", "updated_at"])
+        room.refresh_status()
 
         self._log(
             f"Выселение отменено, гость возвращён в номер {room.full_number}.",

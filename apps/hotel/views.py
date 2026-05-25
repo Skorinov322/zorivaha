@@ -61,6 +61,7 @@ from .services import (
     update_room,
     update_room_status,
     delete_room,
+    sync_all_room_statuses,
     add_room_image,
     delete_room_image,
 )
@@ -541,6 +542,7 @@ class RoomListStaffView(ReceptionistRequiredMixin, TemplateView):
     template_name = "hotel/staff/room_list.html"
 
     def get_context_data(self, **kwargs):
+        sync_all_room_statuses()
         ctx = super().get_context_data(**kwargs)
         ctx["rooms"] = get_all_rooms_for_staff(
             category_id=self.request.GET.get("category") or None,
