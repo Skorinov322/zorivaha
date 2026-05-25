@@ -2,6 +2,7 @@
 
 from django import forms
 from django.contrib.auth import authenticate, password_validation
+from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _
 
 from .models import User, UserRole
@@ -399,3 +400,81 @@ class RoleAssignForm(forms.Form):
         if role not in valid:
             raise forms.ValidationError(_("Недопустимая роль."))
         return role
+
+
+# ---------------------------------------------------------------------------
+# GuestOrganizationForm
+# ---------------------------------------------------------------------------
+
+_guest_phone_validator = RegexValidator(
+    regex=r"^\+?[\d\s\-\(\)]{7,20}$",
+    message=_("Введите корректный номер телефона."),
+)
+
+_INP = "form-control"
+
+
+class GuestOrganizationForm(forms.Form):
+    """Organization creation form for guest personal cabinet."""
+
+    name = forms.CharField(
+        label=_("Название организации"),
+        max_length=255,
+        widget=forms.TextInput(attrs={"class": _INP, "placeholder": "ООО «Название компании»"}),
+    )
+    inn = forms.CharField(
+        label=_("ИНН"),
+        max_length=12,
+        widget=forms.TextInput(attrs={"class": _INP, "placeholder": "1234567890"}),
+        validators=[RegexValidator(
+            regex=r"^\d{10}$|^\d{12}$",
+            message=_("ИНН должен содержать 10 или 12 цифр"),
+        )],
+    )
+    kpp = forms.CharField(
+        label=_("КПП"),
+        max_length=9,
+        required=False,
+        widget=forms.TextInput(attrs={"class": _INP, "placeholder": "123456789"}),
+        validators=[RegexValidator(
+            regex=r"^\d{9}$",
+            message=_("КПП должен содержать 9 цифр"),
+        )],
+    )
+    legal_address = forms.CharField(
+        label=_("Юридический адрес"),
+        widget=forms.Textarea(attrs={"class": _INP, "rows": 2}),
+    )
+    contact_person = forms.CharField(
+        label=_("Контактное лицо"),
+        max_length=200,
+        widget=forms.TextInput(attrs={"class": _INP, "placeholder": "Иванов Иван Иванович"}),
+    )
+    phone = forms.CharField(
+        label=_("Телефон"),
+        max_length=20,
+        required=False,
+        validators=[_guest_phone_validator],
+        widget=forms.TextInput(attrs={
+            "class": _INP,
+            "placeholder": "+7 (___) ___-__-__",
+            "type": "tel",
+        }),
+    )
+    email = forms.EmailField(
+        label=_("Email"),
+        required=False,
+        widget=forms.EmailInput(attrs={"class": _INP, "placeholder": "info@company.ru"}),
+    )
+
+    def clean(self):
+        cleaned = super().clean()
+        from apps.crm.models import Organization
+
+        name = cleaned.get("name")
+        inn = cleaned.get("inn")
+        if name and Organization.objects.filter(name=name).exists():
+            self.add_error("name", _("Организация с таким названием уже существует."))
+        if inn and Organization.objects.filter(inn=inn).exists():
+            self.add_error("inn", _("Организация с таким ИНН уже существует."))
+        return cleaned

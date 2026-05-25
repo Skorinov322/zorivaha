@@ -36,6 +36,7 @@ from .forms import (
     ProfileUpdateForm,
     AvatarUploadForm,
     CabinetPasswordChangeForm,
+    GuestOrganizationForm,
 )
 from .selectors import get_user_booking_stats, get_user_crm_profile, get_user_stay_history
 from .services import update_profile
@@ -405,6 +406,42 @@ class MyOrganizationsView(LoginRequiredMixin, ListView):
         return Organization.objects.filter(
             created_by_user=self.request.user
         ).order_by('-created_at')
+
+
+class MyOrganizationCreateView(LoginRequiredMixin, View):
+    """Создание организации в личном кабинете."""
+
+    template_name = "accounts/organization_form.html"
+    login_url     = "/auth/login/"
+
+    def dispatch(self, request, *args, **kwargs):
+        redir = _redirect_staff_from_cabinet(request)
+        if redir:
+            return redir
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request):
+        return render(request, self.template_name, {
+            "form": GuestOrganizationForm(),
+            "title": "Новая организация",
+        })
+
+    def post(self, request):
+        from apps.crm.services import create_user_organization
+
+        form = GuestOrganizationForm(request.POST)
+        if form.is_valid():
+            org = create_user_organization(request.user, form.cleaned_data)
+            messages.success(
+                request,
+                f"Организация «{org.name}» создана и отправлена на модерацию.",
+            )
+            return redirect("accounts:my_organizations")
+        messages.error(request, "Не удалось создать организацию. Проверьте выделенные поля.")
+        return render(request, self.template_name, {
+            "form": form,
+            "title": "Новая организация",
+        })
 
 
 # ---------------------------------------------------------------------------

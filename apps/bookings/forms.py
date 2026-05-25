@@ -125,84 +125,16 @@ class BookingCreateForm(forms.Form):
         error_messages={"required": _("Необходимо согласиться с политикой проживания.")},
     )
 
-    # ---- Organization selection (existing) ----
+    # ---- Organization selection (user's own) ----
     organization = forms.ModelChoiceField(
         label=_("Выберите организацию"),
-        queryset=Organization.objects.filter(is_active=True, is_approved=True).order_by("name"),
+        queryset=Organization.objects.none(),
         required=False,
         widget=forms.Select(attrs={"class": _SELECT}),
         empty_label=_("— Выберите организацию —"),
-        help_text=_("Выберите из существующих организаций"),
+        help_text=_("Доступны только ваши подтверждённые организации из профиля"),
     )
 
-    # ---- New organization fields ----
-    create_new_organization = forms.BooleanField(
-        label=_("Создать новую организацию"),
-        required=False,
-        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
-    )
-    
-    new_org_name = forms.CharField(
-        label=_("Название организации"),
-        max_length=255,
-        required=False,
-        widget=forms.TextInput(attrs={"class": _INPUT, "placeholder": "ООО «Название компании»"}),
-    )
-    
-    new_org_inn = forms.CharField(
-        label=_("ИНН"),
-        max_length=12,
-        required=False,
-        widget=forms.TextInput(attrs={"class": _INPUT, "placeholder": "1234567890"}),
-        validators=[RegexValidator(
-            regex=r'^\d{10}$|^\d{12}$',
-            message=_("ИНН должен содержать 10 или 12 цифр")
-        )],
-    )
-    
-    new_org_kpp = forms.CharField(
-        label=_("КПП"),
-        max_length=9,
-        required=False,
-        widget=forms.TextInput(attrs={"class": _INPUT, "placeholder": "123456789"}),
-        validators=[RegexValidator(
-            regex=r'^\d{9}$',
-            message=_("КПП должен содержать 9 цифр")
-        )],
-    )
-    
-    new_org_legal_address = forms.CharField(
-        label=_("Юридический адрес"),
-        required=False,
-        widget=forms.Textarea(attrs={"class": _INPUT, "rows": 2, "placeholder": "г. Москва, ул. Примерная, д. 1"}),
-    )
-    
-    new_org_phone = forms.CharField(
-        label=_("Телефон организации"),
-        max_length=20,
-        required=False,
-        validators=[phone_validator],
-        widget=forms.TextInput(attrs={
-            "class": _INPUT, 
-            "placeholder": "+7 (___) ___-__-__",
-            "type": "tel",
-            "data-mask": "+7 (000) 000-00-00",
-            "data-mask-placeholder": "_"
-        }),
-    )
-    
-    new_org_email = forms.EmailField(
-        label=_("Email организации"),
-        required=False,
-        widget=forms.EmailInput(attrs={"class": _INPUT, "placeholder": "info@company.ru"}),
-    )
-    
-    new_org_contact_person = forms.CharField(
-        label=_("Контактное лицо"),
-        max_length=200,
-        required=False,
-        widget=forms.TextInput(attrs={"class": _INPUT, "placeholder": "Иванов Иван Иванович"}),
-    )
     arrival_time = forms.TimeField(
         label=_("Примерное время прибытия"), required=False,
         widget=forms.TimeInput(attrs={"class": _INPUT, "type": "time"}),
@@ -221,6 +153,14 @@ class BookingCreateForm(forms.Form):
 
     def __init__(self, *args, user=None, category_id=None, **kwargs):
         super().__init__(*args, **kwargs)
+        self._user = user
+
+        if user:
+            self.fields["organization"].queryset = Organization.objects.filter(
+                created_by_user=user,
+                is_active=True,
+                is_approved=True,
+            ).order_by("name")
 
         # Pre-fill contact fields from user profile
         if user and not self.data:
@@ -285,7 +225,6 @@ class BookingCreateForm(forms.Form):
         category  = cleaned.get("room_category")
         client_type = cleaned.get("client_type")
         organization = cleaned.get("organization")
-        create_new_org = cleaned.get("create_new_organization")
 
         if check_in and check_out:
             if check_out <= check_in:
@@ -324,31 +263,25 @@ class BookingCreateForm(forms.Form):
         if arrival_time and arrival_time.hour < 12:
             cleaned["early_check_in"] = True
 
-        # Validate organization fields
+        # Validate organization selection
         if client_type == "organization":
-            if create_new_org:
-                # Validate new organization fields
-                required_fields = ["new_org_name", "new_org_inn", "new_org_legal_address", "new_org_contact_person"]
-                for field in required_fields:
-                    if not cleaned.get(field):
-                        field_label = self.fields[field].label
-                        self.add_error(field, _("Это поле обязательно для новой организации."))
-                
-                # Check if organization with this name or INN already exists
-                new_org_name = cleaned.get("new_org_name")
-                new_org_inn = cleaned.get("new_org_inn")
-                
-                if new_org_name and Organization.objects.filter(name=new_org_name).exists():
-                    self.add_error("new_org_name", _("Организация с таким названием уже существует."))
-                
-                if new_org_inn and Organization.objects.filter(inn=new_org_inn).exists():
-                    self.add_error("new_org_inn", _("Организация с таким ИНН уже существует."))
-            else:
-                # Must select existing organization
-                if not organization:
-                    self.add_error("organization", _("Выберите организацию или создайте новую."))
+            if not organization:
+                self.add_error(
+                    "organization",
+                    _("Выберите организацию из профиля или добавьте новую в разделе «Мои организации»."),
+                )
+            elif self._user and organization.created_by_user_id != self._user.id:
+                self.add_error("organization", _("Вы можете использовать только свои организации."))
 
         return cleaned
+
+
+    def clean_organization(self):
+        organization = self.cleaned_data.get("organization")
+        user = getattr(self, "_user", None)
+        if organization and user and organization.created_by_user_id != user.id:
+            raise forms.ValidationError(_("Вы можете использовать только свои организации."))
+        return organization
 
 
 # ---------------------------------------------------------------------------

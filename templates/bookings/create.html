@@ -286,16 +286,6 @@
         <div class="col-12" id="organizationSection" style="display: none;">
           <div class="row g-3">
             <div class="col-12">
-              <div class="form-check">
-                {{ form.create_new_organization }}
-                <label class="form-check-label" for="{{ form.create_new_organization.id_for_label }}">
-                  {{ form.create_new_organization.label }}
-                </label>
-              </div>
-            </div>
-            
-            <!-- Existing organization selection -->
-            <div class="col-12" id="existingOrgSection">
               <label class="form-label">{{ form.organization.label }}</label>
               {{ form.organization }}
               <div style="font-size:.75rem;color:rgba(13,13,13,.4);margin-top:.3rem">{{ form.organization.help_text }}</div>
@@ -303,76 +293,20 @@
                 <div class="invalid-feedback d-block">{{ error }}</div>
               {% endfor %}
             </div>
-            
-            <!-- New organization form -->
-            <div id="newOrgSection" style="display: none;">
-              <div class="row g-3">
-                <div class="col-12">
-                  <div style="background: rgba(255, 142, 60, 0.1); border: 1px solid rgba(255, 142, 60, 0.3); border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
-                    <h6 style="color: #ff8e3c; margin: 0 0 0.5rem 0;">
-                      <i class="bi bi-info-circle me-2"></i>Создание новой организации
-                    </h6>
-                    <p style="font-size: 0.875rem; margin: 0; color: rgba(13, 13, 13, 0.7);">
-                      Заполните данные организации. После отправки заявки администратор проверит и подтвердит организацию.
-                    </p>
-                  </div>
-                </div>
-                
-                <div class="col-md-8">
-                  <label class="form-label">{{ form.new_org_name.label }} <span class="required-star">*</span></label>
-                  {{ form.new_org_name }}
-                  {% for error in form.new_org_name.errors %}
-                    <div class="invalid-feedback d-block">{{ error }}</div>
-                  {% endfor %}
-                </div>
-                
-                <div class="col-md-4">
-                  <label class="form-label">{{ form.new_org_inn.label }} <span class="required-star">*</span></label>
-                  {{ form.new_org_inn }}
-                  {% for error in form.new_org_inn.errors %}
-                    <div class="invalid-feedback d-block">{{ error }}</div>
-                  {% endfor %}
-                </div>
-                
-                <div class="col-md-6">
-                  <label class="form-label">{{ form.new_org_kpp.label }}</label>
-                  {{ form.new_org_kpp }}
-                  {% for error in form.new_org_kpp.errors %}
-                    <div class="invalid-feedback d-block">{{ error }}</div>
-                  {% endfor %}
-                </div>
-                
-                <div class="col-md-6">
-                  <label class="form-label">{{ form.new_org_contact_person.label }} <span class="required-star">*</span></label>
-                  {{ form.new_org_contact_person }}
-                  {% for error in form.new_org_contact_person.errors %}
-                    <div class="invalid-feedback d-block">{{ error }}</div>
-                  {% endfor %}
-                </div>
-                
-                <div class="col-12">
-                  <label class="form-label">{{ form.new_org_legal_address.label }} <span class="required-star">*</span></label>
-                  {{ form.new_org_legal_address }}
-                  {% for error in form.new_org_legal_address.errors %}
-                    <div class="invalid-feedback d-block">{{ error }}</div>
-                  {% endfor %}
-                </div>
-                
-                <div class="col-md-6">
-                  <label class="form-label">{{ form.new_org_phone.label }}</label>
-                  {{ form.new_org_phone }}
-                  {% for error in form.new_org_phone.errors %}
-                    <div class="invalid-feedback d-block">{{ error }}</div>
-                  {% endfor %}
-                </div>
-                
-                <div class="col-md-6">
-                  <label class="form-label">{{ form.new_org_email.label }}</label>
-                  {{ form.new_org_email }}
-                  {% for error in form.new_org_email.errors %}
-                    <div class="invalid-feedback d-block">{{ error }}</div>
-                  {% endfor %}
-                </div>
+
+            <div class="col-12" id="organizationProfileHint">
+              <div style="background: rgba(255, 142, 60, 0.08); border: 1px solid rgba(255, 142, 60, 0.25);
+                          border-radius: 8px; padding: .85rem 1rem; font-size: .875rem; color: rgba(13,13,13,.7);">
+                <i class="bi bi-building me-1" style="color:#ff8e3c"></i>
+                Организации создаются в
+                <a href="{% url 'accounts:my_organizations' %}" style="color:#ff8e3c;font-weight:600">личном кабинете</a>.
+                {% if user_has_pending_orgs and not user_has_approved_orgs %}
+                  У вас есть организация на модерации — дождитесь подтверждения администратором.
+                {% elif not user_has_approved_orgs %}
+                  <a href="{% url 'accounts:organization_create' %}" style="color:#ff8e3c;font-weight:600">Добавить организацию</a>
+                {% else %}
+                  <a href="{% url 'accounts:organization_create' %}" style="color:#ff8e3c;font-weight:600">Добавить ещё одну</a>
+                {% endif %}
               </div>
             </div>
           </div>
@@ -646,54 +580,29 @@ document.addEventListener('DOMContentLoaded', () => {
     updateEarlyCheckin(earlyInput.value === 'on');
   }
 
-  // Client type and organization management
+  // Client type and organization section
   function toggleOrganizationSection() {
     const clientTypeRadios = document.querySelectorAll('input[name="client_type"]');
     const organizationSection = document.getElementById('organizationSection');
-    
+
     let selectedType = 'individual';
     clientTypeRadios.forEach(radio => {
       if (radio.checked) {
         selectedType = radio.value;
       }
     });
-    
-    if (selectedType === 'organization') {
-      organizationSection.style.display = 'block';
-    } else {
-      organizationSection.style.display = 'none';
+
+    if (organizationSection) {
+      organizationSection.style.display = selectedType === 'organization' ? 'block' : 'none';
     }
   }
 
-  function toggleNewOrgSection() {
-    const createNewCheckbox = document.getElementById('id_create_new_organization');
-    const existingOrgSection = document.getElementById('existingOrgSection');
-    const newOrgSection = document.getElementById('newOrgSection');
-    
-    if (createNewCheckbox && createNewCheckbox.checked) {
-      existingOrgSection.style.display = 'none';
-      newOrgSection.style.display = 'block';
-    } else {
-      existingOrgSection.style.display = 'block';
-      newOrgSection.style.display = 'none';
-    }
-  }
-
-  // Attach listeners for client type
   const clientTypeRadios = document.querySelectorAll('input[name="client_type"]');
   clientTypeRadios.forEach(radio => {
     radio.addEventListener('change', toggleOrganizationSection);
   });
 
-  // Attach listener for create new organization checkbox
-  const createNewCheckbox = document.getElementById('id_create_new_organization');
-  if (createNewCheckbox) {
-    createNewCheckbox.addEventListener('change', toggleNewOrgSection);
-  }
-
-  // Initialize on page load
   toggleOrganizationSection();
-  toggleNewOrgSection();
 });
 </script>
 {% endblock %}

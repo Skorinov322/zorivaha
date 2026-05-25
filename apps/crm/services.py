@@ -159,11 +159,23 @@ def delete_task(task_id: int, actor=None) -> None:
 
 @transaction.atomic
 def create_organization(cleaned_data: dict, actor=None) -> Organization:
+    """Create organization from staff CRM (auto-approved)."""
     data = dict(cleaned_data)
     if actor is not None:
         data["created_by_user"] = actor
         data["is_approved"] = True
     return Organization.objects.create(**data)
+
+
+@transaction.atomic
+def create_user_organization(user, cleaned_data: dict) -> Organization:
+    """Create organization from guest cabinet (pending admin approval)."""
+    return Organization.objects.create(
+        created_by_user=user,
+        is_approved=False,
+        is_active=True,
+        **cleaned_data,
+    )
 
 
 @transaction.atomic

@@ -1,0 +1,87 @@
+{% extends "accounts/base_cabinet.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block cabinet_content %}
+
+<div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
+  <a href="{% url 'accounts:my_organizations' %}"
+     style="color:rgba(13,13,13,.45);text-decoration:none;font-size:.875rem">
+    <i class="bi bi-arrow-left me-1"></i>Мои организации
+  </a>
+</div>
+
+<h1 class="cabinet-page-title">{{ title }}</h1>
+<p class="cabinet-page-subtitle">Данные будут проверены администратором перед использованием в бронировании</p>
+
+{% if form.errors %}
+<div style="background:rgba(220,53,69,.08);border:1px solid rgba(220,53,69,.2);
+            border-radius:10px;padding:.85rem 1rem;color:#c0392b;font-size:.85rem;margin-bottom:1rem">
+  <strong>Исправьте ошибки в форме:</strong>
+  <ul style="margin:.5rem 0 0;padding-left:1.2rem">
+    {% for field in form %}
+      {% for error in field.errors %}
+        <li>{{ field.label }}: {{ error }}</li>
+      {% endfor %}
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<div class="cabinet-card">
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <div class="row g-3">
+      <div class="col-md-8">
+        <label class="form-label">{{ form.name.label }} *</label>
+        {{ form.name }}
+        {% for e in form.name.errors %}<div style="color:#c0392b;font-size:.8rem">{{ e }}</div>{% endfor %}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">{{ form.inn.label }} *</label>
+        {{ form.inn }}
+        {% for e in form.inn.errors %}<div style="color:#c0392b;font-size:.8rem">{{ e }}</div>{% endfor %}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">{{ form.kpp.label }}</label>
+        {{ form.kpp }}
+        {% for e in form.kpp.errors %}<div style="color:#c0392b;font-size:.8rem">{{ e }}</div>{% endfor %}
+      </div>
+      <div class="col-md-8">
+        <label class="form-label">{{ form.contact_person.label }} *</label>
+        {{ form.contact_person }}
+        {% for e in form.contact_person.errors %}<div style="color:#c0392b;font-size:.8rem">{{ e }}</div>{% endfor %}
+      </div>
+      <div class="col-12">
+        <label class="form-label">{{ form.legal_address.label }} *</label>
+        {{ form.legal_address }}
+        {% for e in form.legal_address.errors %}<div style="color:#c0392b;font-size:.8rem">{{ e }}</div>{% endfor %}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">{{ form.phone.label }}</label>
+        {{ form.phone }}
+        {% for e in form.phone.errors %}<div style="color:#c0392b;font-size:.8rem">{{ e }}</div>{% endfor %}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">{{ form.email.label }}</label>
+        {{ form.email }}
+        {% for e in form.email.errors %}<div style="color:#c0392b;font-size:.8rem">{{ e }}</div>{% endfor %}
+      </div>
+    </div>
+
+    <div style="display:flex;gap:.75rem;margin-top:1.5rem;flex-wrap:wrap">
+      <button type="submit"
+              style="padding:.75rem 1.5rem;background:#ff8e3c;border:none;border-radius:10px;
+                     color:#0d0d0d;font-weight:700;cursor:pointer">
+        Создать организацию
+      </button>
+      <a href="{% url 'accounts:my_organizations' %}"
+         style="padding:.75rem 1.5rem;border:1px solid rgba(13,13,13,.15);border-radius:10px;
+                color:rgba(13,13,13,.6);text-decoration:none;font-size:.9rem">
+        Отмена
+      </a>
+    </div>
+  </form>
+</div>
+
+{% endblock %}

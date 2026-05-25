@@ -68,15 +68,25 @@ class BookingCreateView(LoginRequiredMixin, View):
     def get(self, request):
         category_id = request.GET.get("category")
         form = BookingCreateForm(user=request.user, category_id=category_id)
+        from apps.crm.models import Organization
+        user_orgs = Organization.objects.filter(created_by_user=request.user, is_active=True)
         return render(request, self.template_name, {
             "form": form,
             "category_id": category_id,
+            "user_has_approved_orgs": user_orgs.filter(is_approved=True).exists(),
+            "user_has_pending_orgs": user_orgs.filter(is_approved=False).exists(),
         })
 
     def post(self, request):
         form = BookingCreateForm(request.POST, user=request.user)
         if not form.is_valid():
-            return render(request, self.template_name, {"form": form}, status=400)
+            from apps.crm.models import Organization
+            user_orgs = Organization.objects.filter(created_by_user=request.user, is_active=True)
+            return render(request, self.template_name, {
+                "form": form,
+                "user_has_approved_orgs": user_orgs.filter(is_approved=True).exists(),
+                "user_has_pending_orgs": user_orgs.filter(is_approved=False).exists(),
+            }, status=400)
 
         d = form.cleaned_data
         from apps.accounts.services import update_user_profile_snapshot
@@ -90,29 +100,8 @@ class BookingCreateView(LoginRequiredMixin, View):
             },
             overwrite=True,
         )
-        
-        # Handle organization creation
-        organization = None
-        if d.get("client_type") == "organization":
-            if d.get("create_new_organization"):
-                # Create new organization (pending approval)
-                from apps.crm.models import Organization
-                organization = Organization.objects.create(
-                    name=d["new_org_name"],
-                    inn=d["new_org_inn"],
-                    kpp=d.get("new_org_kpp", ""),
-                    legal_address=d["new_org_legal_address"],
-                    phone=d.get("new_org_phone", ""),
-                    email=d.get("new_org_email", ""),
-                    contact_person=d["new_org_contact_person"],
-                    is_approved=False,  # Requires admin approval
-                    created_by_user=request.user,
-                )
-                messages.info(request, 
-                    _("Организация «{}» создана и отправлена на модерацию администратору.").format(organization.name)
-                )
-            else:
-                organization = d.get("organization")
+
+        organization = d.get("organization") if d.get("client_type") == "organization" else None
         
         total_persons = d["adults"] + d.get("children", 0)
         category = d["room_category"]
@@ -163,10 +152,14 @@ class BookingCreateView(LoginRequiredMixin, View):
                 )
         except BookingUnavailableError as e:
             messages.error(request, str(e))
+            from apps.crm.models import Organization
+            user_orgs = Organization.objects.filter(created_by_user=request.user, is_active=True)
             return render(request, self.template_name, {
                 "form": form,
                 "alternatives": e.alternatives,
                 "contact_phone": e.contact_phone,
+                "user_has_approved_orgs": user_orgs.filter(is_approved=True).exists(),
+                "user_has_pending_orgs": user_orgs.filter(is_approved=False).exists(),
             }, status=400)
 
         if needs_group:
