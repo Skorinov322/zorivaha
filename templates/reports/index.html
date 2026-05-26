@@ -27,11 +27,11 @@
       <form method="get" action="{% url 'reports:bookings_pdf' %}" class="d-flex gap-2 flex-wrap">
         <div style="flex:1;min-width:120px">
           <label class="form-label" style="font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#ff8e3c">С</label>
-          <input type="date" name="start" class="form-control form-control-sm">
+          <input type="date" name="start" class="form-control form-control-sm" value="{% now 'Y-m-d' %}">
         </div>
         <div style="flex:1;min-width:120px">
           <label class="form-label" style="font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#ff8e3c">По</label>
-          <input type="date" name="end" class="form-control form-control-sm">
+          <input type="date" name="end" class="form-control form-control-sm" value="{% now 'Y-m-d' %}">
         </div>
         <div style="align-self:flex-end">
           <button type="submit" class="btn btn-sm"
@@ -125,11 +125,11 @@
       <form method="get" action="{% url 'reports:bookings_excel' %}" class="d-flex gap-2 flex-wrap">
         <div style="flex:1;min-width:120px">
           <label class="form-label" style="font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#ff8e3c">С</label>
-          <input type="date" name="start" class="form-control form-control-sm">
+          <input type="date" name="start" class="form-control form-control-sm" value="{% now 'Y-m-d' %}">
         </div>
         <div style="flex:1;min-width:120px">
           <label class="form-label" style="font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#ff8e3c">По</label>
-          <input type="date" name="end" class="form-control form-control-sm">
+          <input type="date" name="end" class="form-control form-control-sm" value="{% now 'Y-m-d' %}">
         </div>
         <div style="align-self:flex-end">
           <button type="submit" class="btn btn-sm"

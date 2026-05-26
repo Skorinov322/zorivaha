@@ -6,7 +6,7 @@ from datetime import date
 from decimal import Decimal
 from django.db.models import (
     Sum, Count, Avg, Q, F, Max, Min,
-    ExpressionWrapper, DecimalField, FloatField,
+    ExpressionWrapper, IntegerField,
 )
 from django.db.models.functions import TruncMonth, TruncDate
 
@@ -15,12 +15,17 @@ from django.db.models.functions import TruncMonth, TruncDate
 # Bookings
 # ---------------------------------------------------------------------------
 
+def bookings_overlapping_period(start: date, end: date) -> Q:
+    """Bookings whose stay overlaps [start, end] inclusive."""
+    return Q(check_in__lte=end, check_out__gte=start)
+
+
 def get_bookings_report_data(start: date, end: date):
     """Full booking list for the given period."""
     from apps.bookings.models import Booking
     return list(
         Booking.objects
-        .filter(check_in__gte=start, check_out__lte=end)
+        .filter(bookings_overlapping_period(start, end))
         .select_related("guest", "room_category", "room", "organization")
         .order_by("check_in")
     )
@@ -29,7 +34,7 @@ def get_bookings_report_data(start: date, end: date):
 def get_bookings_summary(start: date, end: date) -> dict:
     """Aggregate totals for the bookings PDF header."""
     from apps.bookings.models import Booking, BookingStatus
-    qs = Booking.objects.filter(check_in__gte=start, check_out__lte=end)
+    qs = Booking.objects.filter(bookings_overlapping_period(start, end))
     return qs.aggregate(
         total=Count("id"),
         confirmed=Count("id", filter=Q(status__in=[
@@ -40,7 +45,10 @@ def get_bookings_summary(start: date, end: date) -> dict:
             BookingStatus.CONFIRMED, BookingStatus.CHECKED_IN, BookingStatus.CHECKED_OUT
         ])),
         avg_nights=Avg(
-            ExpressionWrapper(F("check_out") - F("check_in"), output_field=DecimalField())
+            ExpressionWrapper(
+                F("check_out") - F("check_in"),
+                output_field=IntegerField(),
+            )
         ),
     )
 
@@ -83,15 +91,17 @@ def get_occupancy_by_category(start: date, end: date) -> list[dict]:
         Booking.objects
         .filter(
             status__in=[BookingStatus.CONFIRMED, BookingStatus.CHECKED_IN, BookingStatus.CHECKED_OUT],
-            check_in__gte=start,
-            check_out__lte=end,
         )
+        .filter(bookings_overlapping_period(start, end))
         .values("room_category__name")
         .annotate(
             bookings=Count("id"),
             revenue=Sum("total_price"),
             avg_nights=Avg(
-                ExpressionWrapper(F("check_out") - F("check_in"), output_field=DecimalField())
+                ExpressionWrapper(
+                    F("check_out") - F("check_in"),
+                    output_field=IntegerField(),
+                )
             ),
         )
         .order_by("-revenue")
@@ -157,8 +167,8 @@ def get_room_occupancy_report(start: date, end: date) -> list[dict]:
         bookings = list(Booking.objects.filter(
             room=room,
             status__in=[BookingStatus.CONFIRMED, BookingStatus.CHECKED_IN, BookingStatus.CHECKED_OUT],
-            check_in__gte=start,
-            check_out__lte=end,
+            check_in__lte=end,
+            check_out__gte=start,
         ))
         nights = sum(b.nights for b in bookings)
         revenue = sum((b.total_price for b in bookings), Decimal("0"))
@@ -187,8 +197,8 @@ def get_occupancy_summary(start: date, end: date) -> dict:
 
     bookings = list(Booking.objects.filter(
         status__in=[BookingStatus.CONFIRMED, BookingStatus.CHECKED_IN, BookingStatus.CHECKED_OUT],
-        check_in__gte=start,
-        check_out__lte=end,
+        check_in__lte=end,
+        check_out__gte=start,
     ))
 
     total_nights = sum(b.nights for b in bookings)

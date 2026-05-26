@@ -47,6 +47,8 @@ def _parse_date_range(request) -> tuple[date, date]:
     except ValueError:
         start = today.replace(day=1)
         end   = today
+    if start > end:
+        start, end = end, start
     return start, end
 
 

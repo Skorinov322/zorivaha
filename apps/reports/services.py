@@ -106,6 +106,17 @@ def _register_fonts():
 
 
 FONT = _register_fonts()
+def _format_avg_nights(value) -> str:
+    """Format average stay length from DB aggregate (int, float, Decimal, timedelta)."""
+    if value is None:
+        return "—"
+    if hasattr(value, "total_seconds"):
+        days = value.total_seconds() / 86400
+    else:
+        days = float(value)
+    return f"{days:.1f}"
+
+
 def _safe_text(text: str) -> str:
     """
     Ensure text can be displayed in PDF.
@@ -348,8 +359,7 @@ def generate_bookings_pdf(start: date, end: date) -> HttpResponse:
     # ── Summary ──
     elems.append(_header_paragraph("Сводка", styles))
     revenue = summary.get("revenue") or Decimal("0")
-    avg_n   = summary.get("avg_nights")
-    avg_nights_str = f"{float(avg_n):.1f}" if avg_n else "—"
+    avg_nights_str = _format_avg_nights(summary.get("avg_nights"))
     elems.append(_summary_table([
         ("Всего бронирований:",    str(summary.get("total", 0))),
         ("Подтверждённых:",        str(summary.get("confirmed", 0))),
@@ -367,15 +377,15 @@ def generate_bookings_pdf(start: date, end: date) -> HttpResponse:
         rows = []
         for b in bookings:
             rows.append([
-                b.confirmation_number,
-                b.guest_full_name[:28],
-                b.guest_phone,
-                b.room_category.name[:20],
+                b.confirmation_number or "—",
+                (b.guest_full_name or "—")[:28],
+                b.guest_phone or "—",
+                (b.room_category.name if b.room_category else "—")[:20],
                 b.check_in.strftime("%d.%m.%Y"),
                 b.check_out.strftime("%d.%m.%Y"),
                 str(b.nights),
                 b.get_status_display(),
-                f"{float(b.total_price):,.0f}",
+                f"{float(b.total_price or 0):,.0f}",
             ])
 
         col_w = [2.8*cm, 4.5*cm, 3*cm, 3.5*cm, 2.5*cm, 2.5*cm, 1.5*cm, 2.8*cm, 2.5*cm]
@@ -611,11 +621,11 @@ def generate_bookings_excel(start: date, end: date) -> HttpResponse:
 
     for b in bookings:
         ws.append([
-            b.confirmation_number,
-            b.guest_full_name,
-            b.guest_email,
-            b.guest_phone,
-            b.room_category.name,
+            b.confirmation_number or "—",
+            b.guest_full_name or "—",
+            b.guest_email or "—",
+            b.guest_phone or "—",
+            b.room_category.name if b.room_category else "—",
             b.room.number if b.room else "—",
             b.check_in,
             b.check_out,
@@ -624,12 +634,15 @@ def generate_bookings_excel(start: date, end: date) -> HttpResponse:
             b.children,
             b.get_status_display(),
             b.get_payment_status_display(),
-            float(b.total_price),
+            float(b.total_price or 0),
         ])
 
     for col in ws.columns:
-        max_len = max(len(str(cell.value or "")) for cell in col)
-        ws.column_dimensions[get_column_letter(col[0].column)].width = min(max_len + 4, 40)
+        cells = list(col)
+        if not cells:
+            continue
+        max_len = max(len(str(cell.value or "")) for cell in cells)
+        ws.column_dimensions[get_column_letter(cells[0].column)].width = min(max_len + 4, 40)
 
     ws.freeze_panes = "A2"
 
