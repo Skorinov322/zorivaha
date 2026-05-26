@@ -52,41 +52,41 @@ def _hex(h: str):
 def _register_fonts():
     """
     Register fonts with Cyrillic support.
-    Priority: DejaVu Sans > Arial > Helvetica (fallback)
+    Priority: bundled DejaVu > system DejaVu > Arial > Helvetica (fallback)
     """
     try:
         from reportlab.pdfbase import pdfmetrics
         from reportlab.pdfbase.ttfonts import TTFont
         import os
-        
-        # Try to find and register DejaVu Sans (best Cyrillic support)
+        from pathlib import Path
+
+        project_fonts = Path(__file__).resolve().parents[2] / "static" / "fonts"
         dejavu_candidates = [
+            project_fonts / "DejaVuSans.ttf",
             "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
             "/usr/share/fonts/dejavu/DejaVuSans.ttf",
             "/System/Library/Fonts/DejaVuSans.ttf",
             "/usr/local/share/fonts/DejaVuSans.ttf",
         ]
-        
+
         for path in dejavu_candidates:
+            path = str(path)
             if os.path.exists(path):
                 try:
                     pdfmetrics.registerFont(TTFont("DejaVuSans", path))
-                    # Try to register bold variant
                     bold_path = path.replace("DejaVuSans.ttf", "DejaVuSans-Bold.ttf")
                     if os.path.exists(bold_path):
                         pdfmetrics.registerFont(TTFont("DejaVuSans-Bold", bold_path))
-                        return "DejaVuSans"
-                    else:
-                        return "DejaVuSans"
+                        return "DejaVuSans", "DejaVuSans-Bold"
+                    return "DejaVuSans", "DejaVuSans"
                 except Exception:
                     continue
-        
-        # Try Arial (Windows)
+
         arial_candidates = [
             "C:/Windows/Fonts/arial.ttf",
             "C:/Windows/Fonts/Arial.ttf",
         ]
-        
+
         for path in arial_candidates:
             if os.path.exists(path):
                 try:
@@ -94,18 +94,18 @@ def _register_fonts():
                     bold_path = path.replace("arial.ttf", "arialbd.ttf").replace("Arial.ttf", "Arialbd.ttf")
                     if os.path.exists(bold_path):
                         pdfmetrics.registerFont(TTFont("Arial-Bold", bold_path))
-                    return "Arial"
+                        return "Arial", "Arial-Bold"
+                    return "Arial", "Arial"
                 except Exception:
                     continue
-                    
+
     except Exception:
         pass
-    
-    # Fallback to Helvetica (Latin only)
-    return "Helvetica"
+
+    return "Helvetica", "Helvetica-Bold"
 
 
-FONT = _register_fonts()
+FONT, FONT_BOLD = _register_fonts()
 def _format_avg_nights(value) -> str:
     """Format average stay length from DB aggregate (int, float, Decimal, timedelta)."""
     if value is None:
@@ -150,7 +150,20 @@ def _safe_text(text: str) -> str:
     return result
 
 
-FONT_BOLD = FONT + "-Bold" if FONT in ["Helvetica", "DejaVuSans", "Arial"] else FONT
+def _body_paragraph(text: str, styles):
+    """Normal paragraph that supports Cyrillic in PDF output."""
+    from reportlab.platypus import Paragraph
+    from reportlab.lib.styles import ParagraphStyle
+
+    style = ParagraphStyle(
+        "ReportBody",
+        parent=styles["Normal"],
+        fontName=FONT,
+        fontSize=9,
+        leading=12,
+        textColor=_hex(TEXT),
+    )
+    return Paragraph(_safe_text(text), style)
 
 
 def _make_doc(buffer, title: str, landscape_mode: bool = False):
@@ -391,7 +404,7 @@ def generate_bookings_pdf(start: date, end: date) -> HttpResponse:
         col_w = [2.8*cm, 4.5*cm, 3*cm, 3.5*cm, 2.5*cm, 2.5*cm, 1.5*cm, 2.8*cm, 2.5*cm]
         elems.append(_data_table(headers, rows, col_widths=col_w, align_right_cols=[6, 8]))
     else:
-        elems.append(Paragraph("Нет данных за выбранный период.", styles["Normal"]))
+        elems.append(_body_paragraph("Нет данных за выбранный период.", styles))
 
     doc.build(elems, onFirstPage=_page_footer, onLaterPages=_page_footer)
     buffer.seek(0)
@@ -472,7 +485,7 @@ def generate_clients_pdf(
         col_w = [5*cm, 5.5*cm, 3*cm, 2.2*cm, 2.2*cm, 4*cm, 3*cm]
         elems.append(_data_table(headers, rows, col_widths=col_w, align_right_cols=[3, 4, 5]))
     else:
-        elems.append(Paragraph("Нет данных.", styles["Normal"]))
+        elems.append(_body_paragraph("Нет данных.", styles))
 
     doc.build(elems, onFirstPage=_page_footer, onLaterPages=_page_footer)
     buffer.seek(0)
@@ -570,7 +583,7 @@ def generate_occupancy_pdf(start: date, end: date) -> HttpResponse:
         
         elems.append(t)
     else:
-        elems.append(Paragraph("Нет данных за выбранный период.", styles["Normal"]))
+        elems.append(_body_paragraph("Нет данных за выбранный период.", styles))
 
     doc.build(elems, onFirstPage=_page_footer, onLaterPages=_page_footer)
     buffer.seek(0)

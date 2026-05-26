@@ -37,7 +37,7 @@
         <tr>
           <td class="guest-name">{{ row.room_category__name }}</td>
           <td class="text-muted-sm">{{ row.bookings }}</td>
-          <td class="text-muted-sm">{% if row.avg_nights %}{{ row.avg_nights|floatformat:1 }}{% else %}—{% endif %}</td>
+          <td class="text-muted-sm">{% if row.avg_nights is not None %}{{ row.avg_nights|floatformat:1 }}{% else %}—{% endif %}</td>
           <td style="color:#ff8e3c;font-weight:600">{{ row.revenue|floatformat:0 }} ₽</td>
         </tr>
         {% empty %}

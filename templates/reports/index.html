@@ -192,7 +192,7 @@
       <p style="color:rgba(13,13,13,.5);font-size:.85rem;line-height:1.6;margin-bottom:1.25rem">
         Количество броней и выручка по каждой категории номеров за выбранный период.
       </p>
-      <a href="{% url 'reports:occupancy' %}"
+      <a href="{% url 'reports:occupancy' %}?start={% now 'Y-m-d' %}&amp;end={% now 'Y-m-d' %}"
          class="btn btn-sm"
          style="background:rgba(255,193,7,.1);color:#d4a017;border:1px solid rgba(255,193,7,.2);border-radius:8px">
         Открыть отчёт

@@ -6,7 +6,6 @@ from datetime import date
 from decimal import Decimal
 from django.db.models import (
     Sum, Count, Avg, Q, F, Max, Min,
-    ExpressionWrapper, IntegerField,
 )
 from django.db.models.functions import TruncMonth, TruncDate
 
@@ -34,23 +33,27 @@ def get_bookings_report_data(start: date, end: date):
 def get_bookings_summary(start: date, end: date) -> dict:
     """Aggregate totals for the bookings PDF header."""
     from apps.bookings.models import Booking, BookingStatus
+
+    active_statuses = [
+        BookingStatus.CONFIRMED,
+        BookingStatus.CHECKED_IN,
+        BookingStatus.CHECKED_OUT,
+    ]
     qs = Booking.objects.filter(bookings_overlapping_period(start, end))
-    return qs.aggregate(
+    summary = qs.aggregate(
         total=Count("id"),
-        confirmed=Count("id", filter=Q(status__in=[
-            BookingStatus.CONFIRMED, BookingStatus.CHECKED_IN, BookingStatus.CHECKED_OUT
-        ])),
+        confirmed=Count("id", filter=Q(status__in=active_statuses)),
         cancelled=Count("id", filter=Q(status=BookingStatus.CANCELLED)),
-        revenue=Sum("total_price", filter=Q(status__in=[
-            BookingStatus.CONFIRMED, BookingStatus.CHECKED_IN, BookingStatus.CHECKED_OUT
-        ])),
-        avg_nights=Avg(
-            ExpressionWrapper(
-                F("check_out") - F("check_in"),
-                output_field=IntegerField(),
-            )
-        ),
+        revenue=Sum("total_price", filter=Q(status__in=active_statuses)),
     )
+
+    nights = [
+        (booking.check_out - booking.check_in).days
+        for booking in qs.filter(status__in=active_statuses).only("check_in", "check_out")
+        if booking.check_in and booking.check_out
+    ]
+    summary["avg_nights"] = (sum(nights) / len(nights)) if nights else None
+    return summary
 
 
 def get_revenue_by_month(year: int) -> list[dict]:
@@ -86,26 +89,41 @@ def get_revenue_by_month(year: int) -> list[dict]:
 
 def get_occupancy_by_category(start: date, end: date) -> list[dict]:
     """Booking count and revenue per room category for a date range."""
+    from collections import defaultdict
+
     from apps.bookings.models import Booking, BookingStatus
-    return list(
+
+    active_statuses = [
+        BookingStatus.CONFIRMED,
+        BookingStatus.CHECKED_IN,
+        BookingStatus.CHECKED_OUT,
+    ]
+    bookings = (
         Booking.objects
-        .filter(
-            status__in=[BookingStatus.CONFIRMED, BookingStatus.CHECKED_IN, BookingStatus.CHECKED_OUT],
-        )
+        .filter(status__in=active_statuses)
         .filter(bookings_overlapping_period(start, end))
-        .values("room_category__name")
-        .annotate(
-            bookings=Count("id"),
-            revenue=Sum("total_price"),
-            avg_nights=Avg(
-                ExpressionWrapper(
-                    F("check_out") - F("check_in"),
-                    output_field=IntegerField(),
-                )
-            ),
-        )
-        .order_by("-revenue")
+        .select_related("room_category")
     )
+
+    stats = defaultdict(lambda: {"bookings": 0, "revenue": Decimal("0"), "nights_total": 0})
+    for booking in bookings:
+        name = booking.room_category.name if booking.room_category else "—"
+        nights = (booking.check_out - booking.check_in).days
+        bucket = stats[name]
+        bucket["bookings"] += 1
+        bucket["revenue"] += booking.total_price or Decimal("0")
+        bucket["nights_total"] += nights
+
+    rows = [
+        {
+            "room_category__name": name,
+            "bookings": data["bookings"],
+            "revenue": data["revenue"],
+            "avg_nights": data["nights_total"] / data["bookings"] if data["bookings"] else None,
+        }
+        for name, data in stats.items()
+    ]
+    return sorted(rows, key=lambda row: row["revenue"], reverse=True)
 
 
 # ---------------------------------------------------------------------------
